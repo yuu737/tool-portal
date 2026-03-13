@@ -17,6 +17,11 @@ import {
   Minus,
   Target,
   Edit3,
+  Percent,
+  Settings,
+  TrendingUp,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 
 declare global {
@@ -29,257 +34,386 @@ declare global {
 }
 
 type Props = { dict: Dictionary["timerCounter"]; locale: string };
-type Tab = "timer" | "stopwatch" | "counter";
+type Tab = "timer" | "stopwatch" | "counter" | "probability";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-function pad(n: number) {
-  return n.toString().padStart(2, "0");
-}
+function pad(n: number) { return n.toString().padStart(2, "0"); }
 function fmtSec(s: number) {
-  const h = Math.floor(s / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  const sec = s % 60;
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
   return h > 0 ? `${pad(h)}:${pad(m)}:${pad(sec)}` : `${pad(m)}:${pad(sec)}`;
 }
 function fmtMs(ms: number) {
   const t = Math.floor(ms / 1000);
-  const h = Math.floor(t / 3600);
-  const m = Math.floor((t % 3600) / 60);
-  const s = t % 60;
+  const h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s = t % 60;
   const cs = Math.floor((ms % 1000) / 10);
-  return h > 0
-    ? `${pad(h)}:${pad(m)}:${pad(s)}.${pad(cs)}`
-    : `${pad(m)}:${pad(s)}.${pad(cs)}`;
+  return h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}.${pad(cs)}` : `${pad(m)}:${pad(s)}.${pad(cs)}`;
+}
+function fmtRate(r: number) {
+  if (r === 0) return "0.00%";
+  if (r < 0.01) return r.toFixed(4) + "%";
+  return r.toFixed(2) + "%";
+}
+
+// ─── Binomial distribution ────────────────────────────────────────────────────
+function logBinomCoeff(n: number, k: number): number {
+  if (k === 0 || k === n) return 0;
+  if (k > n - k) k = n - k;
+  let r = 0;
+  for (let i = 0; i < k; i++) r += Math.log(n - i) - Math.log(i + 1);
+  return r;
+}
+function binomPdf(n: number, k: number, p: number): number {
+  if (p <= 0) return k === 0 ? 1 : 0;
+  if (p >= 1) return k === n ? 1 : 0;
+  if (k > n || k < 0) return 0;
+  return Math.exp(logBinomCoeff(n, k) + k * Math.log(p) + (n - k) * Math.log(1 - p));
+}
+function calcDistribution(n: number, p: number, rows = 5) {
+  const dist: { k: number; prob: number }[] = [];
+  let cumSum = 0;
+  for (let k = 0; k < rows; k++) {
+    const prob = binomPdf(n, k, p);
+    dist.push({ k, prob });
+    cumSum += prob;
+  }
+  // "rows or more"
+  dist.push({ k: rows, prob: Math.max(0, 1 - cumSum) });
+  return dist;
 }
 
 // ─── Circular Ring SVG ────────────────────────────────────────────────────────
-function Ring({
-  pct,
-  color,
-  size = 240,
-  track = "#e2e8f0",
-  sw = 10,
-}: {
-  pct: number;
-  color: string;
-  size?: number;
-  track?: string;
-  sw?: number;
+function Ring({ pct, color, size = 240, track = "#e2e8f0", sw = 10 }: {
+  pct: number; color: string; size?: number; track?: string; sw?: number;
 }) {
   const r = size / 2 - sw - 2;
   const circ = 2 * Math.PI * r;
   const offset = circ * (1 - Math.min(1, Math.max(0, pct) / 100));
   return (
-    <svg
-      width={size}
-      height={size}
-      style={{ transform: "rotate(-90deg)", display: "block" }}
-      aria-hidden
-    >
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={r}
-        fill="none"
-        stroke={track}
-        strokeWidth={sw}
-      />
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={r}
-        fill="none"
-        stroke={color}
-        strokeWidth={sw + 2}
-        strokeDasharray={circ}
-        strokeDashoffset={offset}
-        strokeLinecap="round"
-        style={{ transition: "stroke-dashoffset 0.4s ease, stroke 0.3s" }}
-      />
+    <svg width={size} height={size} style={{ transform: "rotate(-90deg)", display: "block" }} aria-hidden>
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={track} strokeWidth={sw} />
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color}
+        strokeWidth={sw + 2} strokeDasharray={circ} strokeDashoffset={offset}
+        strokeLinecap="round" style={{ transition: "stroke-dashoffset 0.4s ease, stroke 0.3s" }} />
     </svg>
   );
 }
 
-// ─── PiP View (inline styles + interactive buttons) ───────────────────────────
+// ─── PiP View ─────────────────────────────────────────────────────────────────
 type PipProps = {
-  time: string;
-  count: number;
-  goal: number;
-  tabLabel: string;
-  isRunning: boolean;
-  pct: number;
-  ringColor: string;
-  onPlayPause: () => void;
-  onCounterInc: () => void;
+  time: string; count: number; goal: number; tabLabel: string; tab: Tab;
+  isRunning: boolean; pct: number; ringColor: string;
+  probDrops: number; probAttempts: number; observedPct: number;
+  calcN: number; calcP: number; pAtLeastOne: number;
+  pipShowCounter: boolean; pipShowProbability: boolean;
+  dict: Dictionary["timerCounter"];
+  onPlayPause: () => void; onCounterInc: () => void;
+  onProbDropInc: () => void; onProbAttemptInc: () => void;
+  onTabChange: (t: Tab) => void;
+  onTimerReset: () => void; onSwReset: () => void;
+  onCounterReset: () => void; onProbReset: () => void;
+  onTimerAddTime: (s: number) => void;
+  counterPipSource: "stopwatch" | "timer";
+  onCounterPipSourceChange: (s: "stopwatch" | "timer") => void;
 };
 
 function PipView({
-  time,
-  count,
-  goal,
-  tabLabel,
-  isRunning,
-  pct,
-  ringColor,
-  onPlayPause,
-  onCounterInc,
+  time, count, goal, tabLabel, tab, isRunning, pct, ringColor,
+  probDrops, probAttempts, observedPct, calcN, calcP, pAtLeastOne,
+  pipShowCounter, pipShowProbability, dict,
+  onPlayPause, onCounterInc, onProbDropInc, onProbAttemptInc, onTabChange,
+  onTimerReset, onSwReset, onCounterReset, onProbReset,
+  onTimerAddTime, counterPipSource, onCounterPipSourceChange,
 }: PipProps) {
-  const r = 68;
+  const r = 64;
   const circ = 2 * Math.PI * r;
-  const offset = circ * (1 - Math.min(1, Math.max(0, pct) / 100));
+
   const cPct = goal > 0 ? Math.min(100, Math.round((count / goal) * 100)) : 0;
+  const observedRate = probAttempts > 0 ? probDrops / probAttempts * 100 : 0;
+
+  // 実測ドロップ率を円に直接反映（観測データがある場合は実測率、ない場合はP(≥1)）
+  const hasObservations = probAttempts > 0;
+  const probRingDisplay = hasObservations ? Math.min(100, observedRate) : pAtLeastOne;
+
+  const displayPct = tab === "probability" ? probRingDisplay : pct;
+  const offset = circ * (1 - Math.min(1, Math.max(0, displayPct) / 100));
+
+  // 実測率がある場合は理論値との比較で色を決定
+  const activeColor = tab === "probability"
+    ? hasObservations
+      ? (observedRate >= calcP * 1.5 ? "#22c55e" : observedRate >= calcP * 0.8 ? "#6366f1" : "#f59e0b")
+      : (probRingDisplay >= 95 ? "#22c55e" : probRingDisplay >= 63 ? "#f59e0b" : "#6366f1")
+    : ringColor;
 
   return (
-    <div
-      style={{
-        background: "#0c0f1a",
-        color: "#f1f5f9",
-        fontFamily: "ui-monospace,'Courier New',monospace",
-        height: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 12,
-        padding: "12px 16px 16px",
-        boxSizing: "border-box",
-        userSelect: "none",
-      }}
-    >
-      {/* Ring + time */}
-      <div style={{ position: "relative", width: 156, height: 156, flexShrink: 0 }}>
-        <svg
-          width={156}
-          height={156}
-          style={{ transform: "rotate(-90deg)", display: "block" }}
-        >
-          <circle cx={78} cy={78} r={r} fill="none" stroke="#1e2d45" strokeWidth={9} />
-          <circle
-            cx={78}
-            cy={78}
-            r={r}
-            fill="none"
-            stroke={ringColor}
-            strokeWidth={11}
-            strokeDasharray={circ}
-            strokeDashoffset={offset}
-            strokeLinecap="round"
-            style={{ transition: "stroke-dashoffset 0.4s ease" }}
-          />
+    <div style={{
+      background: "#0c0f1a", color: "#f1f5f9",
+      fontFamily: "ui-monospace,'Courier New',monospace",
+      minHeight: "100vh", display: "flex", flexDirection: "column",
+      alignItems: "center", justifyContent: "center",
+      gap: 10, padding: "12px 12px 16px", boxSizing: "border-box",
+      userSelect: "none",
+    }}>
+      {/* ミニタブバー */}
+      <div style={{ display: "flex", gap: 4, width: "100%" }}>
+        {([
+          { id: "timer" as Tab, icon: "⏱" },
+          { id: "stopwatch" as Tab, icon: "⏲" },
+          { id: "counter" as Tab, icon: "#" },
+          { id: "probability" as Tab, icon: "%" },
+        ]).map(({ id, icon }) => (
+          <button key={id} onClick={() => onTabChange(id)} style={{
+            flex: 1, padding: "5px 2px", borderRadius: 8,
+            background: tab === id ? "#2563eb" : "#1a2332",
+            border: `1px solid ${tab === id ? "#3b82f6" : "#1e2d45"}`,
+            color: tab === id ? "#fff" : "#475569",
+            fontSize: 13, fontWeight: tab === id ? 700 : 400, cursor: "pointer",
+          }}>{icon}</button>
+        ))}
+      </div>
+      {/* Ring */}
+      <div style={{ position: "relative", width: 148, height: 148, flexShrink: 0 }}>
+        <svg width={148} height={148} style={{ transform: "rotate(-90deg)", display: "block" }}>
+          <circle cx={74} cy={74} r={r} fill="none" stroke="#1e2d45" strokeWidth={8} />
+          <circle cx={74} cy={74} r={r} fill="none" stroke={activeColor}
+            strokeWidth={10} strokeDasharray={circ} strokeDashoffset={offset}
+            strokeLinecap="round" style={{ transition: "stroke-dashoffset 0.4s ease" }} />
         </svg>
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 2,
-          }}
-        >
-          <span
-            style={{
-              fontSize: 9,
-              color: "#475569",
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-            }}
-          >
+        <div style={{
+          position: "absolute", inset: 0, display: "flex", flexDirection: "column",
+          alignItems: "center", justifyContent: "center", gap: 2,
+        }}>
+          <span style={{ fontSize: 8, color: "#475569", letterSpacing: "0.1em", textTransform: "uppercase" }}>
             {tabLabel}
           </span>
-          <span
-            style={{
-              fontSize: 28,
-              fontWeight: 800,
-              letterSpacing: "-0.02em",
-              lineHeight: 1,
-            }}
-          >
-            {time}
-          </span>
+          {tab === "probability" ? (
+            <>
+              <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1 }}>
+                {hasObservations ? fmtRate(observedRate) : pAtLeastOne.toFixed(2) + "%"}
+              </span>
+              <span style={{ fontSize: 8, color: "#94a3b8" }}>
+                {hasObservations ? "実測ドロップ率" : "P(≥1)"}
+              </span>
+            </>
+          ) : (
+            <span style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1 }}>
+              {time}
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Counter */}
-      <div
-        style={{
-          fontSize: 20,
-          fontWeight: 700,
-          color: goal > 0 && count >= goal ? "#22c55e" : "#cbd5e1",
-        }}
-      >
-        {count.toLocaleString()}
-        {goal > 0 && (
-          <span style={{ fontSize: 11, color: "#475569", marginLeft: 4 }}>
-            /{goal} ({cPct}%)
-          </span>
-        )}
-      </div>
-
-      {/* Goal bar */}
-      {goal > 0 && (
-        <div
-          style={{
-            width: "80%",
-            height: 4,
-            background: "#1e2d45",
-            borderRadius: 999,
-            overflow: "hidden",
-          }}
-        >
-          <div
-            style={{
-              width: `${cPct}%`,
-              height: "100%",
-              background: cPct >= 100 ? "#22c55e" : "#3b82f6",
-              borderRadius: 999,
-              transition: "width 0.3s",
-            }}
-          />
+      {/* Probability details - 3行: ドロップ数・試行回数・実測ドロップ率 */}
+      {tab === "probability" && (
+        <div style={{
+          width: "100%", background: "#111827", borderRadius: 10,
+          padding: "8px 12px", fontSize: 11, lineHeight: 1.7,
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span style={{ color: "#64748b" }}>{dict.probability.drops}</span>
+            <span style={{ color: "#4ade80", fontWeight: 700 }}>{probDrops.toLocaleString()}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span style={{ color: "#64748b" }}>{dict.probability.attempts}</span>
+            <span style={{ color: "#94a3b8", fontWeight: 700 }}>{probAttempts.toLocaleString()}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span style={{ color: "#64748b" }}>{dict.probability.observedRate}</span>
+            <span style={{ color: "#fbbf24", fontWeight: 700 }}>{fmtRate(observedRate)}</span>
+          </div>
         </div>
       )}
 
-      {/* Controls */}
-      <div style={{ display: "flex", gap: 10 }}>
-        <button
-          onClick={onPlayPause}
-          style={{
-            width: 52,
-            height: 52,
-            borderRadius: "50%",
+      {/* Non-probability main state */}
+      {tab !== "probability" && (
+        <div style={{ textAlign: "center", lineHeight: 1.3 }}>
+          {tab === "counter" && (
+            <>
+              <div style={{ fontSize: 22, fontWeight: 700, color: goal > 0 && count >= goal ? "#22c55e" : "#cbd5e1" }}>
+                {count.toLocaleString()}
+              </div>
+              {goal > 0 && (
+                <div style={{ fontSize: 10, color: "#475569" }}>/ {goal.toLocaleString()} ({cPct}%)</div>
+              )}
+              <div style={{ fontSize: 9, color: "#334155" }}>COUNT</div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* PiP secondary modules */}
+      {tab !== "probability" && pipShowCounter && tab !== "counter" && (
+        <div style={{
+          width: "100%", background: "#111827", borderRadius: 10,
+          padding: "6px 12px", fontSize: 11,
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <span style={{ color: "#64748b", fontSize: 9 }}>COUNT </span>
+              <span style={{ color: "#cbd5e1", fontWeight: 700 }}>{count.toLocaleString()}</span>
+              {goal > 0 && <span style={{ color: "#475569", fontSize: 9 }}> /{goal} ({cPct}%)</span>}
+            </div>
+            <button onClick={onCounterInc} style={{
+              background: "#1e3a5f", border: "1px solid #2563eb", borderRadius: 8,
+              color: "#93c5fd", fontWeight: 800, fontSize: 13, padding: "4px 10px", cursor: "pointer",
+            }}>+1</button>
+          </div>
+        </div>
+      )}
+
+      {tab !== "probability" && pipShowProbability && (
+        <div style={{
+          width: "100%", background: "#111827", borderRadius: 10,
+          padding: "6px 12px", fontSize: 11,
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+            <div>
+              <span style={{ color: "#64748b", fontSize: 9 }}>DROP </span>
+              <span style={{ color: "#4ade80", fontWeight: 700 }}>{probDrops}</span>
+              <span style={{ color: "#334155" }}> / </span>
+              <span style={{ color: "#64748b", fontSize: 9 }}>TRY </span>
+              <span style={{ color: "#94a3b8", fontWeight: 700 }}>{probAttempts}</span>
+            </div>
+            <span style={{ color: "#fbbf24", fontWeight: 700 }}>{fmtRate(observedRate)}</span>
+          </div>
+          <div style={{ display: "flex", gap: 6 }}>
+            <button onClick={onProbDropInc} style={{
+              flex: 1, background: "#14532d", border: "1px solid #22c55e", borderRadius: 8,
+              color: "#4ade80", fontWeight: 800, fontSize: 11, padding: "4px 0", cursor: "pointer",
+            }}>+Drop</button>
+            <button onClick={onProbAttemptInc} style={{
+              flex: 1, background: "#1e2d45", border: "1px solid #3b82f6", borderRadius: 8,
+              color: "#93c5fd", fontWeight: 700, fontSize: 11, padding: "4px 0", cursor: "pointer",
+            }}>+試行</button>
+          </div>
+        </div>
+      )}
+
+      {/* ── カウンター：リング元選択 ── */}
+      {tab === "counter" && (
+        <div style={{ display: "flex", gap: 4, width: "100%" }}>
+          {([
+            { id: "stopwatch" as const, label: "⏲ SW" },
+            { id: "timer" as const, label: "⏱ Timer" },
+          ]).map(({ id, label }) => (
+            <button key={id} onClick={() => onCounterPipSourceChange(id)} style={{
+              flex: 1, padding: "4px 2px", borderRadius: 8, fontSize: 11, cursor: "pointer",
+              background: counterPipSource === id ? "#4f46e5" : "#1a2332",
+              border: `1px solid ${counterPipSource === id ? "#818cf8" : "#1e2d45"}`,
+              color: counterPipSource === id ? "#fff" : "#475569",
+              fontWeight: counterPipSource === id ? 700 : 400,
+            }}>{label}</button>
+          ))}
+        </div>
+      )}
+
+      {/* ── タイマー：時間追加ボタン ── */}
+      {tab === "timer" && (
+        <div style={{ display: "flex", gap: 4, width: "100%" }}>
+          {([-60, 60, 300] as const).map((s) => (
+            <button key={s} onClick={() => onTimerAddTime(s)} style={{
+              flex: 1, padding: "4px 2px", borderRadius: 8, fontSize: 11, cursor: "pointer",
+              background: "#1a2332", border: "1px solid #1e2d45", color: "#93c5fd",
+            }}>{s < 0 ? `${s / 60}分` : `+${s / 60}分`}</button>
+          ))}
+        </div>
+      )}
+
+      {/* ── アクションボタン ── */}
+      <div style={{ display: "flex", gap: 6, width: "100%", marginTop: 2 }}>
+        {/* リセットボタン */}
+        <button onClick={
+          tab === "timer" ? onTimerReset :
+          tab === "stopwatch" ? onSwReset :
+          tab === "counter" ? onCounterReset : onProbReset
+        } style={{
+          width: 40, height: 40, borderRadius: "50%", cursor: "pointer",
+          background: "#1a2332", border: "1px solid #334155",
+          color: "#64748b", fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center",
+        }}>↺</button>
+
+        {/* 再生/停止ボタン（確率以外） */}
+        {tab !== "probability" && (
+          <button onClick={onPlayPause} style={{
+            flex: tab === "counter" ? 1 : 2, height: 40, borderRadius: 12,
             background: isRunning ? "#d97706" : "#2563eb",
-            border: "none",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 20,
-            color: "#fff",
+            border: "none", cursor: "pointer", fontSize: 18, color: "#fff",
+            display: "flex", alignItems: "center", justifyContent: "center",
             boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
-          }}
-        >
-          {isRunning ? "⏸" : "▶"}
+          }}>{isRunning ? "⏸" : "▶"}</button>
+        )}
+
+        {/* カウンター +1 */}
+        {tab === "counter" && (
+          <button onClick={onCounterInc} style={{
+            flex: 1, height: 40, borderRadius: 12,
+            background: "#1e3a5f", border: "2px solid #2563eb",
+            cursor: "pointer", fontSize: 15, fontWeight: 800, color: "#93c5fd",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>+1</button>
+        )}
+
+        {/* 確率：+Drop / +試行 */}
+        {tab === "probability" && (
+          <>
+            <button onClick={onProbDropInc} style={{
+              flex: 1, height: 40, borderRadius: 12,
+              background: "#14532d", border: "2px solid #22c55e",
+              color: "#4ade80", fontWeight: 800, fontSize: 12, cursor: "pointer",
+            }}>+Drop</button>
+            <button onClick={onProbAttemptInc} style={{
+              flex: 1, height: 40, borderRadius: 12,
+              background: "#1e2d45", border: "2px solid #3b82f6",
+              color: "#93c5fd", fontWeight: 700, fontSize: 12, cursor: "pointer",
+            }}>+試行</button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Toggle Switch ─────────────────────────────────────────────────────────────
+function Toggle({ checked, onChange, label }: {
+  checked: boolean; onChange: (v: boolean) => void; label: string;
+}) {
+  return (
+    <label className="flex cursor-pointer items-center gap-2.5 select-none">
+      <span className="text-sm text-gray-700">{label}</span>
+      <button role="switch" aria-checked={checked} onClick={() => onChange(!checked)}
+        className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${checked ? "bg-indigo-600" : "bg-gray-200"}`}>
+        <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${checked ? "translate-x-6" : "translate-x-1"}`} />
+      </button>
+    </label>
+  );
+}
+
+// ─── Number Spinner ────────────────────────────────────────────────────────────
+function Spinner({ value, onChange, min, max, step = 1, decimals = 0, label }: {
+  value: number; onChange: (v: number) => void; min: number; max: number;
+  step?: number; decimals?: number; label: string;
+}) {
+  const [raw, setRaw] = useState(value.toFixed(decimals));
+  useEffect(() => { setRaw(value.toFixed(decimals)); }, [value, decimals]);
+  const commit = (v: string) => {
+    const n = parseFloat(v);
+    if (!isNaN(n)) onChange(Math.min(max, Math.max(min, n)));
+  };
+  return (
+    <div className="flex flex-col items-center gap-1 min-w-0">
+      <span className="text-xs text-gray-500 font-medium">{label}</span>
+      <div className="flex items-center gap-0 rounded-xl border border-gray-200 overflow-hidden">
+        <button onClick={() => onChange(Math.max(min, value - step))}
+          className="flex h-9 w-9 items-center justify-center bg-gray-50 text-gray-500 hover:bg-indigo-50 hover:text-indigo-600 transition-colors">
+          <ChevronDown size={16} strokeWidth={2.5} />
         </button>
-        <button
-          onClick={onCounterInc}
-          style={{
-            width: 52,
-            height: 52,
-            borderRadius: "50%",
-            background: "#1e3a5f",
-            border: "2px solid #2563eb",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 18,
-            fontWeight: 800,
-            color: "#93c5fd",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
-          }}
-        >
-          +1
+        <input type="number" min={min} max={max} step={step}
+          value={raw} onChange={e => setRaw(e.target.value)}
+          onBlur={e => commit(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && commit(raw)}
+          className="w-20 bg-white py-2 text-center text-lg font-extrabold tabular-nums text-gray-900 focus:outline-none border-x border-gray-200" />
+        <button onClick={() => onChange(Math.min(max, value + step))}
+          className="flex h-9 w-9 items-center justify-center bg-gray-50 text-gray-500 hover:bg-indigo-50 hover:text-indigo-600 transition-colors">
+          <ChevronUp size={16} strokeWidth={2.5} />
         </button>
       </div>
     </div>
@@ -298,7 +432,7 @@ export default function TimerCounterTool({ dict }: Props) {
   const [timerRemaining, setTimerRemaining] = useState<number | null>(null);
   const [timerTotal, setTimerTotal] = useState(0);
   const [timerDone, setTimerDone] = useState(false);
-  const [editMode, setEditMode] = useState(true); // show inputs vs ring
+  const [editMode, setEditMode] = useState(true);
   const timerEndRef = useRef(0);
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -322,15 +456,61 @@ export default function TimerCounterTool({ dict }: Props) {
   const [goalInput, setGoalInput] = useState("");
   const [countAnim, setCountAnim] = useState<"up" | "down" | null>(null);
 
+  // ── Probability (theoretical) ──────────────────────────────────────────────
+  const [calcN, setCalcN] = useState<number>(() => {
+    if (typeof window === "undefined") return 100;
+    return parseInt(localStorage.getItem("yuu-tc-calc-n") ?? "100", 10) || 100;
+  });
+  const [calcPStr, setCalcPStr] = useState<string>(() => {
+    if (typeof window === "undefined") return "1";
+    return localStorage.getItem("yuu-tc-calc-p") ?? "1";
+  });
+
+  // ── Probability (observed tracking) ───────────────────────────────────────
+  const [probDrops, setProbDrops] = useState<number>(() => {
+    if (typeof window === "undefined") return 0;
+    return parseInt(localStorage.getItem("yuu-tc-prob-drops") ?? "0", 10) || 0;
+  });
+  const [probAttempts, setProbAttempts] = useState<number>(() => {
+    if (typeof window === "undefined") return 0;
+    return parseInt(localStorage.getItem("yuu-tc-prob-attempts") ?? "0", 10) || 0;
+  });
+  const [probDropAnim, setProbDropAnim] = useState(false);
+
+  // ── PiP module visibility (controls PiP content, not main UI tabs) ─────────
+  const [pipShowCounter, setPipShowCounter] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    return localStorage.getItem("yuu-tc-pip-counter") !== "false";
+  });
+  const [pipShowProbability, setPipShowProbability] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    return localStorage.getItem("yuu-tc-pip-prob") !== "false";
+  });
+  const [counterPipSource, setCounterPipSource] = useState<"stopwatch" | "timer">(() => {
+    if (typeof window === "undefined") return "stopwatch";
+    return (localStorage.getItem("yuu-tc-counter-pip-source") as "stopwatch" | "timer") ?? "stopwatch";
+  });
+  const [showSettings, setShowSettings] = useState(false);
+
   // ── PiP ────────────────────────────────────────────────────────────────────
   const [pipSupported, setPipSupported] = useState(false);
   const [pipOpen, setPipOpen] = useState(false);
   const [pipFallback, setPipFallback] = useState(false);
   const pipWinRef = useRef<Window | null>(null);
   const pipRootRef = useRef<ReturnType<typeof createRoot> | null>(null);
-
-  // Ref so PiP handlers always call latest logic without stale closures
-  const pipHandlersRef = useRef({ playPause: () => {}, counterInc: () => {} });
+  const pipHandlersRef = useRef({
+    playPause: () => {},
+    counterInc: () => {},
+    probDropInc: () => {},
+    probAttemptInc: () => {},
+    tabChange: (_t: Tab) => {},
+    timerReset: () => {},
+    swReset: () => {},
+    counterReset: () => {},
+    probReset: () => {},
+    timerAddTime: (_s: number) => {},
+    counterPipSourceChange: (_s: "stopwatch" | "timer") => {},
+  });
 
   // ─── Init ──────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -339,151 +519,109 @@ export default function TimerCounterTool({ dict }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ─── Persist counter ────────────────────────────────────────────────────────
-  useEffect(() => {
-    localStorage.setItem("yuu-tc-count", count.toString());
-  }, [count]);
-  useEffect(() => {
-    localStorage.setItem("yuu-tc-goal", goal.toString());
-  }, [goal]);
+  // ─── Persist ───────────────────────────────────────────────────────────────
+  useEffect(() => { localStorage.setItem("yuu-tc-count", count.toString()); }, [count]);
+  useEffect(() => { localStorage.setItem("yuu-tc-goal", goal.toString()); }, [goal]);
+  useEffect(() => { localStorage.setItem("yuu-tc-prob-drops", probDrops.toString()); }, [probDrops]);
+  useEffect(() => { localStorage.setItem("yuu-tc-prob-attempts", probAttempts.toString()); }, [probAttempts]);
+  useEffect(() => { localStorage.setItem("yuu-tc-calc-n", calcN.toString()); }, [calcN]);
+  useEffect(() => { localStorage.setItem("yuu-tc-calc-p", calcPStr); }, [calcPStr]);
+  useEffect(() => { localStorage.setItem("yuu-tc-pip-counter", pipShowCounter.toString()); }, [pipShowCounter]);
+  useEffect(() => { localStorage.setItem("yuu-tc-pip-prob", pipShowProbability.toString()); }, [pipShowProbability]);
+  useEffect(() => { localStorage.setItem("yuu-tc-counter-pip-source", counterPipSource); }, [counterPipSource]);
 
   // ─── Timer interval ─────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!timerRunning) {
-      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-      return;
-    }
+    if (!timerRunning) { if (timerIntervalRef.current) clearInterval(timerIntervalRef.current); return; }
     if (timerRemaining === null || timerRemaining <= 0) return;
     timerEndRef.current = Date.now() + timerRemaining * 1000;
     timerIntervalRef.current = setInterval(() => {
       const rem = Math.ceil((timerEndRef.current - Date.now()) / 1000);
       if (rem <= 0) {
         clearInterval(timerIntervalRef.current!);
-        setTimerRemaining(0);
-        setTimerRunning(false);
-        setTimerDone(true);
-      } else {
-        setTimerRemaining(rem);
-      }
+        setTimerRemaining(0); setTimerRunning(false); setTimerDone(true);
+      } else { setTimerRemaining(rem); }
     }, 200);
-    return () => {
-      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-    };
+    return () => { if (timerIntervalRef.current) clearInterval(timerIntervalRef.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timerRunning]);
 
   // ─── Stopwatch RAF ───────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!swRunning) {
-      if (swRafRef.current) cancelAnimationFrame(swRafRef.current);
-      return;
-    }
+    if (!swRunning) { if (swRafRef.current) cancelAnimationFrame(swRafRef.current); return; }
     swStartPerfRef.current = performance.now();
     const loop = () => {
       setSwElapsed(swOffsetRef.current + performance.now() - swStartPerfRef.current);
       swRafRef.current = requestAnimationFrame(loop);
     };
     swRafRef.current = requestAnimationFrame(loop);
-    return () => {
-      if (swRafRef.current) cancelAnimationFrame(swRafRef.current);
-    };
+    return () => { if (swRafRef.current) cancelAnimationFrame(swRafRef.current); };
   }, [swRunning]);
 
   // ─── Derived values ──────────────────────────────────────────────────────────
   const timerTotalSec = timerH * 3600 + timerM * 60 + timerS;
   const effectiveTotal = timerTotal > 0 ? timerTotal : timerTotalSec;
-  const timerPct =
-    timerRemaining !== null && effectiveTotal > 0
-      ? Math.max(0, Math.min(100, (timerRemaining / effectiveTotal) * 100))
-      : timerDone
-      ? 0
-      : 100;
-
-  const timerRingColor =
-    timerDone
-      ? "#22c55e"
-      : timerPct < 20
-      ? "#ef4444"
-      : timerPct < 50
-      ? "#f59e0b"
-      : "#6366f1";
-
-  // Stopwatch ring sweeps every 60 s like a clock
-  const swSec = (swElapsed / 1000) % 60;
-  const swPct = (swSec / 60) * 100;
-
+  const timerPct = timerRemaining !== null && effectiveTotal > 0
+    ? Math.max(0, Math.min(100, (timerRemaining / effectiveTotal) * 100))
+    : timerDone ? 0 : 100;
+  const timerRingColor = timerDone ? "#22c55e" : timerPct < 20 ? "#ef4444" : timerPct < 50 ? "#f59e0b" : "#6366f1";
+  const swPct = ((swElapsed / 1000) % 60) / 60 * 100;
   const counterPct = goal > 0 ? Math.min(100, Math.round((count / goal) * 100)) : 0;
-  const counterRingColor =
-    counterPct >= 100 ? "#22c55e" : counterPct > 70 ? "#f59e0b" : "#6366f1";
+  const counterRingColor = counterPct >= 100 ? "#22c55e" : counterPct > 70 ? "#f59e0b" : "#6366f1";
 
-  const currentDisplay =
-    tab === "stopwatch"
-      ? fmtMs(swElapsed)
-      : timerRemaining !== null
-      ? fmtSec(timerRemaining)
-      : fmtSec(timerTotalSec);
+  // ─── Probability derived values ──────────────────────────────────────────────
+  const calcP = parseFloat(calcPStr) || 0;
+  const calcPDecimal = calcP / 100;
+  const pAtLeastOne = calcPDecimal > 0 && calcPDecimal < 1
+    ? (1 - Math.pow(1 - calcPDecimal, calcN)) * 100
+    : calcPDecimal >= 1 ? 100 : 0;
+  const distribution = calcPDecimal > 0 ? calcDistribution(calcN, calcPDecimal) : null;
+  const expectedPerDrop = calcPDecimal > 0 ? Math.ceil(1 / calcPDecimal) : 0;
+  const trialsFor95 = calcPDecimal > 0 && calcPDecimal < 1
+    ? Math.ceil(Math.log(0.05) / Math.log(1 - calcPDecimal)) : calcPDecimal >= 1 ? 1 : 0;
+  const trialsFor99 = calcPDecimal > 0 && calcPDecimal < 1
+    ? Math.ceil(Math.log(0.01) / Math.log(1 - calcPDecimal)) : calcPDecimal >= 1 ? 1 : 0;
+  const observedRate = probAttempts > 0 ? probDrops / probAttempts * 100 : 0;
+  const probRingPct = pAtLeastOne;
+  const probRingColor = probRingPct >= 95 ? "#22c55e" : probRingPct >= 63 ? "#f59e0b" : "#6366f1";
 
-  const currentPct =
-    tab === "stopwatch" ? swPct : tab === "counter" ? counterPct : timerPct;
-  const currentRingColor =
-    tab === "stopwatch"
-      ? "#6366f1"
-      : tab === "counter"
-      ? counterRingColor
-      : timerRingColor;
-  const currentTabLabel =
-    tab === "timer"
-      ? dict.tabs.timer
-      : tab === "stopwatch"
-      ? dict.tabs.stopwatch
-      : dict.tabs.counter;
-  const isRunning =
-    tab === "timer" ? timerRunning : tab === "stopwatch" ? swRunning : false;
+  const currentDisplay = tab === "stopwatch" ? fmtMs(swElapsed)
+    : tab === "counter"
+      ? (counterPipSource === "stopwatch" ? fmtMs(swElapsed) : timerRemaining !== null ? fmtSec(timerRemaining) : fmtSec(timerTotalSec))
+      : timerRemaining !== null ? fmtSec(timerRemaining) : fmtSec(timerTotalSec);
+  const counterPipPct = counterPipSource === "stopwatch" ? swPct : timerPct;
+  const counterPipRingColor = counterPipSource === "stopwatch" ? "#6366f1" : timerRingColor;
+  const currentPct = tab === "stopwatch" ? swPct : tab === "counter" ? counterPipPct
+    : tab === "probability" ? probRingPct : timerPct;
+  const currentRingColor = tab === "stopwatch" ? "#6366f1" : tab === "counter" ? counterPipRingColor
+    : tab === "probability" ? probRingColor : timerRingColor;
+  const currentTabLabel = tab === "timer" ? dict.tabs.timer : tab === "stopwatch" ? dict.tabs.stopwatch
+    : tab === "counter" ? dict.tabs.counter : dict.tabs.probability;
+  const isRunning = tab === "timer" ? timerRunning : tab === "stopwatch" ? swRunning
+    : tab === "counter" ? (counterPipSource === "stopwatch" ? swRunning : timerRunning) : false;
 
   // ─── Timer handlers ───────────────────────────────────────────────────────────
   const timerStart = useCallback(() => {
     const total = timerH * 3600 + timerM * 60 + timerS;
     if (total <= 0 && timerRemaining === null) return;
-    if (timerRemaining === null) {
-      setTimerTotal(total);
-      setTimerRemaining(total);
-      setTimerDone(false);
-    }
-    setEditMode(false);
-    setTimerRunning(true);
+    if (timerRemaining === null) { setTimerTotal(total); setTimerRemaining(total); setTimerDone(false); }
+    setEditMode(false); setTimerRunning(true);
   }, [timerH, timerM, timerS, timerRemaining]);
-
-  const timerPause = useCallback(() => {
-    setTimerRunning(false);
-  }, []);
-
+  const timerPause = useCallback(() => setTimerRunning(false), []);
   const timerReset = useCallback(() => {
-    setTimerRunning(false);
-    setTimerRemaining(null);
-    setTimerDone(false);
-    setTimerTotal(0);
-    setEditMode(true);
+    setTimerRunning(false); setTimerRemaining(null); setTimerDone(false); setTimerTotal(0); setEditMode(true);
   }, []);
-
-  const timerResume = useCallback(() => {
-    setTimerRunning(true);
-  }, []);
+  const timerResume = useCallback(() => setTimerRunning(true), []);
 
   // ─── Stopwatch handlers ───────────────────────────────────────────────────────
   const swStart = useCallback(() => setSwRunning(true), []);
   const swPause = useCallback(() => {
-    setSwRunning(false);
-    swOffsetRef.current += performance.now() - swStartPerfRef.current;
+    setSwRunning(false); swOffsetRef.current += performance.now() - swStartPerfRef.current;
   }, []);
   const swReset = useCallback(() => {
-    setSwRunning(false);
-    setSwElapsed(0);
-    setSwLaps([]);
-    swOffsetRef.current = 0;
+    setSwRunning(false); setSwElapsed(0); setSwLaps([]); swOffsetRef.current = 0;
   }, []);
-  const swLap = useCallback(() => {
-    setSwLaps((prev) => [swElapsed, ...prev]);
-  }, [swElapsed]);
+  const swLap = useCallback(() => { setSwLaps((prev) => [swElapsed, ...prev]); }, [swElapsed]);
 
   // ─── Counter handlers ─────────────────────────────────────────────────────────
   const triggerCountAnim = (dir: "up" | "down") => {
@@ -491,82 +629,113 @@ export default function TimerCounterTool({ dict }: Props) {
     if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(30);
     setTimeout(() => setCountAnim(null), 260);
   };
-  const inc = useCallback((n: number) => {
-    setCount((c) => c + n);
-    triggerCountAnim("up");
-  }, []);
-  const dec = useCallback((n: number) => {
-    setCount((c) => Math.max(0, c - n));
-    triggerCountAnim("down");
-  }, []);
+  const inc = useCallback((n: number) => { setCount((c) => c + n); triggerCountAnim("up"); }, []);
+  const dec = useCallback((n: number) => { setCount((c) => Math.max(0, c - n)); triggerCountAnim("down"); }, []);
   const resetCounter = useCallback(() => setCount(0), []);
   const applyGoal = useCallback(() => {
     const n = parseInt(goalInput, 10);
     setGoal(!isNaN(n) && n > 0 ? n : 0);
   }, [goalInput]);
 
-  // ─── Update PiP handlers ref (runs every render, safe) ───────────────────────
+  // ─── Probability handlers ─────────────────────────────────────────────────────
+  const incProbDrop = useCallback(() => {
+    setProbDrops((d) => d + 1);
+    setProbAttempts((a) => a + 1);
+    setProbDropAnim(true);
+    if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(20);
+    setTimeout(() => setProbDropAnim(false), 260);
+  }, []);
+  const incProbAttempt = useCallback(() => setProbAttempts((a) => a + 1), []);
+  const resetProb = useCallback(() => { setProbDrops(0); setProbAttempts(0); }, []);
+
+  // ─── Timer add time ────────────────────────────────────────────────────────────
+  const timerAddTime = useCallback((s: number) => {
+    if (editMode) {
+      const total = Math.max(0, timerH * 3600 + timerM * 60 + timerS + s);
+      setTimerH(Math.min(23, Math.floor(total / 3600)));
+      setTimerM(Math.floor((total % 3600) / 60));
+      setTimerS(total % 60);
+    } else if (timerRemaining !== null) {
+      const newRem = Math.max(0, timerRemaining + s);
+      setTimerRemaining(newRem);
+      if (timerRunning) timerEndRef.current = Date.now() + newRem * 1000;
+      setTimerTotal((prev) => Math.max(prev, newRem));
+    }
+  }, [editMode, timerH, timerM, timerS, timerRemaining, timerRunning]);
+
+  // ─── PiP handlers ref ────────────────────────────────────────────────────────
   pipHandlersRef.current = {
     playPause: () => {
-      if (tab === "timer") {
-        timerRunning ? timerPause() : timerRemaining !== null ? timerResume() : timerStart();
-      } else if (tab === "stopwatch") {
-        swRunning ? swPause() : swStart();
+      if (tab === "timer") timerRunning ? timerPause() : timerRemaining !== null ? timerResume() : timerStart();
+      else if (tab === "stopwatch") swRunning ? swPause() : swStart();
+      else if (tab === "counter") {
+        if (counterPipSource === "stopwatch") swRunning ? swPause() : swStart();
+        else timerRunning ? timerPause() : timerRemaining !== null ? timerResume() : timerStart();
       }
     },
     counterInc: () => inc(1),
+    probDropInc: () => incProbDrop(),
+    probAttemptInc: () => incProbAttempt(),
+    tabChange: (t: Tab) => setTab(t),
+    timerReset: () => timerReset(),
+    swReset: () => swReset(),
+    counterReset: () => resetCounter(),
+    probReset: () => resetProb(),
+    timerAddTime: (s: number) => timerAddTime(s),
+    counterPipSourceChange: (s: "stopwatch" | "timer") => setCounterPipSource(s),
   };
 
-  // ─── PiP render helper ────────────────────────────────────────────────────────
+  // ─── PiP render ───────────────────────────────────────────────────────────────
   const renderPip = useCallback(() => {
     if (!pipRootRef.current) return;
     pipRootRef.current.render(
       <PipView
-        time={currentDisplay}
-        count={count}
-        goal={goal}
-        tabLabel={currentTabLabel}
-        isRunning={isRunning}
-        pct={currentPct}
-        ringColor={currentRingColor}
+        time={currentDisplay} count={count} goal={goal}
+        tabLabel={currentTabLabel} tab={tab} isRunning={isRunning}
+        pct={currentPct} ringColor={currentRingColor}
+        probDrops={probDrops} probAttempts={probAttempts} observedPct={observedRate}
+        calcN={calcN} calcP={calcP} pAtLeastOne={pAtLeastOne}
+        pipShowCounter={pipShowCounter} pipShowProbability={pipShowProbability}
+        dict={dict}
         onPlayPause={() => pipHandlersRef.current.playPause()}
         onCounterInc={() => pipHandlersRef.current.counterInc()}
+        onProbDropInc={() => pipHandlersRef.current.probDropInc()}
+        onProbAttemptInc={() => pipHandlersRef.current.probAttemptInc()}
+        onTabChange={(t) => pipHandlersRef.current.tabChange(t)}
+        onTimerReset={() => pipHandlersRef.current.timerReset()}
+        onSwReset={() => pipHandlersRef.current.swReset()}
+        onCounterReset={() => pipHandlersRef.current.counterReset()}
+        onProbReset={() => pipHandlersRef.current.probReset()}
+        onTimerAddTime={(s) => pipHandlersRef.current.timerAddTime(s)}
+        counterPipSource={counterPipSource}
+        onCounterPipSourceChange={(s) => pipHandlersRef.current.counterPipSourceChange(s)}
       />
     );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentDisplay, count, goal, currentTabLabel, isRunning, currentPct, currentRingColor]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentDisplay, count, goal, currentTabLabel, tab, isRunning, currentPct, currentRingColor,
+    probDrops, probAttempts, observedRate, calcN, calcP, pAtLeastOne,
+    pipShowCounter, pipShowProbability, counterPipSource, dict]);
 
-  useEffect(() => {
-    if (pipOpen || pipFallback) renderPip();
-  }, [pipOpen, pipFallback, renderPip]);
+  useEffect(() => { if (pipOpen || pipFallback) renderPip(); }, [pipOpen, pipFallback, renderPip]);
 
   // ─── PiP open ─────────────────────────────────────────────────────────────────
   const openPip = useCallback(async () => {
     if (!("documentPictureInPicture" in window)) {
-      // Fallback: create a floating overlay root in a detached div
-      const container = document.createElement("div");
-      pipRootRef.current = createRoot(container);
-      setPipFallback(true);
-      return;
+      pipRootRef.current = createRoot(document.createElement("div"));
+      setPipFallback(true); return;
     }
     try {
-      const pipWin = await window.documentPictureInPicture!.requestWindow({
-        width: 280,
-        height: 360,
-      });
+      const pipWin = await window.documentPictureInPicture!.requestWindow({ width: 280, height: 420 });
       pipWinRef.current = pipWin;
       for (const sheet of document.styleSheets) {
         try {
           const rules = [...sheet.cssRules].map((r) => r.cssText).join("");
           const s = pipWin.document.createElement("style");
-          s.textContent = rules;
-          pipWin.document.head.appendChild(s);
+          s.textContent = rules; pipWin.document.head.appendChild(s);
         } catch {
           if (sheet.href) {
             const l = pipWin.document.createElement("link");
-            l.rel = "stylesheet";
-            l.href = sheet.href;
-            pipWin.document.head.appendChild(l);
+            l.rel = "stylesheet"; l.href = sheet.href; pipWin.document.head.appendChild(l);
           }
         }
       }
@@ -575,49 +744,45 @@ export default function TimerCounterTool({ dict }: Props) {
       pipWin.document.body.appendChild(wrap);
       pipRootRef.current = createRoot(wrap);
       pipWin.addEventListener("pagehide", () => {
-        pipWinRef.current = null;
-        pipRootRef.current = null;
-        setPipOpen(false);
+        pipWinRef.current = null; pipRootRef.current = null; setPipOpen(false);
       });
       setPipOpen(true);
     } catch {
-      const container = document.createElement("div");
-      pipRootRef.current = createRoot(container);
+      pipRootRef.current = createRoot(document.createElement("div"));
       setPipFallback(true);
     }
   }, []);
 
   const closePip = useCallback(() => {
-    try {
-      pipWinRef.current?.close();
-    } catch {
-      /* noop */
-    }
-    pipWinRef.current = null;
-    pipRootRef.current = null;
-    setPipOpen(false);
-    setPipFallback(false);
+    try { pipWinRef.current?.close(); } catch { /* noop */ }
+    pipWinRef.current = null; pipRootRef.current = null; setPipOpen(false); setPipFallback(false);
   }, []);
+
+  // ─── Probability distribution color ──────────────────────────────────────────
+  const distBarColor = (prob: number) => {
+    if (prob >= 0.3) return "bg-indigo-500";
+    if (prob >= 0.15) return "bg-indigo-400";
+    if (prob >= 0.05) return "bg-indigo-300";
+    return "bg-indigo-200";
+  };
 
   // ─── Render ────────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-4">
       {/* Tab bar */}
       <div className="flex gap-1 rounded-2xl border border-gray-200 bg-gray-50 p-1">
-        {(["timer", "stopwatch", "counter"] as Tab[]).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
+        {([
+          { id: "timer" as Tab, label: dict.tabs.timer, icon: <Timer size={14} strokeWidth={2} /> },
+          { id: "stopwatch" as Tab, label: dict.tabs.stopwatch, icon: <Clock size={14} strokeWidth={2} /> },
+          { id: "counter" as Tab, label: dict.tabs.counter, icon: <Hash size={14} strokeWidth={2} /> },
+          { id: "probability" as Tab, label: dict.tabs.probability, icon: <Percent size={14} strokeWidth={2} /> },
+        ]).map((t) => (
+          <button key={t.id} onClick={() => setTab(t.id)}
             className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2.5 text-sm font-medium transition-all ${
-              tab === t
-                ? "bg-white shadow text-indigo-600 border border-gray-200"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            {t === "timer" && <Timer size={14} strokeWidth={2} />}
-            {t === "stopwatch" && <Clock size={14} strokeWidth={2} />}
-            {t === "counter" && <Hash size={14} strokeWidth={2} />}
-            {t === "timer" ? dict.tabs.timer : t === "stopwatch" ? dict.tabs.stopwatch : dict.tabs.counter}
+              tab === t.id ? "bg-white shadow text-indigo-600 border border-gray-200" : "text-gray-500 hover:text-gray-700"}`}>
+            {t.icon}
+            <span className="hidden sm:inline">{t.label}</span>
+            <span className="sm:hidden">{t.label.slice(0, 4)}</span>
           </button>
         ))}
       </div>
@@ -627,112 +792,58 @@ export default function TimerCounterTool({ dict }: Props) {
         <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
           <div className="flex flex-col items-center gap-6 p-6">
             {editMode ? (
-              /* ── Set time mode ── */
               <>
                 <div className="flex items-end justify-center gap-2">
-                  {(
-                    [
-                      { label: dict.timer.hours, val: timerH, set: setTimerH, max: 23 },
-                      { label: dict.timer.minutes, val: timerM, set: setTimerM, max: 59 },
-                      { label: dict.timer.seconds, val: timerS, set: setTimerS, max: 59 },
-                    ] as const
-                  ).map(({ label, val, set, max }, i) => (
+                  {([
+                    { label: dict.timer.hours, val: timerH, set: setTimerH, max: 23 },
+                    { label: dict.timer.minutes, val: timerM, set: setTimerM, max: 59 },
+                    { label: dict.timer.seconds, val: timerS, set: setTimerS, max: 59 },
+                  ] as const).map(({ label, val, set, max }, i) => (
                     <div key={label} className="flex items-end gap-2">
                       <div className="flex flex-col items-center gap-1">
-                        <button
-                          onClick={() => (set as (v: number) => void)(Math.min(max, val + 1))}
-                          className="flex h-8 w-20 items-center justify-center rounded-t-xl bg-gray-100 text-gray-500 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
-                        >
-                          ▲
-                        </button>
+                        <button onClick={() => (set as (v: number) => void)(Math.min(max, val + 1))}
+                          className="flex h-8 w-20 items-center justify-center rounded-t-xl bg-gray-100 text-gray-500 hover:bg-indigo-50 hover:text-indigo-600 transition-colors">▲</button>
                         <div className="w-20 rounded-none border-y border-gray-200 bg-gray-50 py-2 text-center text-3xl font-extrabold tabular-nums text-gray-900 leading-none">
                           {pad(val)}
                         </div>
-                        <button
-                          onClick={() => (set as (v: number) => void)(Math.max(0, val - 1))}
-                          className="flex h-8 w-20 items-center justify-center rounded-b-xl bg-gray-100 text-gray-500 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
-                        >
-                          ▼
-                        </button>
+                        <button onClick={() => (set as (v: number) => void)(Math.max(0, val - 1))}
+                          className="flex h-8 w-20 items-center justify-center rounded-b-xl bg-gray-100 text-gray-500 hover:bg-indigo-50 hover:text-indigo-600 transition-colors">▼</button>
                         <span className="mt-1 text-xs text-gray-400">{label}</span>
                       </div>
-                      {i < 2 && (
-                        <span className="mb-10 text-2xl font-bold text-gray-300">:</span>
-                      )}
+                      {i < 2 && <span className="mb-10 text-2xl font-bold text-gray-300">:</span>}
                     </div>
                   ))}
                 </div>
-                <button
-                  onClick={timerStart}
-                  disabled={timerTotalSec === 0}
-                  className="flex w-full max-w-xs items-center justify-center gap-2 rounded-2xl bg-indigo-600 py-4 text-base font-bold text-white transition-colors hover:bg-indigo-700 disabled:opacity-40 active:scale-95"
-                >
-                  <Play size={18} fill="white" />
-                  {dict.timer.start}
+                <button onClick={timerStart} disabled={timerTotalSec === 0}
+                  className="flex w-full max-w-xs items-center justify-center gap-2 rounded-2xl bg-indigo-600 py-4 text-base font-bold text-white transition-colors hover:bg-indigo-700 disabled:opacity-40 active:scale-95">
+                  <Play size={18} fill="white" />{dict.timer.start}
                 </button>
               </>
             ) : (
-              /* ── Running / Paused mode ── */
               <>
-                {/* Ring */}
                 <div className="relative">
-                  <Ring
-                    pct={timerPct}
-                    color={timerRingColor}
-                    size={240}
-                    track="#f1f5f9"
-                    sw={12}
-                  />
+                  <Ring pct={timerPct} color={timerRingColor} size={240} track="#f1f5f9" sw={12} />
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
                     <span className="text-5xl font-extrabold tabular-nums tracking-tight text-gray-900">
                       {timerRemaining !== null ? fmtSec(timerRemaining) : fmtSec(timerTotalSec)}
                     </span>
-                    {timerDone && (
-                      <span className="text-sm font-semibold text-green-600">
-                        {dict.timer.complete}
-                      </span>
-                    )}
-                    {!timerDone && (
-                      <span className="text-xs text-gray-400">
-                        {Math.round(timerPct)}%
-                      </span>
-                    )}
+                    {timerDone && <span className="text-sm font-semibold text-green-600">{dict.timer.complete}</span>}
+                    {!timerDone && <span className="text-xs text-gray-400">{Math.round(timerPct)}%</span>}
                   </div>
                 </div>
-
-                {/* Controls */}
                 <div className="flex items-center gap-4">
-                  {/* Reset */}
-                  <button
-                    onClick={timerReset}
-                    className="flex h-14 w-14 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-gray-500 transition-colors hover:bg-gray-100 active:scale-95"
-                  >
+                  <button onClick={timerReset}
+                    className="flex h-14 w-14 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-gray-500 transition-colors hover:bg-gray-100 active:scale-95">
                     <RotateCcw size={20} />
                   </button>
-
-                  {/* Play / Pause (big center) */}
                   {!timerDone && (
-                    <button
-                      onClick={timerRunning ? timerPause : timerResume}
-                      className={`flex h-20 w-20 items-center justify-center rounded-full text-white shadow-lg transition-all active:scale-95 ${
-                        timerRunning
-                          ? "bg-amber-500 hover:bg-amber-600"
-                          : "bg-indigo-600 hover:bg-indigo-700"
-                      }`}
-                    >
-                      {timerRunning ? (
-                        <Pause size={28} fill="white" />
-                      ) : (
-                        <Play size={28} fill="white" />
-                      )}
+                    <button onClick={timerRunning ? timerPause : timerResume}
+                      className={`flex h-20 w-20 items-center justify-center rounded-full text-white shadow-lg transition-all active:scale-95 ${timerRunning ? "bg-amber-500 hover:bg-amber-600" : "bg-indigo-600 hover:bg-indigo-700"}`}>
+                      {timerRunning ? <Pause size={28} fill="white" /> : <Play size={28} fill="white" />}
                     </button>
                   )}
-
-                  {/* Edit */}
-                  <button
-                    onClick={() => { timerReset(); setEditMode(true); }}
-                    className="flex h-14 w-14 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-gray-500 transition-colors hover:bg-gray-100 active:scale-95"
-                  >
+                  <button onClick={() => { timerReset(); setEditMode(true); }}
+                    className="flex h-14 w-14 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-gray-500 transition-colors hover:bg-gray-100 active:scale-95">
                     <Edit3 size={18} />
                   </button>
                 </div>
@@ -746,58 +857,32 @@ export default function TimerCounterTool({ dict }: Props) {
       {tab === "stopwatch" && (
         <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
           <div className="flex flex-col items-center gap-6 p-6">
-            {/* Ring */}
             <div className="relative">
               <Ring pct={swPct} color="#6366f1" size={240} track="#f1f5f9" sw={12} />
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
-                <span className="text-5xl font-extrabold tabular-nums tracking-tight text-gray-900">
-                  {fmtMs(swElapsed)}
-                </span>
-                <span className="text-xs text-gray-400">
-                  {swLaps.length > 0 && `${swLaps.length} laps`}
-                </span>
+                <span className="text-5xl font-extrabold tabular-nums tracking-tight text-gray-900">{fmtMs(swElapsed)}</span>
+                <span className="text-xs text-gray-400">{swLaps.length > 0 && `${swLaps.length} laps`}</span>
               </div>
             </div>
-
-            {/* Controls */}
             <div className="flex items-center gap-4">
-              <button
-                onClick={swReset}
-                disabled={swElapsed === 0 && !swRunning}
-                className="flex h-14 w-14 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-gray-500 transition-colors hover:bg-gray-100 disabled:opacity-40 active:scale-95"
-              >
+              <button onClick={swReset} disabled={swElapsed === 0 && !swRunning}
+                className="flex h-14 w-14 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-gray-500 transition-colors hover:bg-gray-100 disabled:opacity-40 active:scale-95">
                 <RotateCcw size={20} />
               </button>
-
-              <button
-                onClick={swRunning ? swPause : swStart}
-                className={`flex h-20 w-20 items-center justify-center rounded-full text-white shadow-lg transition-all active:scale-95 ${
-                  swRunning ? "bg-amber-500 hover:bg-amber-600" : "bg-indigo-600 hover:bg-indigo-700"
-                }`}
-              >
+              <button onClick={swRunning ? swPause : swStart}
+                className={`flex h-20 w-20 items-center justify-center rounded-full text-white shadow-lg transition-all active:scale-95 ${swRunning ? "bg-amber-500 hover:bg-amber-600" : "bg-indigo-600 hover:bg-indigo-700"}`}>
                 {swRunning ? <Pause size={28} fill="white" /> : <Play size={28} fill="white" />}
               </button>
-
-              <button
-                onClick={swLap}
-                disabled={!swRunning}
-                className="flex h-14 w-14 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-gray-500 transition-colors hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 disabled:opacity-40 active:scale-95"
-              >
+              <button onClick={swLap} disabled={!swRunning}
+                className="flex h-14 w-14 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-gray-500 transition-colors hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 disabled:opacity-40 active:scale-95">
                 <Flag size={18} />
               </button>
             </div>
-
-            {/* Lap list */}
             {swLaps.length > 0 && (
               <div className="w-full max-h-48 overflow-y-auto space-y-1.5">
                 {swLaps.map((ms, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between rounded-xl bg-gray-50 px-4 py-2.5 text-sm"
-                  >
-                    <span className="text-gray-400">
-                      {dict.stopwatch.lapLabel} {swLaps.length - i}
-                    </span>
+                  <div key={i} className="flex items-center justify-between rounded-xl bg-gray-50 px-4 py-2.5 text-sm">
+                    <span className="text-gray-400">{dict.stopwatch.lapLabel} {swLaps.length - i}</span>
                     <span className="tabular-nums font-semibold text-gray-800">{fmtMs(ms)}</span>
                   </div>
                 ))}
@@ -811,113 +896,57 @@ export default function TimerCounterTool({ dict }: Props) {
       {tab === "counter" && (
         <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
           <div className="flex flex-col items-center gap-6 p-6">
-            {/* Ring + count */}
             <div className="relative">
-              <Ring
-                pct={goal > 0 ? counterPct : 0}
-                color={counterRingColor}
-                size={240}
-                track={goal > 0 ? "#f1f5f9" : "#f8fafc"}
-                sw={12}
-              />
+              <Ring pct={goal > 0 ? counterPct : 0} color={counterRingColor} size={240}
+                track={goal > 0 ? "#f1f5f9" : "#f8fafc"} sw={12} />
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
-                <div
-                  className="text-6xl font-extrabold tabular-nums tracking-tight"
+                <div className="text-6xl font-extrabold tabular-nums tracking-tight"
                   style={{
-                    transform:
-                      countAnim === "up"
-                        ? "translateY(-8px) scale(1.08)"
-                        : countAnim === "down"
-                        ? "translateY(6px) scale(0.94)"
-                        : "none",
+                    transform: countAnim === "up" ? "translateY(-8px) scale(1.08)" : countAnim === "down" ? "translateY(6px) scale(0.94)" : "none",
                     color: goal > 0 && count >= goal ? "#16a34a" : "#111827",
-                    transition:
-                      "transform 0.22s cubic-bezier(0.34,1.56,0.64,1), color 0.3s",
-                  }}
-                >
-                  {count.toLocaleString()}
-                </div>
-                {goal > 0 && (
-                  <span className="text-xs text-gray-400">
-                    / {goal.toLocaleString()} &nbsp;{counterPct}%
-                  </span>
-                )}
-                {goal > 0 && counterPct >= 100 && (
-                  <span className="text-xs font-bold text-green-600">🎉 {dict.counter.goalReached}</span>
-                )}
+                    transition: "transform 0.22s cubic-bezier(0.34,1.56,0.64,1), color 0.3s",
+                  }}>{count.toLocaleString()}</div>
+                {goal > 0 && <span className="text-xs text-gray-400">/ {goal.toLocaleString()} &nbsp;{counterPct}%</span>}
+                {goal > 0 && counterPct >= 100 && <span className="text-xs font-bold text-green-600">🎉 {dict.counter.goalReached}</span>}
               </div>
             </div>
-
-            {/* +/- buttons */}
             <div className="grid w-full grid-cols-5 gap-2">
-              {/* −10 */}
-              <button
-                onClick={() => dec(10)}
-                className="flex flex-col items-center justify-center rounded-2xl border border-gray-200 py-3 text-sm font-bold text-gray-500 hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition-colors active:scale-95"
-              >
+              <button onClick={() => dec(10)}
+                className="flex flex-col items-center justify-center rounded-2xl border border-gray-200 py-3 text-sm font-bold text-gray-500 hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition-colors active:scale-95">
                 <span className="text-xs leading-none">−10</span>
               </button>
-              {/* −1 */}
-              <button
-                onClick={() => dec(1)}
-                className="flex flex-col items-center justify-center rounded-2xl border border-gray-200 py-3 text-gray-600 hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition-colors active:scale-95"
-              >
+              <button onClick={() => dec(1)}
+                className="flex flex-col items-center justify-center rounded-2xl border border-gray-200 py-3 text-gray-600 hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition-colors active:scale-95">
                 <Minus size={20} strokeWidth={2.5} />
               </button>
-              {/* +1 (big) */}
-              <button
-                onClick={() => inc(1)}
-                className="col-span-1 flex flex-col items-center justify-center rounded-2xl bg-indigo-600 py-4 text-white shadow-md hover:bg-indigo-700 transition-colors active:scale-95"
-              >
-                <Plus size={24} strokeWidth={2.5} />
-                <span className="mt-0.5 text-xs">+1</span>
+              <button onClick={() => inc(1)}
+                className="col-span-1 flex flex-col items-center justify-center rounded-2xl bg-indigo-600 py-4 text-white shadow-md hover:bg-indigo-700 transition-colors active:scale-95">
+                <Plus size={24} strokeWidth={2.5} /><span className="mt-0.5 text-xs">+1</span>
               </button>
-              {/* +5 */}
-              <button
-                onClick={() => inc(5)}
-                className="flex flex-col items-center justify-center rounded-2xl bg-indigo-100 py-3 text-indigo-700 hover:bg-indigo-200 transition-colors active:scale-95"
-              >
+              <button onClick={() => inc(5)}
+                className="flex flex-col items-center justify-center rounded-2xl bg-indigo-100 py-3 text-indigo-700 hover:bg-indigo-200 transition-colors active:scale-95">
                 <span className="text-sm font-bold">+5</span>
               </button>
-              {/* +10 */}
-              <button
-                onClick={() => inc(10)}
-                className="flex flex-col items-center justify-center rounded-2xl bg-indigo-50 py-3 text-indigo-600 hover:bg-indigo-100 transition-colors active:scale-95"
-              >
+              <button onClick={() => inc(10)}
+                className="flex flex-col items-center justify-center rounded-2xl bg-indigo-50 py-3 text-indigo-600 hover:bg-indigo-100 transition-colors active:scale-95">
                 <span className="text-sm font-bold">+10</span>
               </button>
             </div>
-
-            {/* Reset row */}
             <div className="flex w-full gap-2">
-              <button
-                onClick={resetCounter}
-                disabled={count === 0}
-                className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-gray-200 py-2.5 text-sm text-gray-500 hover:bg-gray-50 disabled:opacity-40 transition-colors active:scale-95"
-              >
-                <RotateCcw size={14} />
-                {dict.counter.reset}
+              <button onClick={resetCounter} disabled={count === 0}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-gray-200 py-2.5 text-sm text-gray-500 hover:bg-gray-50 disabled:opacity-40 transition-colors active:scale-95">
+                <RotateCcw size={14} />{dict.counter.reset}
               </button>
             </div>
-
-            {/* Goal input */}
             <div className="flex w-full gap-2">
               <div className="flex flex-1 items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3">
                 <Target size={14} className="shrink-0 text-gray-400" />
-                <input
-                  type="number"
-                  min={1}
-                  placeholder={dict.counter.goalPlaceholder}
-                  value={goalInput}
-                  onChange={(e) => setGoalInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && applyGoal()}
-                  className="flex-1 bg-transparent py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none"
-                />
+                <input type="number" min={1} placeholder={dict.counter.goalPlaceholder} value={goalInput}
+                  onChange={(e) => setGoalInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && applyGoal()}
+                  className="flex-1 bg-transparent py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none" />
               </div>
-              <button
-                onClick={applyGoal}
-                className="rounded-xl bg-gray-800 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-900 transition-colors active:scale-95"
-              >
+              <button onClick={applyGoal}
+                className="rounded-xl bg-gray-800 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-900 transition-colors active:scale-95">
                 {dict.counter.setGoal}
               </button>
             </div>
@@ -925,6 +954,169 @@ export default function TimerCounterTool({ dict }: Props) {
           </div>
         </div>
       )}
+
+      {/* ══════════ PROBABILITY ══════════ */}
+      {tab === "probability" && (
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="flex flex-col gap-5 p-5">
+
+            {/* ─ Theoretical Calculator ─ */}
+            <div className="flex flex-col items-center gap-4">
+              {/* Ring showing P(≥1) */}
+              <div className="relative">
+                <Ring pct={probRingPct} color={probRingColor} size={220} track="#f1f5f9" sw={12} />
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
+                  <span className="text-5xl font-extrabold tabular-nums tracking-tight"
+                    style={{
+                      color: probRingPct >= 95 ? "#16a34a" : probRingPct >= 63 ? "#d97706" : "#4f46e5",
+                      transition: "color 0.3s",
+                    }}>
+                    {pAtLeastOne.toFixed(2)}%
+                  </span>
+                  <span className="text-xs text-gray-400 font-medium">{dict.probability.pAtLeastOne}</span>
+                </div>
+              </div>
+
+              {/* Spinners: 試行回数 + 排出率 */}
+              <div className="flex items-end justify-center gap-4 flex-wrap">
+                <Spinner value={calcN} onChange={setCalcN} min={1} max={10000} step={10}
+                  label={dict.probability.calcTrials} />
+                <Spinner value={calcP} onChange={(v) => setCalcPStr(v.toFixed(2))} min={0.01} max={100} step={0.1}
+                  decimals={2} label={dict.probability.calcRate} />
+              </div>
+
+              {/* Quick presets for n */}
+              <div className="flex gap-1.5 flex-wrap justify-center">
+                {[10, 50, 100, 300, 500, 1000].map((n) => (
+                  <button key={n} onClick={() => setCalcN(n)}
+                    className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${calcN === n ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
+                    {n}
+                  </button>
+                ))}
+              </div>
+
+              {/* Additional stats */}
+              {calcPDecimal > 0 && (
+                <div className="w-full grid grid-cols-2 gap-2">
+                  <div className="rounded-xl bg-gray-50 border border-gray-100 px-3 py-2.5 text-center">
+                    <div className="text-xs text-gray-400 mb-0.5">{dict.probability.expectedPerDrop}</div>
+                    <div className="text-lg font-extrabold text-indigo-700 tabular-nums">
+                      {expectedPerDrop.toLocaleString()}<span className="text-xs font-normal text-gray-400 ml-0.5">{dict.probability.trialsSuffix}</span>
+                    </div>
+                  </div>
+                  <div className="rounded-xl bg-amber-50 border border-amber-100 px-3 py-2.5 text-center">
+                    <div className="text-xs text-gray-400 mb-0.5">{dict.probability.trialsFor95}</div>
+                    <div className="text-lg font-extrabold text-amber-600 tabular-nums">
+                      {trialsFor95.toLocaleString()}<span className="text-xs font-normal text-gray-400 ml-0.5">{dict.probability.trialsSuffix}</span>
+                    </div>
+                  </div>
+                  <div className="col-span-2 rounded-xl bg-red-50 border border-red-100 px-3 py-2.5 text-center">
+                    <div className="text-xs text-gray-400 mb-0.5">{dict.probability.trialsFor99}</div>
+                    <div className="text-lg font-extrabold text-red-500 tabular-nums">
+                      {trialsFor99.toLocaleString()}<span className="text-xs font-normal text-gray-400 ml-0.5">{dict.probability.trialsSuffix}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* ─ Probability Distribution Table ─ */}
+            {distribution && (
+              <div className="rounded-2xl border border-indigo-100 bg-indigo-50 p-4">
+                <p className="text-xs font-semibold text-indigo-700 mb-3">{dict.probability.distribution}</p>
+                <div className="space-y-2">
+                  <div className="flex text-xs text-indigo-400 font-medium px-1 mb-1">
+                    <span className="w-20">{dict.probability.distributionDrops}</span>
+                    <span className="flex-1 text-right">{dict.probability.distributionProb}</span>
+                  </div>
+                  {distribution.map(({ k, prob }) => (
+                    <div key={k} className="flex items-center gap-2">
+                      <span className="w-20 text-xs text-gray-600 font-medium shrink-0">
+                        {k < distribution.length - 1 ? `${k}` : `${k}${dict.probability.atLeastN}`}
+                      </span>
+                      <div className="flex-1 h-5 bg-white rounded-full overflow-hidden border border-indigo-100">
+                        <div className={`h-full rounded-full transition-all duration-500 ${distBarColor(prob)}`}
+                          style={{ width: `${Math.min(100, prob * 100)}%` }} />
+                      </div>
+                      <span className="w-14 text-right text-xs font-bold text-indigo-700 tabular-nums shrink-0">
+                        {(prob * 100).toFixed(2)}%
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ─ Observed Tracking ─ */}
+            <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-gray-700">{dict.probability.tracking}</p>
+                <span className="text-xs text-gray-400">{dict.probability.trackingDesc}</span>
+              </div>
+
+              {/* Observed rate display */}
+              <div className="flex items-center justify-between rounded-xl bg-white border border-gray-200 px-4 py-3">
+                <div className="space-y-0.5">
+                  <div className="flex gap-3 text-sm">
+                    <span className="text-gray-400 text-xs">{dict.probability.drops}</span>
+                    <span className="font-extrabold text-green-600"
+                      style={{ transform: probDropAnim ? "scale(1.2)" : "scale(1)", transition: "transform 0.22s", display: "inline-block" }}>
+                      {probDrops.toLocaleString()}
+                    </span>
+                    <span className="text-gray-300">/</span>
+                    <span className="text-gray-400 text-xs">{dict.probability.attempts}</span>
+                    <span className="font-extrabold text-gray-700">{probAttempts.toLocaleString()}</span>
+                  </div>
+                  {probAttempts > 0 && (
+                    <div className="text-xs text-gray-400">
+                      {dict.probability.observedRate}: <span className="font-bold text-amber-600">{fmtRate(observedRate)}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Quick action buttons */}
+              <div className="flex gap-2">
+                <button onClick={incProbDrop}
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-green-600 py-3 text-sm font-bold text-white shadow-sm hover:bg-green-700 transition-colors active:scale-95">
+                  <TrendingUp size={16} />{dict.probability.addDrop}
+                </button>
+                <button onClick={incProbAttempt}
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors active:scale-95">
+                  <Plus size={16} />{dict.probability.addAttempt}
+                </button>
+              </div>
+
+              <button onClick={resetProb} disabled={probDrops === 0 && probAttempts === 0}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 py-2 text-xs text-gray-400 hover:bg-white transition-colors disabled:opacity-40 active:scale-95">
+                <RotateCcw size={12} />{dict.probability.reset}
+              </button>
+              <p className="text-xs text-gray-400 text-center">{dict.probability.storageNote}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── PiP Settings Panel ── */}
+      <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+        <button onClick={() => setShowSettings((v) => !v)}
+          className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+          <span className="flex items-center gap-2">
+            <Settings size={15} className="text-gray-400" />
+            {dict.settings.heading}
+          </span>
+          <span className="text-gray-400 text-xs">{showSettings ? "▲" : "▼"}</span>
+        </button>
+        {showSettings && (
+          <div className="border-t border-gray-100 px-4 py-4 space-y-3">
+            <p className="text-xs text-gray-400">{dict.settings.description}</p>
+            <div className="flex flex-col gap-3 sm:flex-row sm:gap-8">
+              <Toggle checked={pipShowCounter} onChange={setPipShowCounter} label={dict.settings.counter} />
+              <Toggle checked={pipShowProbability} onChange={setPipShowProbability} label={dict.settings.probability} />
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* ── PiP Bar ── */}
       <div className="flex items-center gap-3 rounded-2xl border border-indigo-100 bg-indigo-50 px-4 py-3">
@@ -935,49 +1127,46 @@ export default function TimerCounterTool({ dict }: Props) {
           </p>
         </div>
         {pipOpen || pipFallback ? (
-          <button
-            onClick={closePip}
-            className="flex items-center gap-2 rounded-xl border border-indigo-200 bg-white px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition-colors"
-          >
-            <Minimize2 size={14} />
-            {dict.pip.close}
+          <button onClick={closePip}
+            className="flex items-center gap-2 rounded-xl border border-indigo-200 bg-white px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition-colors">
+            <Minimize2 size={14} />{dict.pip.close}
           </button>
         ) : (
-          <button
-            onClick={openPip}
-            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
-          >
-            <PictureInPicture size={14} />
-            {dict.pip.open}
+          <button onClick={openPip}
+            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors">
+            <PictureInPicture size={14} />{dict.pip.open}
           </button>
         )}
       </div>
 
       {/* ── Fallback floating overlay ── */}
       {pipFallback && (
-        <div
-          className="fixed bottom-4 right-4 z-50 w-72 overflow-hidden rounded-2xl shadow-2xl"
-          style={{ background: "#0c0f1a" }}
-        >
+        <div className="fixed bottom-4 right-4 z-50 w-72 overflow-hidden rounded-2xl shadow-2xl"
+          style={{ background: "#0c0f1a" }}>
           <div className="flex items-center justify-between border-b border-white/10 px-4 py-2">
             <span className="text-xs font-medium text-slate-400">{dict.pip.miniMode}</span>
-            <button
-              onClick={closePip}
-              className="text-lg leading-none text-slate-400 transition-colors hover:text-white"
-            >
-              ×
-            </button>
+            <button onClick={closePip} className="text-lg leading-none text-slate-400 transition-colors hover:text-white">×</button>
           </div>
           <PipView
-            time={currentDisplay}
-            count={count}
-            goal={goal}
-            tabLabel={currentTabLabel}
-            isRunning={isRunning}
-            pct={currentPct}
-            ringColor={currentRingColor}
+            time={currentDisplay} count={count} goal={goal}
+            tabLabel={currentTabLabel} tab={tab} isRunning={isRunning}
+            pct={currentPct} ringColor={currentRingColor}
+            probDrops={probDrops} probAttempts={probAttempts} observedPct={observedRate}
+            calcN={calcN} calcP={calcP} pAtLeastOne={pAtLeastOne}
+            pipShowCounter={pipShowCounter} pipShowProbability={pipShowProbability}
+            dict={dict}
             onPlayPause={() => pipHandlersRef.current.playPause()}
             onCounterInc={() => pipHandlersRef.current.counterInc()}
+            onProbDropInc={() => pipHandlersRef.current.probDropInc()}
+            onProbAttemptInc={() => pipHandlersRef.current.probAttemptInc()}
+            onTabChange={(t) => pipHandlersRef.current.tabChange(t)}
+            onTimerReset={() => pipHandlersRef.current.timerReset()}
+            onSwReset={() => pipHandlersRef.current.swReset()}
+            onCounterReset={() => pipHandlersRef.current.counterReset()}
+            onProbReset={() => pipHandlersRef.current.probReset()}
+            onTimerAddTime={(s) => pipHandlersRef.current.timerAddTime(s)}
+            counterPipSource={counterPipSource}
+            onCounterPipSourceChange={(s) => pipHandlersRef.current.counterPipSourceChange(s)}
           />
         </div>
       )}

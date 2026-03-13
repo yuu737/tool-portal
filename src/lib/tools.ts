@@ -13,4 +13,5 @@ export const tools: Tool[] = [
   { id: "unit-converter",     href: "/tools/unit-converter",     icon: "ArrowLeftRight" },
   { id: "base64",             href: "/tools/base64",             icon: "Binary" },
   { id: "timer-counter",      href: "/tools/timer-counter",      icon: "Timer" },
+  { id: "grinding-companion", href: "/tools/grinding-companion", icon: "Target" },
 ];

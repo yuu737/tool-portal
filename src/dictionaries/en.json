@@ -1,5 +1,8 @@
 {
-  "header": { "home": "Home", "tools": "Tools" },
+  "header": {
+    "home": "Home",
+    "tools": "Tools"
+  },
   "hero": {
     "heading": "All the ",
     "headingHighlight": "web tools",
@@ -11,17 +14,33 @@
     "heading": "Tools",
     "description": "All tools are completely free and run entirely in your browser for maximum privacy."
   },
-  "toolCard": { "cta": "Try it" },
+  "toolCard": {
+    "cta": "Try it"
+  },
   "about": {
     "title": "About",
     "description": "Learn about yuu, the developer behind Yuustudio, and the mission behind this site.",
     "operatorLabel": "Operator",
     "operatorName": "yuu",
-    "profile": { "heading": "Profile", "text": "I'm a university student majoring in Information Engineering. I build and publish free web tools using the programming skills I've learned — React, Next.js, TypeScript, and more — to make everyday tasks easier for everyone." },
-    "mission": { "heading": "Mission", "text": "My goal is to provide fast, safe, and multilingual web tools that streamline everyday workflows. I turn what I learn in university into real products that are useful to people around the world." },
-    "safety": { "heading": "Privacy by Design", "text": "All tools process data entirely in your browser. No data is ever sent to any server, so you can safely use these tools with personal or sensitive information." },
-    "i18n": { "heading": "Multilingual Support", "text": "Yuustudio is available in both Japanese and English, making it accessible to users worldwide. You can switch languages anytime using the toggle in the header." },
-    "techStack": { "heading": "Tech Stack" }
+    "profile": {
+      "heading": "Profile",
+      "text": "I'm a university student majoring in Information Engineering. I build and publish free web tools using the programming skills I've learned — React, Next.js, TypeScript, and more — to make everyday tasks easier for everyone."
+    },
+    "mission": {
+      "heading": "Mission",
+      "text": "My goal is to provide fast, safe, and multilingual web tools that streamline everyday workflows. I turn what I learn in university into real products that are useful to people around the world."
+    },
+    "safety": {
+      "heading": "Privacy by Design",
+      "text": "All tools process data entirely in your browser. No data is ever sent to any server, so you can safely use these tools with personal or sensitive information."
+    },
+    "i18n": {
+      "heading": "Multilingual Support",
+      "text": "Yuustudio is available in both Japanese and English, making it accessible to users worldwide. You can switch languages anytime using the toggle in the header."
+    },
+    "techStack": {
+      "heading": "Tech Stack"
+    }
   },
   "privacy": {
     "title": "Privacy Policy & Disclaimer",
@@ -29,13 +48,34 @@
     "lastUpdated": "Last updated",
     "lastUpdatedDate": "January 1, 2025",
     "sections": {
-      "basic": { "heading": "Overview", "text": "Yuustudio (\"this site\") is committed to protecting the privacy of its users and complies with applicable privacy laws and regulations, including Japan's Act on the Protection of Personal Information (APPI) and, where applicable, the EU General Data Protection Regulation (GDPR). All web tools on this site are built on a Privacy by Design principle: user input data is processed exclusively inside the browser and is never transmitted to or stored on any server operated by this site." },
-      "adsense": { "heading": "Advertising — Google AdSense", "text": "This site uses Google AdSense, an advertising service operated by Google LLC (1600 Amphitheatre Parkway, Mountain View, CA 94043, USA). Google AdSense may serve interest-based and behavioural advertising using first-party and third-party cookies (including the DoubleClick cookie). These cookies allow Google to identify your browser across sites and deliver ads that may be relevant to your interests based on browsing history. Under GDPR and Japan's revised APPI, cookie-based advertising relies on user consent or legitimate interest. You can opt out of personalised ads through Google's Ad Settings page (adssettings.google.com) or by disabling third-party cookies in your browser settings. For full details, see Google's Privacy Policy at policies.google.com/privacy." },
-      "analytics": { "heading": "Analytics — Google Analytics", "text": "This site may use Google Analytics 4 (GA4), a web analytics service provided by Google LLC, to understand how visitors interact with the site and to improve its content. Google Analytics collects data using cookies; all data is anonymised and aggregated — no personally identifiable information is collected. Data is transmitted to and stored on Google's servers with IP address masking applied. You can opt out by disabling cookies in your browser settings or by installing the Google Analytics Opt-out Browser Add-on available at tools.google.com/dlpage/gaoptout. For details, see the Google Analytics Terms of Service at marketingplatform.google.com/about/analytics/terms/." },
-      "personalInfo": { "heading": "Personal Information", "text": "Any personal information (such as your email address) submitted via the contact form is used solely to respond to your inquiry and will never be sold, rented, or disclosed to third parties. Collected personal information is stored securely and deleted after the inquiry is resolved. Furthermore, all tools on this site process data entirely client-side: no input data — including text, images, passwords, or any other user-entered content — is ever transmitted to or stored on any server." },
-      "cookies": { "heading": "Cookies", "text": "This site uses cookies for the following purposes: (1) Language preference — the NEXT_LOCALE cookie stores your selected language (Japanese or English) for one year so your preference is remembered on return visits. (2) Advertising — Google AdSense may set first- and third-party cookies to serve relevant ads, as described in the Advertising section above. (3) Analytics — Google Analytics may set cookies to collect anonymised usage data, as described in the Analytics section above. You can manage or disable cookies at any time through your browser settings. Disabling cookies may affect the language preference feature and the personalisation of advertisements." },
-      "disclaimer": { "heading": "Disclaimer", "text": "While every effort is made to keep the information on this site accurate and up to date, no warranty is given as to the accuracy, completeness, fitness for purpose, or reliability of any content or tool output. This site and its operator accept no liability for any loss or damage — direct, indirect, consequential, or otherwise — arising from use of any tool or information provided here. Do not rely solely on tool outputs for critical business, legal, medical, or financial decisions; always verify results against authoritative primary sources. This disclaimer extends to the content of any external sites linked from this site." },
-      "changes": { "heading": "Changes to This Policy", "text": "This privacy policy may be updated at any time without prior notice in response to changes in law, service features, or other circumstances. Revised versions take effect from the date they are published on this page. Significant changes will be announced on the site. Continued use of the site following publication of changes constitutes acceptance of the revised policy. For any questions about this policy, please use the contact page." }
+      "basic": {
+        "heading": "Overview",
+        "text": "Yuustudio (\"this site\") is committed to protecting the privacy of its users and complies with applicable privacy laws and regulations, including Japan's Act on the Protection of Personal Information (APPI) and, where applicable, the EU General Data Protection Regulation (GDPR). All web tools on this site are built on a Privacy by Design principle: user input data is processed exclusively inside the browser and is never transmitted to or stored on any server operated by this site."
+      },
+      "adsense": {
+        "heading": "Advertising — Google AdSense",
+        "text": "This site uses Google AdSense, an advertising service operated by Google LLC (1600 Amphitheatre Parkway, Mountain View, CA 94043, USA). Google AdSense may serve interest-based and behavioural advertising using first-party and third-party cookies (including the DoubleClick cookie). These cookies allow Google to identify your browser across sites and deliver ads that may be relevant to your interests based on browsing history. Under GDPR and Japan's revised APPI, cookie-based advertising relies on user consent or legitimate interest. You can opt out of personalised ads through Google's Ad Settings page (adssettings.google.com) or by disabling third-party cookies in your browser settings. For full details, see Google's Privacy Policy at policies.google.com/privacy."
+      },
+      "analytics": {
+        "heading": "Analytics — Google Analytics",
+        "text": "This site may use Google Analytics 4 (GA4), a web analytics service provided by Google LLC, to understand how visitors interact with the site and to improve its content. Google Analytics collects data using cookies; all data is anonymised and aggregated — no personally identifiable information is collected. Data is transmitted to and stored on Google's servers with IP address masking applied. You can opt out by disabling cookies in your browser settings or by installing the Google Analytics Opt-out Browser Add-on available at tools.google.com/dlpage/gaoptout. For details, see the Google Analytics Terms of Service at marketingplatform.google.com/about/analytics/terms/."
+      },
+      "personalInfo": {
+        "heading": "Personal Information",
+        "text": "Any personal information (such as your email address) submitted via the contact form is used solely to respond to your inquiry and will never be sold, rented, or disclosed to third parties. Collected personal information is stored securely and deleted after the inquiry is resolved. Furthermore, all tools on this site process data entirely client-side: no input data — including text, images, passwords, or any other user-entered content — is ever transmitted to or stored on any server."
+      },
+      "cookies": {
+        "heading": "Cookies",
+        "text": "This site uses cookies for the following purposes: (1) Language preference — the NEXT_LOCALE cookie stores your selected language (Japanese or English) for one year so your preference is remembered on return visits. (2) Advertising — Google AdSense may set first- and third-party cookies to serve relevant ads, as described in the Advertising section above. (3) Analytics — Google Analytics may set cookies to collect anonymised usage data, as described in the Analytics section above. You can manage or disable cookies at any time through your browser settings. Disabling cookies may affect the language preference feature and the personalisation of advertisements."
+      },
+      "disclaimer": {
+        "heading": "Disclaimer",
+        "text": "While every effort is made to keep the information on this site accurate and up to date, no warranty is given as to the accuracy, completeness, fitness for purpose, or reliability of any content or tool output. This site and its operator accept no liability for any loss or damage — direct, indirect, consequential, or otherwise — arising from use of any tool or information provided here. Do not rely solely on tool outputs for critical business, legal, medical, or financial decisions; always verify results against authoritative primary sources. This disclaimer extends to the content of any external sites linked from this site."
+      },
+      "changes": {
+        "heading": "Changes to This Policy",
+        "text": "This privacy policy may be updated at any time without prior notice in response to changes in law, service features, or other circumstances. Revised versions take effect from the date they are published on this page. Significant changes will be announced on the site. Continued use of the site following publication of changes constitutes acceptance of the revised policy. For any questions about this policy, please use the contact page."
+      }
     }
   },
   "contact": {
@@ -43,19 +83,40 @@
     "description": "Have a question, feedback, or found a bug? Feel free to reach out by email.",
     "emailLabel": "Email",
     "inquiryTypesHeading": "Types of Inquiries",
-    "inquiryTypes": ["Questions about tools", "Bug reports", "Feature requests", "Other inquiries"],
+    "inquiryTypes": [
+      "Questions about tools",
+      "Bug reports",
+      "Feature requests",
+      "Other inquiries"
+    ],
     "note": "Please note that responses may be delayed or unavailable depending on the nature of the inquiry."
   },
   "wordCount": {
     "title": "Word Counter",
     "description": "Count characters (with/without spaces), words, and lines in real time. Perfect for articles, reports, and any writing task.",
     "placeholder": "Type or paste your text here…",
-    "stats": { "charsWithSpaces": "Characters (with spaces)", "charsWithoutSpaces": "Characters (no spaces)", "words": "Words", "lines": "Lines" },
-    "buttons": { "clear": "Clear", "copyResult": "Copy results", "copied": "Copied!" },
+    "stats": {
+      "charsWithSpaces": "Characters (with spaces)",
+      "charsWithoutSpaces": "Characters (no spaces)",
+      "words": "Words",
+      "lines": "Lines"
+    },
+    "buttons": {
+      "clear": "Clear",
+      "copyResult": "Copy results",
+      "copied": "Copied!"
+    },
     "meta": {
       "title": "Word Counter – Real-time character, word & line count",
       "description": "Count characters (with/without spaces), words, and lines in real time. Supports Japanese, Chinese, Korean via Intl.Segmenter API. Perfect for articles, reports, and social media character limits.",
-      "keywords": ["word counter", "character counter", "word count tool", "text length checker", "real-time word count", "Japanese word counter"]
+      "keywords": [
+        "word counter",
+        "character counter",
+        "word count tool",
+        "text length checker",
+        "real-time word count",
+        "Japanese word counter"
+      ]
     },
     "content": {
       "howTo": {
@@ -78,11 +139,26 @@
       "faq": {
         "heading": "FAQ",
         "items": [
-          { "q": "Can it accurately count Japanese or Chinese words?", "a": "Yes. The Intl.Segmenter API performs language-aware word segmentation for Japanese, Chinese, Korean, and other non-space-separated languages. Browsers that don't support Segmenter automatically fall back to space-based counting." },
-          { "q": "Is there a character limit?", "a": "No. You can process long documents, novels, reports, or large data files without any restriction." },
-          { "q": "Can I use it to check social media character limits?", "a": "Yes. It's ideal for checking Twitter/X's 280-character limit, Instagram captions, email lengths, and any other platform character restrictions." },
-          { "q": "How are spaces and line breaks counted?", "a": "Characters (with spaces) counts every space, tab, and newline as one character. Characters (no spaces) excludes all whitespace — only visible characters are counted. Line count equals the number of newline characters plus one." },
-          { "q": "Are HTML tags or Markdown syntax included in the count?", "a": "Yes. The tool counts the raw text as typed, so HTML tags (<p>, <br>, etc.) and Markdown syntax (#, **, -, etc.) are each counted as individual characters. To count only the visible content, paste the plain text without any markup." }
+          {
+            "q": "Can it accurately count Japanese or Chinese words?",
+            "a": "Yes. The Intl.Segmenter API performs language-aware word segmentation for Japanese, Chinese, Korean, and other non-space-separated languages. Browsers that don't support Segmenter automatically fall back to space-based counting."
+          },
+          {
+            "q": "Is there a character limit?",
+            "a": "No. You can process long documents, novels, reports, or large data files without any restriction."
+          },
+          {
+            "q": "Can I use it to check social media character limits?",
+            "a": "Yes. It's ideal for checking Twitter/X's 280-character limit, Instagram captions, email lengths, and any other platform character restrictions."
+          },
+          {
+            "q": "How are spaces and line breaks counted?",
+            "a": "Characters (with spaces) counts every space, tab, and newline as one character. Characters (no spaces) excludes all whitespace — only visible characters are counted. Line count equals the number of newline characters plus one."
+          },
+          {
+            "q": "Are HTML tags or Markdown syntax included in the count?",
+            "a": "Yes. The tool counts the raw text as typed, so HTML tags (<p>, <br>, etc.) and Markdown syntax (#, **, -, etc.) are each counted as individual characters. To count only the visible content, paste the plain text without any markup."
+          }
         ]
       },
       "deepDive": {
@@ -107,20 +183,60 @@
   "passwordGenerator": {
     "title": "Password Generator & Strength Checker",
     "description": "Generate strong random passwords in one click. Strength presets make it easy to tailor settings to your needs. You can also check the strength of any existing password.",
-    "sections": { "generator": "Generate Password", "checker": "Check Strength" },
-    "presets": { "label": "Presets", "simple": "Simple", "standard": "Standard", "strong": "Strong" },
-    "options": { "length": "Length", "uppercase": "Uppercase (A-Z)", "lowercase": "Lowercase (a-z)", "numbers": "Numbers (0-9)", "symbols": "Symbols (!@#$)" },
-    "buttons": { "copy": "Copy", "copied": "Copied!", "regenerate": "Regenerate" },
+    "sections": {
+      "generator": "Generate Password",
+      "checker": "Check Strength"
+    },
+    "presets": {
+      "label": "Presets",
+      "simple": "Simple",
+      "standard": "Standard",
+      "strong": "Strong"
+    },
+    "options": {
+      "length": "Length",
+      "uppercase": "Uppercase (A-Z)",
+      "lowercase": "Lowercase (a-z)",
+      "numbers": "Numbers (0-9)",
+      "symbols": "Symbols (!@#$)"
+    },
+    "buttons": {
+      "copy": "Copy",
+      "copied": "Copied!",
+      "regenerate": "Regenerate"
+    },
     "checker": {
       "label": "Enter a password to check its strength",
       "placeholder": "Paste or type a password…",
-      "strength": { "label": "Strength", "veryWeak": "Very Weak", "weak": "Weak", "fair": "Fair", "strong": "Strong", "veryStrong": "Very Strong" },
-      "advice": { "tooShort": "Use at least 8 characters", "addLength": "Use 12 or more characters for better security", "addUppercase": "Add uppercase letters (A-Z) to make it stronger", "addLowercase": "Add lowercase letters (a-z) to make it stronger", "addNumbers": "Add numbers (0-9) to make it stronger", "addSymbols": "Add symbols (!@#$ etc.) to make it stronger", "great": "Excellent! This is a very strong password." }
+      "strength": {
+        "label": "Strength",
+        "veryWeak": "Very Weak",
+        "weak": "Weak",
+        "fair": "Fair",
+        "strong": "Strong",
+        "veryStrong": "Very Strong"
+      },
+      "advice": {
+        "tooShort": "Use at least 8 characters",
+        "addLength": "Use 12 or more characters for better security",
+        "addUppercase": "Add uppercase letters (A-Z) to make it stronger",
+        "addLowercase": "Add lowercase letters (a-z) to make it stronger",
+        "addNumbers": "Add numbers (0-9) to make it stronger",
+        "addSymbols": "Add symbols (!@#$ etc.) to make it stronger",
+        "great": "Excellent! This is a very strong password."
+      }
     },
     "meta": {
       "title": "Password Generator & Strength Checker – Secure Random Passwords",
       "description": "Generate cryptographically secure random passwords in one click. 3 strength presets, adjustable length (4–64 chars), custom character types. Includes a password strength checker. 100% browser-based.",
-      "keywords": ["password generator", "random password", "secure password", "password strength checker", "free password generator", "strong password creator"]
+      "keywords": [
+        "password generator",
+        "random password",
+        "secure password",
+        "password strength checker",
+        "free password generator",
+        "strong password creator"
+      ]
     },
     "content": {
       "howTo": {
@@ -144,11 +260,26 @@
       "faq": {
         "heading": "FAQ",
         "items": [
-          { "q": "What makes this generator more secure than others?", "a": "This tool uses crypto.getRandomValues(), a cryptographically strong random number generator built into browsers. Unlike Math.random(), it produces unpredictable values — a critical requirement for password security." },
-          { "q": "What makes a strong password?", "a": "Use at least 12 characters combining uppercase, lowercase, numbers, and symbols. The 'Strong' preset (20 characters, all character types) provides the highest security level offered by this tool." },
-          { "q": "Are generated passwords saved anywhere?", "a": "No. All processing happens completely in your browser. Generated passwords are never transmitted to or stored on any server." },
-          { "q": "Can I use generated passwords with a password manager?", "a": "Yes. Click 'Copy' to copy the password to your clipboard and paste it directly into 1Password, Bitwarden, LastPass, or any password manager. It also works seamlessly with browser autofill." },
-          { "q": "What should I do if a site doesn't allow symbols?", "a": "Simply uncheck the 'Symbols' option and regenerate. A combination of uppercase, lowercase, and numbers at 16+ characters still provides strong security without any symbols." }
+          {
+            "q": "What makes this generator more secure than others?",
+            "a": "This tool uses crypto.getRandomValues(), a cryptographically strong random number generator built into browsers. Unlike Math.random(), it produces unpredictable values — a critical requirement for password security."
+          },
+          {
+            "q": "What makes a strong password?",
+            "a": "Use at least 12 characters combining uppercase, lowercase, numbers, and symbols. The 'Strong' preset (20 characters, all character types) provides the highest security level offered by this tool."
+          },
+          {
+            "q": "Are generated passwords saved anywhere?",
+            "a": "No. All processing happens completely in your browser. Generated passwords are never transmitted to or stored on any server."
+          },
+          {
+            "q": "Can I use generated passwords with a password manager?",
+            "a": "Yes. Click 'Copy' to copy the password to your clipboard and paste it directly into 1Password, Bitwarden, LastPass, or any password manager. It also works seamlessly with browser autofill."
+          },
+          {
+            "q": "What should I do if a site doesn't allow symbols?",
+            "a": "Simply uncheck the 'Symbols' option and regenerate. A combination of uppercase, lowercase, and numbers at 16+ characters still provides strong security without any symbols."
+          }
         ]
       },
       "deepDive": {
@@ -173,18 +304,81 @@
   "qrCode": {
     "title": "QR Code Generator",
     "description": "Turn URLs, text, or Wi-Fi credentials into QR codes in one click. Customize colors, margin, and error correction, then download as PNG or SVG.",
-    "tabs": { "url": "URL", "text": "Text", "wifi": "Wi-Fi" },
-    "input": {
-      "url": { "label": "URL", "placeholder": "https://example.com" },
-      "text": { "label": "Text", "placeholder": "Enter text to encode…" },
-      "wifi": { "ssid": "Network Name (SSID)", "ssidPlaceholder": "MyNetwork", "password": "Password", "passwordPlaceholder": "Enter password", "security": "Security Type", "securityTypes": { "WPA": "WPA / WPA2", "WEP": "WEP", "nopass": "None (Open)" } }
+    "tabs": {
+      "url": "URL",
+      "text": "Text",
+      "wifi": "Wi-Fi",
+      "scan": "Scan"
     },
-    "customize": { "heading": "Customize", "fgColor": "Code Color", "bgColor": "Background", "margin": "Margin", "errorLevel": "Error Correction", "errorLevels": { "L": "L – Low (7%)", "M": "M – Medium (15%)", "Q": "Q – Quartile (25%)", "H": "H – High (30%)" } },
-    "preview": { "heading": "Preview", "empty": "Enter content to generate a QR code", "downloadPNG": "Download PNG", "downloadSVG": "Download SVG", "downloaded": "Downloaded!" },
+    "scan": {
+      "cameraLabel": "Start Camera Scan",
+      "stopLabel": "Stop",
+      "orUpload": "or",
+      "imageLabel": "Upload Image to Scan",
+      "result": "Scan Result",
+      "noResult": "No QR code detected. Please try another image.",
+      "error": "Failed to read the image.",
+      "empty": "Point the camera at a QR code or upload an image",
+      "copy": "Copy",
+      "copied": "Copied!",
+      "openUrl": "Open URL",
+      "clear": "Clear",
+      "history": "History"
+    },
+    "input": {
+      "url": {
+        "label": "URL",
+        "placeholder": "https://example.com"
+      },
+      "text": {
+        "label": "Text",
+        "placeholder": "Enter text to encode…"
+      },
+      "wifi": {
+        "ssid": "Network Name (SSID)",
+        "ssidPlaceholder": "MyNetwork",
+        "password": "Password",
+        "passwordPlaceholder": "Enter password",
+        "security": "Security Type",
+        "securityTypes": {
+          "WPA": "WPA / WPA2",
+          "WEP": "WEP",
+          "nopass": "None (Open)"
+        }
+      }
+    },
+    "customize": {
+      "heading": "Customize",
+      "fgColor": "Code Color",
+      "bgColor": "Background",
+      "margin": "Margin",
+      "errorLevel": "Error Correction",
+      "errorLevels": {
+        "L": "L – Low (7%)",
+        "M": "M – Medium (15%)",
+        "Q": "Q – Quartile (25%)",
+        "H": "H – High (30%)"
+      }
+    },
+    "preview": {
+      "heading": "Preview",
+      "empty": "Enter content to generate a QR code",
+      "downloadPNG": "Download PNG",
+      "downloadSVG": "Download SVG",
+      "downloaded": "Downloaded!"
+    },
     "meta": {
       "title": "QR Code Generator – URL, Text & Wi-Fi | PNG & SVG Download",
       "description": "Free online QR code generator. Create QR codes from URLs, text, or Wi-Fi credentials. Customize colors, margins, and error correction. Download as high-resolution PNG (1024px) or scalable SVG.",
-      "keywords": ["QR code generator", "free QR code", "Wi-Fi QR code", "QR code PNG", "QR code SVG", "custom QR code", "online QR generator"]
+      "keywords": [
+        "QR code generator",
+        "free QR code",
+        "Wi-Fi QR code",
+        "QR code PNG",
+        "QR code SVG",
+        "custom QR code",
+        "online QR generator"
+      ]
     },
     "content": {
       "howTo": {
@@ -208,11 +402,26 @@
       "faq": {
         "heading": "FAQ",
         "items": [
-          { "q": "Should I download PNG or SVG?", "a": "Choose SVG for print materials, business cards, or posters where scaling is important. Choose PNG for websites, apps, or when a standard raster image file is required." },
-          { "q": "Do Android and iPhone both support Wi-Fi QR codes?", "a": "Yes. Android 10+ and iOS 11+ can read Wi-Fi QR codes using their built-in camera apps, connecting to the network without manually entering a password." },
-          { "q": "Which error correction level should I use?", "a": "M (15%) is suitable for most purposes. Use H (30%) when you plan to overlay a logo or decorative element on the QR code, as this provides extra data redundancy." },
-          { "q": "Can I overlay a logo on the QR code?", "a": "The tool doesn't support image compositing directly, but you can download the SVG at error correction level H (30%), open it in Figma or Illustrator, overlay your logo, and export. Level H tolerates up to 30% data loss, giving enough margin for logo placement without breaking scan readability." },
-          { "q": "What should I do if my QR code fails to scan?", "a": "Common causes include the code being too small, low contrast between foreground and background, or insufficient margin. Try increasing the margin to 4+, boosting color contrast, ensuring the printed size is at least 2cm × 2cm, and raising the error correction level to M or H." }
+          {
+            "q": "Should I download PNG or SVG?",
+            "a": "Choose SVG for print materials, business cards, or posters where scaling is important. Choose PNG for websites, apps, or when a standard raster image file is required."
+          },
+          {
+            "q": "Do Android and iPhone both support Wi-Fi QR codes?",
+            "a": "Yes. Android 10+ and iOS 11+ can read Wi-Fi QR codes using their built-in camera apps, connecting to the network without manually entering a password."
+          },
+          {
+            "q": "Which error correction level should I use?",
+            "a": "M (15%) is suitable for most purposes. Use H (30%) when you plan to overlay a logo or decorative element on the QR code, as this provides extra data redundancy."
+          },
+          {
+            "q": "Can I overlay a logo on the QR code?",
+            "a": "The tool doesn't support image compositing directly, but you can download the SVG at error correction level H (30%), open it in Figma or Illustrator, overlay your logo, and export. Level H tolerates up to 30% data loss, giving enough margin for logo placement without breaking scan readability."
+          },
+          {
+            "q": "What should I do if my QR code fails to scan?",
+            "a": "Common causes include the code being too small, low contrast between foreground and background, or insufficient margin. Try increasing the margin to 4+, boosting color contrast, ensuring the printed size is at least 2cm × 2cm, and raising the error correction level to M or H."
+          }
         ]
       },
       "deepDive": {
@@ -237,14 +446,36 @@
   "imagesToPdf": {
     "title": "Images to PDF",
     "description": "Upload multiple images, reorder them by drag-and-drop, and download as a single PDF. All processing happens entirely in your browser — your images never leave your device.",
-    "dropZone": { "heading": "Drop images here", "sub": "or click to browse (JPG, PNG, WebP, GIF)" },
-    "buttons": { "addMore": "Add images", "generate": "Generate & Download PDF", "generating": "Generating…", "clear": "Remove all", "remove": "Remove" },
-    "info": { "safety": "All processing happens in your browser. Your images are never uploaded to any server.", "dragHint": "Drag thumbnails to reorder pages" },
-    "errors": { "noImages": "Please add at least one image." },
+    "dropZone": {
+      "heading": "Drop images here",
+      "sub": "or click to browse (JPG, PNG, WebP, GIF)"
+    },
+    "buttons": {
+      "addMore": "Add images",
+      "generate": "Generate & Download PDF",
+      "generating": "Generating…",
+      "clear": "Remove all",
+      "remove": "Remove"
+    },
+    "info": {
+      "safety": "All processing happens in your browser. Your images are never uploaded to any server.",
+      "dragHint": "Drag thumbnails to reorder pages"
+    },
+    "errors": {
+      "noImages": "Please add at least one image."
+    },
     "meta": {
       "title": "Images to PDF – Combine JPG, PNG & WebP files into one PDF",
       "description": "Convert multiple images to a single PDF with one click. Drag to reorder pages. Supports JPG, PNG, WebP, and GIF. All processing is done entirely in your browser — no uploads required.",
-      "keywords": ["images to PDF", "JPG to PDF", "PNG to PDF", "convert photos to PDF", "combine images PDF", "free PDF converter", "browser PDF maker"]
+      "keywords": [
+        "images to PDF",
+        "JPG to PDF",
+        "PNG to PDF",
+        "convert photos to PDF",
+        "combine images PDF",
+        "free PDF converter",
+        "browser PDF maker"
+      ]
     },
     "content": {
       "howTo": {
@@ -268,11 +499,26 @@
       "faq": {
         "heading": "FAQ",
         "items": [
-          { "q": "Are my images uploaded to a server?", "a": "No. PDF generation runs entirely in your browser using jsPDF. No image data is ever transmitted to or stored on any server." },
-          { "q": "Is there a limit on the number of images?", "a": "There is no hard limit, though processing many large files will use more browser memory. Up to around 50 images generally works smoothly." },
-          { "q": "Can I change the PDF page size?", "a": "Currently, output is fixed to A4 (210×297mm). Images are automatically resized to fit the page while preserving their aspect ratio." },
-          { "q": "What image quality is used in the output PDF?", "a": "Images are routed through the Canvas API and embedded at JPEG quality 0.92 (on a scale of 0–1). This balances file size and visual quality well. For maximum fidelity, use high-resolution source images and avoid upscaling them beforehand." },
-          { "q": "Do portrait photos from my phone fit on A4 pages?", "a": "Yes. Each image is automatically fitted inside the A4 page (with 10mm margins) while preserving its original aspect ratio. Portrait images scale to fit the page width; landscape images scale to the page height. No forced stretching or cropping occurs." }
+          {
+            "q": "Are my images uploaded to a server?",
+            "a": "No. PDF generation runs entirely in your browser using jsPDF. No image data is ever transmitted to or stored on any server."
+          },
+          {
+            "q": "Is there a limit on the number of images?",
+            "a": "There is no hard limit, though processing many large files will use more browser memory. Up to around 50 images generally works smoothly."
+          },
+          {
+            "q": "Can I change the PDF page size?",
+            "a": "Currently, output is fixed to A4 (210×297mm). Images are automatically resized to fit the page while preserving their aspect ratio."
+          },
+          {
+            "q": "What image quality is used in the output PDF?",
+            "a": "Images are routed through the Canvas API and embedded at JPEG quality 0.92 (on a scale of 0–1). This balances file size and visual quality well. For maximum fidelity, use high-resolution source images and avoid upscaling them beforehand."
+          },
+          {
+            "q": "Do portrait photos from my phone fit on A4 pages?",
+            "a": "Yes. Each image is automatically fitted inside the A4 page (with 10mm margins) while preserving its original aspect ratio. Portrait images scale to fit the page width; landscape images scale to the page height. No forced stretching or cropping occurs."
+          }
         ]
       },
       "deepDive": {
@@ -300,13 +546,37 @@
     "inputLabel": "JSON Input",
     "outputLabel": "Formatted Output",
     "placeholder": "Paste your JSON here…",
-    "indent": { "label": "Indent", "two": "2 spaces", "four": "4 spaces", "tab": "Tab" },
-    "buttons": { "format": "Format", "minify": "Minify", "copy": "Copy", "copied": "Copied!", "clear": "Clear", "sample": "Sample" },
-    "status": { "valid": "✓ Valid JSON", "invalid": "✗ Error", "empty": "Waiting for input" },
+    "indent": {
+      "label": "Indent",
+      "two": "2 spaces",
+      "four": "4 spaces",
+      "tab": "Tab"
+    },
+    "buttons": {
+      "format": "Format",
+      "minify": "Minify",
+      "copy": "Copy",
+      "copied": "Copied!",
+      "clear": "Clear",
+      "sample": "Sample"
+    },
+    "status": {
+      "valid": "✓ Valid JSON",
+      "invalid": "✗ Error",
+      "empty": "Waiting for input"
+    },
     "meta": {
       "title": "JSON Formatter & Validator – Format, minify, and validate JSON",
       "description": "Paste JSON to instantly format and validate it. Syntax errors highlighted with full details. Choose 2-space, 4-space, or tab indentation. Minify with one click. Free online JSON tool for developers.",
-      "keywords": ["JSON formatter", "JSON validator", "JSON beautifier", "JSON minifier", "format JSON online", "JSON syntax checker", "free JSON tool"]
+      "keywords": [
+        "JSON formatter",
+        "JSON validator",
+        "JSON beautifier",
+        "JSON minifier",
+        "format JSON online",
+        "JSON syntax checker",
+        "free JSON tool"
+      ]
     },
     "content": {
       "howTo": {
@@ -330,11 +600,26 @@
       "faq": {
         "heading": "FAQ",
         "items": [
-          { "q": "What syntax errors can it detect?", "a": "It parses JSON according to RFC 8259, detecting trailing commas, missing quotes, mismatched brackets and braces, invalid Unicode escapes, and all other standard JSON syntax errors." },
-          { "q": "Does it support JSON5 or JSONC (JSON with comments)?", "a": "No. This tool validates against the JSON standard (RFC 8259). Comments (// or /* */) and trailing commas found in JSON5/JSONC will cause syntax errors." },
-          { "q": "Can it handle large JSON files?", "a": "Yes. Everything runs in the browser. Files up to several MB work fine; very large files may increase browser memory usage." },
-          { "q": "Can I validate JSON without formatting it?", "a": "Yes. Validation runs automatically as you type, and the status badge shows '✓ Valid JSON' or '✗ Error' instantly — no need to click Format. Live feedback is always active." },
-          { "q": "Does it support JSONC (JSON with comments) or JSON5?", "a": "No. This tool validates strictly against the RFC 8259 JSON standard. Comments (// or /* */) and trailing commas in JSONC or JSON5 will trigger a syntax error. Remove any comments before pasting." }
+          {
+            "q": "What syntax errors can it detect?",
+            "a": "It parses JSON according to RFC 8259, detecting trailing commas, missing quotes, mismatched brackets and braces, invalid Unicode escapes, and all other standard JSON syntax errors."
+          },
+          {
+            "q": "Does it support JSON5 or JSONC (JSON with comments)?",
+            "a": "No. This tool validates against the JSON standard (RFC 8259). Comments (// or /* */) and trailing commas found in JSON5/JSONC will cause syntax errors."
+          },
+          {
+            "q": "Can it handle large JSON files?",
+            "a": "Yes. Everything runs in the browser. Files up to several MB work fine; very large files may increase browser memory usage."
+          },
+          {
+            "q": "Can I validate JSON without formatting it?",
+            "a": "Yes. Validation runs automatically as you type, and the status badge shows '✓ Valid JSON' or '✗ Error' instantly — no need to click Format. Live feedback is always active."
+          },
+          {
+            "q": "Does it support JSONC (JSON with comments) or JSON5?",
+            "a": "No. This tool validates strictly against the RFC 8259 JSON standard. Comments (// or /* */) and trailing commas in JSONC or JSON5 will trigger a syntax error. Remove any comments before pasting."
+          }
         ]
       },
       "deepDive": {
@@ -359,14 +644,30 @@
   "unitConverter": {
     "title": "Universal Unit Converter",
     "description": "Convert length, weight, temperature, and data storage units in real time. Covers both metric and imperial systems.",
-    "categories": { "length": "Length", "weight": "Weight", "temperature": "Temperature", "data": "Data Size" },
-    "labels": { "from": "From", "to": "To" },
+    "categories": {
+      "length": "Length",
+      "weight": "Weight",
+      "temperature": "Temperature",
+      "data": "Data Size"
+    },
+    "labels": {
+      "from": "From",
+      "to": "To"
+    },
     "placeholder": "Enter a value",
     "swap": "Swap",
     "meta": {
       "title": "Unit Converter – Length, weight, temperature & data size",
       "description": "Instantly convert between metric and imperial units. Supports length (mm–miles), weight (mg–tonnes), temperature (°C/°F/K), and data sizes (B–PB). Real-time results, no button needed.",
-      "keywords": ["unit converter", "length converter", "weight converter", "temperature converter", "data size converter", "metric imperial conversion", "online unit calculator"]
+      "keywords": [
+        "unit converter",
+        "length converter",
+        "weight converter",
+        "temperature converter",
+        "data size converter",
+        "metric imperial conversion",
+        "online unit calculator"
+      ]
     },
     "content": {
       "howTo": {
@@ -390,11 +691,26 @@
       "faq": {
         "heading": "FAQ",
         "items": [
-          { "q": "What temperature formula is used?", "a": "Celsius (°C) is the base unit. Fahrenheit: °F = °C × 9/5 + 32. Kelvin: K = °C + 273.15. Absolute zero is −273.15°C = 0K = −459.67°F." },
-          { "q": "Is 1 KB equal to 1000 B or 1024 B?", "a": "This tool uses the binary (computing) standard: 1KB = 1024B, 1MB = 1024KB (= 1,048,576B). This differs from the decimal standard (1KB = 1000B) used by some storage manufacturers." },
-          { "q": "Can you add more units?", "a": "Feel free to request additional units via the contact page. High-demand units will be considered for future additions." },
-          { "q": "Why do I sometimes see floating-point rounding in results?", "a": "All calculations use JavaScript's IEEE 754 double-precision floating-point numbers. The tool applies toPrecision(10) to minimize visible rounding, but very small residuals may occasionally appear. This is a known property of binary floating-point arithmetic, not a bug." },
-          { "q": "Can you add cooking units like cups, tablespoons, or teaspoons?", "a": "Volume units for cooking are not yet supported. The weight category covers standard SI units. Cooking volume units are on the roadmap — feel free to request them via the contact page." }
+          {
+            "q": "What temperature formula is used?",
+            "a": "Celsius (°C) is the base unit. Fahrenheit: °F = °C × 9/5 + 32. Kelvin: K = °C + 273.15. Absolute zero is −273.15°C = 0K = −459.67°F."
+          },
+          {
+            "q": "Is 1 KB equal to 1000 B or 1024 B?",
+            "a": "This tool uses the binary (computing) standard: 1KB = 1024B, 1MB = 1024KB (= 1,048,576B). This differs from the decimal standard (1KB = 1000B) used by some storage manufacturers."
+          },
+          {
+            "q": "Can you add more units?",
+            "a": "Feel free to request additional units via the contact page. High-demand units will be considered for future additions."
+          },
+          {
+            "q": "Why do I sometimes see floating-point rounding in results?",
+            "a": "All calculations use JavaScript's IEEE 754 double-precision floating-point numbers. The tool applies toPrecision(10) to minimize visible rounding, but very small residuals may occasionally appear. This is a known property of binary floating-point arithmetic, not a bug."
+          },
+          {
+            "q": "Can you add cooking units like cups, tablespoons, or teaspoons?",
+            "a": "Volume units for cooking are not yet supported. The weight category covers standard SI units. Cooking volume units are on the roadmap — feel free to request them via the contact page."
+          }
         ]
       },
       "deepDive": {
@@ -418,15 +734,41 @@
   "base64": {
     "title": "Base64 Encoder / Decoder",
     "description": "Encode text to Base64 or decode Base64 back to text. Full Unicode and Japanese character support.",
-    "tabs": { "encode": "Encode", "decode": "Decode" },
-    "labels": { "input": "Input Text", "output": "Base64 Result", "inputDecode": "Base64 String", "outputDecode": "Decoded Text" },
-    "placeholders": { "encode": "Enter text to encode…", "decode": "Enter Base64 string to decode…" },
-    "buttons": { "copy": "Copy", "copied": "Copied!", "clear": "Clear", "swap": "Swap input & output" },
-    "errors": { "invalidBase64": "Invalid Base64 string. Please check the input." },
+    "tabs": {
+      "encode": "Encode",
+      "decode": "Decode"
+    },
+    "labels": {
+      "input": "Input Text",
+      "output": "Base64 Result",
+      "inputDecode": "Base64 String",
+      "outputDecode": "Decoded Text"
+    },
+    "placeholders": {
+      "encode": "Enter text to encode…",
+      "decode": "Enter Base64 string to decode…"
+    },
+    "buttons": {
+      "copy": "Copy",
+      "copied": "Copied!",
+      "clear": "Clear",
+      "swap": "Swap input & output"
+    },
+    "errors": {
+      "invalidBase64": "Invalid Base64 string. Please check the input."
+    },
     "meta": {
       "title": "Base64 Encoder / Decoder – Full Unicode & Japanese support",
       "description": "Encode text to Base64 or decode Base64 back to text. Full Unicode support including Japanese, Chinese, and emoji via TextEncoder/TextDecoder API. Real-time conversion, no server required.",
-      "keywords": ["Base64 encoder", "Base64 decoder", "Base64 converter", "encode Base64 online", "decode Base64 online", "Base64 Unicode", "Base64 Japanese"]
+      "keywords": [
+        "Base64 encoder",
+        "Base64 decoder",
+        "Base64 converter",
+        "encode Base64 online",
+        "decode Base64 online",
+        "Base64 Unicode",
+        "Base64 Japanese"
+      ]
     },
     "content": {
       "howTo": {
@@ -450,11 +792,26 @@
       "faq": {
         "heading": "FAQ",
         "items": [
-          { "q": "Why does encoding Japanese text require special handling?", "a": "JavaScript's built-in btoa() only supports ASCII. Multi-byte characters like Japanese cause errors if passed directly. This tool uses TextEncoder to convert text to a UTF-8 byte array first, handling all Unicode characters correctly." },
-          { "q": "Decoded text looks garbled — what's wrong?", "a": "This tool assumes UTF-8 encoding when decoding. If the Base64 string was created from text encoded in Shift-JIS or another legacy encoding, the decoded output may appear as garbled characters." },
-          { "q": "Where is Base64 commonly used?", "a": "Base64 is widely used in email attachments (MIME), embedding images in HTML/CSS as Data URLs, JWT (JSON Web Token) payloads, and transmitting binary data over text-based APIs." },
-          { "q": "Does this tool support URL-safe Base64 (Base64url)?", "a": "The tool uses standard Base64 (RFC 4648 §4). URL-safe Base64 (Base64url) substitutes + with -, / with _, and omits = padding. After encoding, you can manually apply those substitutions to convert to Base64url format." },
-          { "q": "Can I encode binary files like images or PDFs?", "a": "The tool accepts text input only and is not designed for binary file encoding. To Base64-encode a file in JavaScript, use FileReader.readAsDataURL() in the browser, or Buffer.from(data).toString('base64') in Node.js." }
+          {
+            "q": "Why does encoding Japanese text require special handling?",
+            "a": "JavaScript's built-in btoa() only supports ASCII. Multi-byte characters like Japanese cause errors if passed directly. This tool uses TextEncoder to convert text to a UTF-8 byte array first, handling all Unicode characters correctly."
+          },
+          {
+            "q": "Decoded text looks garbled — what's wrong?",
+            "a": "This tool assumes UTF-8 encoding when decoding. If the Base64 string was created from text encoded in Shift-JIS or another legacy encoding, the decoded output may appear as garbled characters."
+          },
+          {
+            "q": "Where is Base64 commonly used?",
+            "a": "Base64 is widely used in email attachments (MIME), embedding images in HTML/CSS as Data URLs, JWT (JSON Web Token) payloads, and transmitting binary data over text-based APIs."
+          },
+          {
+            "q": "Does this tool support URL-safe Base64 (Base64url)?",
+            "a": "The tool uses standard Base64 (RFC 4648 §4). URL-safe Base64 (Base64url) substitutes + with -, / with _, and omits = padding. After encoding, you can manually apply those substitutions to convert to Base64url format."
+          },
+          {
+            "q": "Can I encode binary files like images or PDFs?",
+            "a": "The tool accepts text input only and is not designed for binary file encoding. To Base64-encode a file in JavaScript, use FileReader.readAsDataURL() in the browser, or Buffer.from(data).toString('base64') in Node.js."
+          }
         ]
       },
       "deepDive": {
@@ -479,7 +836,12 @@
   "timerCounter": {
     "title": "Timer, Stopwatch & Cycle Counter",
     "description": "An all-in-one tool built for game grinding and Pomodoro work sessions. Features a Document Picture-in-Picture mini window so you can keep the timer on screen while gaming or watching videos.",
-    "tabs": { "timer": "Timer", "stopwatch": "Stopwatch", "counter": "Counter" },
+    "tabs": {
+      "timer": "Timer",
+      "stopwatch": "Stopwatch",
+      "counter": "Counter",
+      "probability": "Probability"
+    },
     "timer": {
       "hours": "Hours",
       "minutes": "Minutes",
@@ -503,6 +865,44 @@
       "goalReached": "Goal reached! Congratulations!",
       "storageNote": "Count is auto-saved to local storage and persists after closing the page."
     },
+    "probability": {
+      "drops": "Drop Count",
+      "attempts": "Attempts",
+      "targetRate": "Target Drop Rate (%)",
+      "observedRate": "Observed Drop Rate",
+      "expectedPerDrop": "Expected attempts per drop",
+      "trialsFor95": "Trials needed for 95% chance of ≥1 drop",
+      "trialsFor99": "Trials needed for 99% chance of ≥1 drop",
+      "noData": "Enter trials and drop rate to see statistics.",
+      "addDrop": "+1 Drop",
+      "addAttempt": "+Attempt only",
+      "dropsPlaceholder": "Enter drop count…",
+      "attemptsPlaceholder": "Enter total attempts…",
+      "targetPlaceholder": "e.g. 1.0",
+      "reset": "Reset",
+      "storageNote": "Drop count and attempts are auto-saved to local storage.",
+      "trialsSuffix": " trials",
+      "timesLabel": "×",
+      "hint": "Set a target drop rate to calculate statistical expectations.",
+      "calcTrials": "Trials",
+      "calcRate": "Drop Rate (%)",
+      "pAtLeastOne": "P(≥1 drop)",
+      "distribution": "Probability Distribution",
+      "distributionDrops": "Drops",
+      "distributionProb": "Probability",
+      "atLeastN": " or more",
+      "tracking": "Observed Tracking",
+      "trackingDesc": "Count while playing"
+    },
+    "settings": {
+      "heading": "Mini Window (PiP) Display Settings",
+      "description": "Choose what information to show in the mini window",
+      "show": "Show",
+      "timer": "Timer",
+      "stopwatch": "Stopwatch",
+      "counter": "Show Counter",
+      "probability": "Show Probability Tracker"
+    },
     "pip": {
       "title": "Mini Window (PiP) Mode",
       "description": "Always-on-top mini window — stays visible even while gaming. Powered by Document PiP API.",
@@ -514,7 +914,18 @@
     "meta": {
       "title": "Timer & Cycle Counter – Game Grinding & Pomodoro | Yuustudio",
       "description": "All-in-one timer, stopwatch, and cycle counter optimized for game grinding and Pomodoro sessions. Document Picture-in-Picture API keeps the display always on top. Supports lap recording, goal tracking, and LocalStorage persistence.",
-      "keywords": ["game grinding counter", "online timer", "Pomodoro timer", "cycle counter", "PiP timer", "stopwatch online", "goal tracker", "game productivity", "free counter tool", "mini window timer"]
+      "keywords": [
+        "game grinding counter",
+        "online timer",
+        "Pomodoro timer",
+        "cycle counter",
+        "PiP timer",
+        "stopwatch online",
+        "goal tracker",
+        "game productivity",
+        "free counter tool",
+        "mini window timer"
+      ]
     },
     "content": {
       "howTo": {
@@ -542,12 +953,30 @@
       "faq": {
         "heading": "FAQ",
         "items": [
-          { "q": "The PiP mini window doesn't open — what should I do?", "a": "Document Picture-in-Picture is supported in Chrome 116 and later. Firefox and Safari do not currently support it. On unsupported browsers the tool automatically falls back to a floating overlay in the bottom-right corner. In Chrome, check that pop-up blocking is not preventing the window from opening." },
-          { "q": "Will the timer lose accuracy if I switch to another tab?", "a": "No. The timer records the target end time as a Date.now() epoch millisecond when you start it. Each interval tick computes remaining = Math.ceil((endTime - Date.now()) / 1000). Even if the browser throttles the interval in the background, the anchor-based calculation self-corrects on every tick so accumulated drift is effectively zero." },
-          { "q": "My counter was reset — how do I prevent that?", "a": "Counter data is stored in localStorage. Clearing browser history or cache, using private/incognito mode, or using a different browser will erase the stored count. For important session counts, note the number externally. The storage keys are yuu-tc-count and yuu-tc-goal." },
-          { "q": "Vibration doesn't work on my phone", "a": "The Web Vibration API is supported on Chrome for Android. iOS (Safari and Chrome) does not implement the Vibration API, so no haptic feedback occurs on iPhones or iPads. The counter button animation provides visual confirmation of each tap regardless of haptics." },
-          { "q": "How do I clear the goal and hide the progress bar?", "a": "Clear the goal input field and press 'Set Goal'. This resets the goal to 0 and hides the progress bar." },
-          { "q": "Does running the stopwatch affect page performance?", "a": "The stopwatch uses requestAnimationFrame which runs at ~60 fps, but each frame only updates a single React state value. Timer uses a 200ms setInterval. The counter only processes events on button press. CPU and memory impact is negligible for normal use." }
+          {
+            "q": "The PiP mini window doesn't open — what should I do?",
+            "a": "Document Picture-in-Picture is supported in Chrome 116 and later. Firefox and Safari do not currently support it. On unsupported browsers the tool automatically falls back to a floating overlay in the bottom-right corner. In Chrome, check that pop-up blocking is not preventing the window from opening."
+          },
+          {
+            "q": "Will the timer lose accuracy if I switch to another tab?",
+            "a": "No. The timer records the target end time as a Date.now() epoch millisecond when you start it. Each interval tick computes remaining = Math.ceil((endTime - Date.now()) / 1000). Even if the browser throttles the interval in the background, the anchor-based calculation self-corrects on every tick so accumulated drift is effectively zero."
+          },
+          {
+            "q": "My counter was reset — how do I prevent that?",
+            "a": "Counter data is stored in localStorage. Clearing browser history or cache, using private/incognito mode, or using a different browser will erase the stored count. For important session counts, note the number externally. The storage keys are yuu-tc-count and yuu-tc-goal."
+          },
+          {
+            "q": "Vibration doesn't work on my phone",
+            "a": "The Web Vibration API is supported on Chrome for Android. iOS (Safari and Chrome) does not implement the Vibration API, so no haptic feedback occurs on iPhones or iPads. The counter button animation provides visual confirmation of each tap regardless of haptics."
+          },
+          {
+            "q": "How do I clear the goal and hide the progress bar?",
+            "a": "Clear the goal input field and press 'Set Goal'. This resets the goal to 0 and hides the progress bar."
+          },
+          {
+            "q": "Does running the stopwatch affect page performance?",
+            "a": "The stopwatch uses requestAnimationFrame which runs at ~60 fps, but each frame only updates a single React state value. Timer uses a 200ms setInterval. The counter only processes events on button press. CPU and memory impact is negligible for normal use."
+          }
         ]
       },
       "deepDive": {
@@ -556,7 +985,10 @@
           "The Document Picture-in-Picture API (document-picture-in-picture) was shipped in Chrome 116 and extends the browser's existing Video PiP capability to arbitrary HTML content. Calling window.documentPictureInPicture.requestWindow() returns a Promise that resolves to a Window object with its own Document. By passing this window's body element to ReactDOM.createRoot(), a full React tree can be rendered inside the PiP window — the same component model used in the main page. The expansion from video-only to arbitrary content reflects the W3C's broader push for richer ambient display APIs, enabling use cases like always-visible dashboards, assistive overlays, and — as demonstrated here — gaming utility windows.",
           "The classic pitfall of web timers is interval drift. setInterval(fn, 1000) does not guarantee exactly 1000ms between calls; JS engine garbage collection, event loop congestion, and background tab throttling (Chrome throttles background timers to ~1s minimum, some browsers to 1-minute intervals) all introduce cumulative errors. This tool uses an anchor approach: on Start, it records endTime = Date.now() + remainingMs. Every 200ms tick recomputes remaining = Math.ceil((endTime − Date.now()) / 1000). The absolute time reference self-corrects any delay, so even a 5-minute timer paused and resumed multiple times stays within ±1 second of the true elapsed time.",
           "The stopwatch relies on requestAnimationFrame (rAF) for sub-second resolution. rAF delivers callbacks at the display's refresh rate (~60 Hz or ~120 Hz on high-refresh screens), providing 8–16ms precision. The implementation stores a start timestamp via performance.now() (monotonic, higher-resolution than Date.now()) and accumulates an offset on pause: offset += performance.now() − startRef. On resume, a new startRef is recorded. This means swElapsed = offset + (performance.now() − startRef) always reflects the correct elapsed time even across many pause/resume cycles, and the displayed centiseconds never drift from the internal value.",
-          "The counter's gamification design draws on Edwin Locke's Goal-Setting Theory (1968), which demonstrates that specific, challenging goals with visible progress feedback outperform vague 'do your best' goals in motivation and performance. By pairing a numeric counter with a configurable target and a color-coded progress bar (blue → green at 100%), the tool makes abstract repetition — farming materials in an RPG, completing ranked matches, running event stages in mobile games — feel like a structured challenge with a clear endpoint. The micro-animation on each +1 press (spring-eased translateY + scale via CSS transition) and optional haptic feedback reinforce each individual action, reducing the cognitive load of manual tallying."
+          "The counter's gamification design draws on Edwin Locke's Goal-Setting Theory (1968), which demonstrates that specific, challenging goals with visible progress feedback outperform vague 'do your best' goals in motivation and performance. By pairing a numeric counter with a configurable target and a color-coded progress bar (blue → green at 100%), the tool makes abstract repetition — farming materials in an RPG, completing ranked matches, running event stages in mobile games — feel like a structured challenge with a clear endpoint. The micro-animation on each +1 press (spring-eased translateY + scale via CSS transition) and optional haptic feedback reinforce each individual action, reducing the cognitive load of manual tallying.",
+          "Probability Theory Deep Dive: Independent Trials and the Complementary Event. A widespread misconception in gaming is that a 1% drop rate guarantees a drop within 100 attempts. The correct formula for the probability of at least one drop in n independent trials is P(X≥1) = 1 − (1−p)^n. For p=0.01 and n=100, P = 1 − 0.99^100 ≈ 0.634 — only about 63.4%. True certainty requires infinite trials; '100 tries and it's guaranteed' is mathematically false. This formula applies the complementary event rule: instead of computing the complex direct probability, we calculate the probability of the opposite event (zero drops) and subtract from 1. Each trial is independent, meaning previous failures have no influence on the next attempt's drop rate — the 1% stays exactly 1% regardless of how many consecutive misses have occurred.",
+          "Expected Value and the Law of Large Numbers: Why Visualising Numbers Sustains Motivation. The geometric distribution gives an expected value of E[X] = 1/p attempts per drop. At p=0.01 that averages 100 attempts per drop, but the key word is 'average': variance is enormous in the short run. To achieve a 95% probability of at least one drop, you need n ≥ log(0.05) / log(0.99) ≈ 299 attempts; for 99% the figure climbs to roughly 459. The Law of Large Numbers guarantees that as trial count grows, the observed drop rate converges to the theoretical p, but 'large enough' typically means hundreds to thousands of trials. The Probability tab in this tool displays both the real-time observed rate and these statistical thresholds simultaneously, giving players a factual anchor — 'I've only done 150 runs at 1%, statistically I haven't even hit 50/50 odds yet' — that reframes dry streaks as expected variance rather than a broken system.",
+          "The Psychology of Visualising Probability: Combating Frustration and Sustaining Engagement. Behavioural science consistently shows that visible progress is the single most powerful predictor of intrinsic motivation. Teresa Amabile's 'Progress Principle' identifies even small, measurable advances as the top driver of positive inner work life. When collecting rare items in games, drop-rate calculators serve as a progress proxy: the growing attempt counter and rising observed-rate bar each represent forward movement even when the desired item hasn't dropped yet. Furthermore, when the observed rate falls below the theoretical value — a 'dry streak' — being able to quantify exactly how unlucky the current run is ('the probability of going 300 attempts without a 1% drop is only 5%') activates rational reappraisal, reducing the frustration and impulsivity that often cause players to quit prematurely. Numerically grounding the experience turns opaque RNG into a legible statistical story, which research in cognitive psychology links to reduced anxiety and better decision-making under uncertainty."
         ]
       },
       "security": {
@@ -569,15 +1001,188 @@
       }
     }
   },
-  "footer": { "home": "Home", "about": "About", "privacy": "Privacy Policy", "contact": "Contact" },
+  "grindingCompanion": {
+    "title": "Grinding Companion",
+    "description": "An all-in-one companion for game grinding — cycle counter with per-run timer, drop rate probability calculator, and an always-on-top mini window via Document PiP API.",
+    "modules": {
+      "heading": "Active Modules",
+      "counter": "Cycle Counter",
+      "dropCalc": "Drop Rate Calculator",
+      "pip": "Mini Window",
+      "emptyHint": "Enable at least one module above."
+    },
+    "counter": {
+      "title": "Cycle Counter",
+      "cycles": "Cycles",
+      "goalPlaceholder": "Enter target cycles…",
+      "setGoal": "Set Goal",
+      "goalReached": "Goal reached! Congratulations!",
+      "startCycle": "Start",
+      "pauseCycle": "Pause",
+      "finishCycle": "Finish +1",
+      "resetSession": "Reset Session",
+      "currentTime": "Current",
+      "avgTime": "Avg",
+      "bestTime": "Best",
+      "lapHistory": "Run History"
+    },
+    "dropCalc": {
+      "title": "Drop Rate Calculator",
+      "drops": "Drops Obtained",
+      "attempts": "Total Attempts",
+      "nominalRate": "Nominal Drop Rate (%)",
+      "observedRate": "Observed Rate",
+      "expectedDrops": "Expected Drops",
+      "expectedPerDrop": "Runs per Drop",
+      "luckRatio": "Luck Ratio",
+      "pSuccess": "Prob. of at Least 1 Drop",
+      "unlucky": "Unlucky",
+      "normal": "Normal",
+      "lucky": "Lucky",
+      "dryStreak": "Dry Streak Warning",
+      "dryStreakNote": "You haven't obtained a single drop yet. Based on the nominal rate, the odds of going this many attempts without a drop are low — keep grinding!",
+      "hint": "Enter drops, attempts, and nominal rate to calculate luck.",
+      "dropsPlaceholder": "e.g. 3",
+      "attemptsPlaceholder": "e.g. 150",
+      "nominalPlaceholder": "e.g. 2"
+    },
+    "pip": {
+      "title": "Mini Window (PiP) Mode",
+      "description": "Floating always-on-top mini window. Displays cycles, timer, and drop rate while you play.",
+      "unsupported": "Your browser does not support Document PiP. A floating overlay will be used instead.",
+      "open": "Mini View",
+      "close": "Close",
+      "miniMode": "Mini Mode"
+    },
+    "meta": {
+      "title": "Grinding Companion – Drop Rate Calculator & Cycle Counter | Yuustudio",
+      "description": "Free browser tool for game grinding. Track cycles with a per-run timer, calculate drop rate probability and luck ratio, and monitor stats in an always-on-top Document PiP mini window.",
+      "keywords": [
+        "game grinding",
+        "drop rate calculator",
+        "cycle counter",
+        "grinding companion",
+        "loot probability",
+        "farming tool",
+        "PiP gaming overlay",
+        "drop tracker",
+        "MMORPG farming",
+        "gacha probability"
+      ]
+    },
+    "content": {
+      "howTo": {
+        "heading": "How to use",
+        "steps": [
+          "Enable the modules you want using the toggle buttons at the top: Cycle Counter, Drop Rate Calculator, Mini Window.",
+          "[Cycle Counter] Press 'Start' to begin timing a run. Press 'Finish +1' when the run is complete to record the time and add 1 to your cycle count. Set a goal to see a progress bar.",
+          "[Drop Rate Calculator] Enter the number of drops obtained, total attempts, and the item's nominal drop rate (%). The tool calculates your observed rate, luck ratio, expected drops, and the probability of getting at least one drop.",
+          "[Mini Window] Press 'Mini View' to open a Document PiP window showing live stats — cycles, timer, and luck ratio — always on top. Requires Chrome 116+.",
+          "Use the 'Reset Session' button in the Cycle Counter to clear all run data and start fresh."
+        ]
+      },
+      "features": {
+        "heading": "Features",
+        "items": [
+          "Per-run timer with automatic lap recording: Each run is timed from Start to Finish, and the split is stored in a history list. Average and best times are calculated automatically.",
+          "Drop rate probability engine: Given drops, attempts, and nominal rate, the tool computes observed rate, luck ratio (observed/nominal), expected total drops, average runs per drop, and the geometric-distribution probability of at least one drop in N attempts.",
+          "Luck gauge: A color-coded gradient bar (red → yellow → green) with a moving marker visualizes how lucky or unlucky your current session is relative to the expected baseline.",
+          "Dry streak detector: When drops = 0, the tool calculates the probability of going the current number of attempts without any drop and highlights abnormally unlucky streaks.",
+          "Document PiP always-on-top overlay: Renders cycle count, run timer, and luck ratio in a floating window that stays visible over your game or video — no game mini-sizing required.",
+          "Interactive PiP controls: The mini window includes ▶/⏸ and 'Next Run +1' buttons wired to the latest app state via a ref pattern, so the PiP is fully interactive with zero stale-closure risk.",
+          "LocalStorage persistence: Cycle count and goal survive page refreshes automatically."
+        ]
+      },
+      "faq": {
+        "heading": "FAQ",
+        "items": [
+          {
+            "q": "What is the luck ratio?",
+            "a": "Luck ratio = observed drop rate ÷ nominal drop rate. A ratio of 1.0 means exactly average luck. Values above 1.0 are luckier than average; values below 1.0 are unluckier. For example, a ratio of 2.0 means you obtained drops at twice the expected rate, while 0.5 means half the expected rate."
+          },
+          {
+            "q": "What does 'Prob. of at Least 1 Drop' mean?",
+            "a": "This is the geometric-distribution probability P = 1 − (1 − p)^n, where p is the nominal drop rate per attempt and n is your total attempts. It answers: 'Given this drop rate, how likely was I to get at least one drop in this many runs?' If your result is rare (e.g., P < 5%), you are statistically unusually unlucky."
+          },
+          {
+            "q": "The PiP window doesn't open — what should I do?",
+            "a": "Document Picture-in-Picture is supported in Chrome 116 and later on desktop. Firefox and Safari do not support it. On unsupported browsers, a floating in-page overlay is shown automatically. In Chrome, ensure pop-up blocking is not active for this site."
+          },
+          {
+            "q": "Can I use the Cycle Counter without timing runs?",
+            "a": "Yes. You can simply press 'Finish +1' without pressing 'Start' first. The run timer will show 0s for that cycle and the count still increments."
+          },
+          {
+            "q": "How is average time calculated?",
+            "a": "Only timed runs (where you pressed Start before Finish) contribute to the average. Untimed cycles (direct Finish +1) are not included in average or best time calculations."
+          },
+          {
+            "q": "Is any data stored on a server?",
+            "a": "No. Cycle count and goal are saved to localStorage in your browser only. Drop rate inputs are held in React state and are never persisted or transmitted. No data ever leaves your device."
+          }
+        ]
+      },
+      "deepDive": {
+        "heading": "Technical Deep Dive: Geometric Distribution, Luck Ratio & PiP Architecture",
+        "paragraphs": [
+          "The drop rate probability engine is built on the geometric distribution, a fundamental model in probability theory for counting the number of independent Bernoulli trials needed to achieve a first success. If each attempt has a constant probability p of yielding a drop, then P(at least one drop in n attempts) = 1 − (1 − p)^n. This formula forms the core of the 'Prob. of at Least 1 Drop' metric displayed by the tool. The expected number of attempts per drop is E[X] = 1/p, giving a concrete benchmark players can compare against their actual run count. These calculations remain valid as long as each attempt is independent and the drop rate is constant — which is generally the design intent in games that use a flat RNG roll per attempt.",
+          "The luck ratio is defined as (observed drop rate) / (nominal drop rate) = (drops / attempts) / p. A ratio of 1.0 means observed performance exactly matches the statistical expectation. Values above 1.25 are highlighted in green (favorable), values above 2.0 in gold (extremely lucky), values below 0.8 in blue (slightly unlucky), and values below 0.5 in red (significantly unlucky). The luck gauge gradient bar provides an immediate visual impression of session luck without requiring the player to interpret raw probabilities. This design draws on the principle of pre-attentive visual processing: color and spatial position on a gradient are processed automatically before conscious attention is engaged, making good/bad luck legible at a glance.",
+          "The dry streak detector activates when drops = 0. In this case the standard luck ratio is undefined (0/0), so the tool instead computes the complementary probability: P(zero drops in n attempts) = (1 − p)^n. This answers 'How unlikely was it to get zero drops in this many runs?' and directly quantifies the severity of the dry streak. For example, with a 2% nominal rate over 200 attempts, P(zero drops) = 0.98^200 ≈ 1.8% — a 1-in-55 event. Displaying this probability gives players a statistically grounded understanding of whether their dry streak is within normal variance or genuinely exceptional.",
+          "The Document Picture-in-Picture (Document PiP) overlay architecture addresses a fundamental challenge of web-based gaming utilities: keeping the tool visible while full-screen or focus-locked games are running. Unlike standard Video PiP, the Document PiP API (Chrome 116+, W3C proposal) allows arbitrary HTML/CSS/JS to be rendered in the floating window. This tool uses ReactDOM.createRoot() to mount a React subtree inside the PiP window's document body, copying parent stylesheets automatically. Interactive controls (toggle timer, increment cycle) are wired via a pipHandlersRef pattern: a mutable ref is updated synchronously on every render of the main component, and PiP button onClick handlers call pipHandlersRef.current.fn(). This ensures that the PiP overlay always calls the most recently captured closure without ever requiring the PiP useEffect to re-run — eliminating stale state bugs entirely."
+        ]
+      },
+      "security": {
+        "heading": "Privacy & Security Guarantee",
+        "paragraphs": [
+          "All cycle and goal data is stored exclusively in localStorage under the keys yuu-gc-cycles and yuu-gc-goal. localStorage is a client-side browser API; no data is transmitted to any server. Drop rate inputs (drops, attempts, nominal rate) are held only in React component state and are discarded when the page is closed or refreshed.",
+          "The Document PiP window runs in the same JavaScript execution context as the main page, governed by the browser's same-origin policy. No cross-origin scripts can interact with the PiP window. The PiP window is automatically closed when the main page is navigated away from or closed. Closing the PiP window from the browser chrome triggers the pagehide event, which the tool listens to in order to clean up the ReactDOM root.",
+          "This tool performs all probability calculations client-side in pure JavaScript. No input values are logged, sent to an analytics endpoint, or stored beyond the current session. You can verify zero network payload for user inputs at any time via your browser's DevTools → Network tab."
+        ]
+      }
+    }
+  },
+  "footer": {
+    "home": "Home",
+    "about": "About",
+    "privacy": "Privacy Policy",
+    "contact": "Contact"
+  },
   "tools": {
-    "word-count": { "name": "Word Counter", "description": "Count characters, words, and lines in real time. Perfect for articles and reports." },
-    "password-generator": { "name": "Password Generator", "description": "Generate strong random passwords in one click. Customize length and character types." },
-    "qr-code": { "name": "QR Code Generator", "description": "Instantly create QR codes from URLs or text. Download and use them right away." },
-    "images-to-pdf": { "name": "Images to PDF", "description": "Combine multiple images into one PDF. Drag to reorder. Fully browser-based and private." },
-    "json-formatter": { "name": "JSON Formatter", "description": "Paste JSON to instantly format and validate it. Syntax errors highlighted immediately." },
-    "unit-converter": { "name": "Unit Converter", "description": "Convert length, weight, temperature, and data units in real time." },
-    "base64": { "name": "Base64 Converter", "description": "Encode text to Base64 or decode Base64 back to text. Full Unicode support." },
-    "timer-counter": { "name": "Timer & Cycle Counter", "description": "Built for game grinding and Pomodoro sessions. Always-on-top mini window via Document PiP API." }
+    "word-count": {
+      "name": "Word Counter",
+      "description": "Count characters, words, and lines in real time. Perfect for articles and reports."
+    },
+    "password-generator": {
+      "name": "Password Generator",
+      "description": "Generate strong random passwords in one click. Customize length and character types."
+    },
+    "qr-code": {
+      "name": "QR Code Generator & Reader",
+      "description": "Create QR codes from URLs, text, or Wi-Fi credentials. Scan QR codes via camera or image upload."
+    },
+    "images-to-pdf": {
+      "name": "Images to PDF",
+      "description": "Combine multiple images into one PDF. Drag to reorder. Fully browser-based and private."
+    },
+    "json-formatter": {
+      "name": "JSON Formatter",
+      "description": "Paste JSON to instantly format and validate it. Syntax errors highlighted immediately."
+    },
+    "unit-converter": {
+      "name": "Unit Converter",
+      "description": "Convert length, weight, temperature, and data units in real time."
+    },
+    "base64": {
+      "name": "Base64 Converter",
+      "description": "Encode text to Base64 or decode Base64 back to text. Full Unicode support."
+    },
+    "timer-counter": {
+      "name": "Timer & Cycle Counter",
+      "description": "Built for game grinding and Pomodoro sessions. Always-on-top mini window via Document PiP API."
+    },
+    "grinding-companion": {
+      "name": "Grinding Companion",
+      "description": "Drop rate probability calculator and cycle counter with per-run timing. Document PiP overlay for gaming."
+    }
   }
 }

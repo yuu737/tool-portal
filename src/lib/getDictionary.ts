@@ -123,7 +123,7 @@ export type Dictionary = {
   qrCode: {
     title: string;
     description: string;
-    tabs: { url: string; text: string; wifi: string };
+    tabs: { url: string; text: string; wifi: string; scan: string };
     input: {
       url: { label: string; placeholder: string };
       text: { label: string; placeholder: string };
@@ -135,6 +135,21 @@ export type Dictionary = {
         security: string;
         securityTypes: { WPA: string; WEP: string; nopass: string };
       };
+    };
+    scan: {
+      cameraLabel: string;
+      stopLabel: string;
+      orUpload: string;
+      imageLabel: string;
+      result: string;
+      noResult: string;
+      error: string;
+      empty: string;
+      copy: string;
+      copied: string;
+      openUrl: string;
+      clear: string;
+      history: string;
     };
     customize: {
       heading: string;
@@ -223,7 +238,7 @@ export type Dictionary = {
   timerCounter: {
     title: string;
     description: string;
-    tabs: { timer: string; stopwatch: string; counter: string };
+    tabs: { timer: string; stopwatch: string; counter: string; probability: string };
     timer: {
       hours: string;
       minutes: string;
@@ -246,6 +261,100 @@ export type Dictionary = {
       setGoal: string;
       goalReached: string;
       storageNote: string;
+    };
+    probability: {
+      drops: string;
+      attempts: string;
+      targetRate: string;
+      observedRate: string;
+      expectedPerDrop: string;
+      trialsFor95: string;
+      trialsFor99: string;
+      noData: string;
+      addDrop: string;
+      addAttempt: string;
+      dropsPlaceholder: string;
+      attemptsPlaceholder: string;
+      targetPlaceholder: string;
+      reset: string;
+      storageNote: string;
+      trialsSuffix: string;
+      timesLabel: string;
+      hint: string;
+      calcTrials: string;
+      calcRate: string;
+      pAtLeastOne: string;
+      distribution: string;
+      distributionDrops: string;
+      distributionProb: string;
+      atLeastN: string;
+      tracking: string;
+      trackingDesc: string;
+    };
+    settings: {
+      heading: string;
+      description: string;
+      show: string;
+      timer: string;
+      stopwatch: string;
+      counter: string;
+      probability: string;
+    };
+    pip: {
+      title: string;
+      description: string;
+      unsupported: string;
+      open: string;
+      close: string;
+      miniMode: string;
+    };
+    meta: ToolMeta;
+    content: ToolContent;
+  };
+  grindingCompanion: {
+    title: string;
+    description: string;
+    modules: {
+      heading: string;
+      counter: string;
+      dropCalc: string;
+      pip: string;
+      emptyHint: string;
+    };
+    counter: {
+      title: string;
+      cycles: string;
+      goalPlaceholder: string;
+      setGoal: string;
+      goalReached: string;
+      startCycle: string;
+      pauseCycle: string;
+      finishCycle: string;
+      resetSession: string;
+      currentTime: string;
+      avgTime: string;
+      bestTime: string;
+      lapHistory: string;
+    };
+    dropCalc: {
+      title: string;
+      drops: string;
+      attempts: string;
+      nominalRate: string;
+      observedRate: string;
+      expectedDrops: string;
+      expectedPerDrop: string;
+      luckRatio: string;
+      pSuccess: string;
+      unlucky: string;
+      normal: string;
+      lucky: string;
+      dryStreak: string;
+      dryStreakNote: string;
+      hint: string;
+      dropsPlaceholder: string;
+      attemptsPlaceholder: string;
+      nominalPlaceholder: string;
     };
     pip: {
       title: string;

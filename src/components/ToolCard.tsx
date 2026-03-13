@@ -8,6 +8,7 @@ import {
   ArrowLeftRight,
   Binary,
   Timer,
+  Target,
   type LucideIcon,
 } from "lucide-react";
 
@@ -20,6 +21,7 @@ const iconMap: Record<string, LucideIcon> = {
   ArrowLeftRight,
   Binary,
   Timer,
+  Target,
 };
 
 type LocalizedTool = {
