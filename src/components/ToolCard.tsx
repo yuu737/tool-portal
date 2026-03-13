@@ -24,27 +24,28 @@ const iconMap: Record<string, LucideIcon> = {
   Target,
 };
 
-type LocalizedTool = {
+export type LocalizedTool = {
   id: string;
   href: string;
   icon: string;
   name: string;
   description: string;
+  category: string;
+  tags: string[];
 };
 
 type Props = {
   tool: LocalizedTool;
   cta: string;
+  onTagClick?: (tag: string) => void;
+  showTags?: boolean;
 };
 
-export default function ToolCard({ tool, cta }: Props) {
+export default function ToolCard({ tool, cta, onTagClick, showTags = false }: Props) {
   const Icon = iconMap[tool.icon] ?? FileText;
 
   return (
-    <Link
-      href={tool.href}
-      className="group flex flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
-    >
+    <div className="group flex flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md">
       {/* アイコン */}
       <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-100">
         <Icon size={24} strokeWidth={1.75} />
@@ -56,9 +57,32 @@ export default function ToolCard({ tool, cta }: Props) {
       {/* 説明 */}
       <p className="text-sm leading-relaxed text-gray-500">{tool.description}</p>
 
+      {/* タグ */}
+      {showTags && tool.tags.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {tool.tags.map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onTagClick?.(tag);
+              }}
+              className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600 transition-colors hover:bg-blue-100 hover:text-blue-700"
+            >
+              #{tag}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* CTA */}
       <div className="mt-auto pt-4">
-        <span className="inline-flex items-center text-sm font-medium text-blue-600 transition-colors group-hover:text-blue-700">
+        <Link
+          href={tool.href}
+          className="inline-flex items-center text-sm font-medium text-blue-600 transition-colors hover:text-blue-700"
+        >
           {cta}
           <svg
             className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-0.5"
@@ -68,8 +92,8 @@ export default function ToolCard({ tool, cta }: Props) {
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
-        </span>
+        </Link>
       </div>
-    </Link>
+    </div>
   );
 }

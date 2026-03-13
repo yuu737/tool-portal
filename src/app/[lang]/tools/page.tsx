@@ -1,10 +1,11 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import ToolCard from "@/components/ToolCard";
 import AdSenseWrapper from "@/components/AdSenseWrapper";
+import ToolsExplorer from "@/components/ToolsExplorer";
 import { getDictionary, type Locale } from "@/lib/getDictionary";
 import { getAlternates } from "@/lib/siteConfig";
-import { tools } from "@/lib/tools";
+import { tools, CATEGORIES } from "@/lib/tools";
 
 const supportedLocales: Locale[] = ["ja", "en"];
 
@@ -15,7 +16,6 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang } = await params;
   const locale: Locale = lang === "ja" ? "ja" : "en";
-  const dict = await getDictionary(locale);
 
   const title =
     locale === "ja" ? "ツール一覧 – 無料Webツール集" : "All Tools – Free Web Tools";
@@ -58,11 +58,14 @@ export default async function ToolsPage({ params }: Props) {
         </p>
       </header>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {localizedTools.map((tool) => (
-          <ToolCard key={tool.id} tool={tool} cta={dict.toolCard.cta} />
-        ))}
-      </div>
+      <Suspense>
+        <ToolsExplorer
+          tools={localizedTools}
+          dict={dict.toolsSection}
+          cta={dict.toolCard.cta}
+          categories={CATEGORIES}
+        />
+      </Suspense>
 
       <AdSenseWrapper slot="tools-list-bottom" className="h-[250px]" />
     </div>

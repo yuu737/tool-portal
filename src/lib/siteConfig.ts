@@ -1,3 +1,5 @@
+import type { Category } from "./tools";
+
 /** サイト固有の定数とSEOヘルパー */
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://yuustudio.app";
@@ -16,3 +18,11 @@ export function getAlternates(path: string = "") {
     },
   };
 }
+
+/** カテゴリ → Lucide アイコン名 */
+export const CATEGORY_ICONS: Record<Category, string> = {
+  GAMING_STATS: "Gamepad2",
+  TEXT_PROCESS: "FileText",
+  DEV_SYSTEM: "Code",
+  LIFE_UTILITY: "CalendarClock",
+};

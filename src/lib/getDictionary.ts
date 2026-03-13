@@ -31,6 +31,10 @@ export type Dictionary = {
   toolsSection: {
     heading: string;
     description: string;
+    searchPlaceholder: string;
+    noResults: string;
+    allCategory: string;
+    categories: Record<string, string>;
   };
   toolCard: {
     cta: string;

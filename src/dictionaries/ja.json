@@ -9,7 +9,16 @@
   },
   "toolsSection": {
     "heading": "ツール一覧",
-    "description": "すべて無料・完全ブラウザ処理でプライバシーも安心。日本語・英語に対応しています。"
+    "description": "すべて無料・完全ブラウザ処理でプライバシーも安心。日本語・英語に対応しています。",
+    "searchPlaceholder": "ツール名・説明・タグで検索…",
+    "noResults": "一致するツールが見つかりませんでした。別のキーワードやカテゴリをお試しください。",
+    "allCategory": "すべて",
+    "categories": {
+      "GAMING_STATS": "ゲーム・統計",
+      "TEXT_PROCESS": "テキスト・文書",
+      "DEV_SYSTEM": "開発・システム",
+      "LIFE_UTILITY": "日常・生産性"
+    }
   },
   "toolCard": { "cta": "使ってみる" },
   "about": {

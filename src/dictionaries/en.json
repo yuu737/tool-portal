@@ -12,7 +12,16 @@
   },
   "toolsSection": {
     "heading": "Tools",
-    "description": "All tools are completely free and run entirely in your browser for maximum privacy."
+    "description": "All tools are completely free and run entirely in your browser for maximum privacy.",
+    "searchPlaceholder": "Search by name, description, or tag…",
+    "noResults": "No matching tools found. Try a different keyword or category.",
+    "allCategory": "All",
+    "categories": {
+      "GAMING_STATS": "Gaming & Stats",
+      "TEXT_PROCESS": "Text & Docs",
+      "DEV_SYSTEM": "Dev & System",
+      "LIFE_UTILITY": "Life & Utility"
+    }
   },
   "toolCard": {
     "cta": "Try it"
