@@ -372,6 +372,30 @@ export type Dictionary = {
     meta: ToolMeta;
     content: ToolContent;
   };
+  imageOptimizer: {
+    title: string;
+    description: string;
+    dropZone: { heading: string; sub: string };
+    selectFile: string;
+    original: string;
+    optimized: string;
+    format: string;
+    formats: { webp: string; jpg: string; jpeg: string; png: string };
+    recommended: string;
+    quality: string;
+    lossless: string;
+    resize: string;
+    width: string;
+    height: string;
+    lockAspect: string;
+    exifNotice: string;
+    download: string;
+    newFile: string;
+    processing: string;
+    metrics: { original: string; optimized: string; reduction: string };
+    meta: ToolMeta;
+    content: ToolContent;
+  };
   footer: {
     home: string;
     about: string;

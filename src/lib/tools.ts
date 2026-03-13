@@ -79,4 +79,11 @@ export const tools: Tool[] = [
     category: "GAMING_STATS",
     tags: ["Gaming", "Probability", "Counter", "Timer"],
   },
+  {
+    id: "image-optimizer",
+    href: "/tools/image-optimizer",
+    icon: "ImageDown",
+    category: "TEXT_PROCESS",
+    tags: ["Image", "Converter", "Optimizer", "Privacy"],
+  },
 ];

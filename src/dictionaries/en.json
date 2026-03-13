@@ -45,7 +45,8 @@
       "Stopwatch": "Stopwatch",
       "Pomodoro": "Pomodoro",
       "Gaming": "Gaming",
-      "Probability": "Probability"
+      "Probability": "Probability",
+      "Optimizer": "Optimizer"
     }
   },
   "toolCard": {
@@ -1175,6 +1176,96 @@
       }
     }
   },
+  "imageOptimizer": {
+    "title": "Image Optimizer Studio",
+    "description": "Compress, resize, and convert images to WebP, JPEG, or PNG — entirely in your browser. EXIF data removed automatically.",
+    "dropZone": {
+      "heading": "Drag & drop your image here",
+      "sub": "Supports JPEG, PNG, WebP, GIF, BMP, TIFF and more"
+    },
+    "selectFile": "Select File",
+    "original": "Original",
+    "optimized": "Optimized",
+    "format": "Output Format",
+    "formats": {
+      "webp": "WebP",
+      "jpg": "JPG",
+      "jpeg": "JPEG",
+      "png": "PNG"
+    },
+    "recommended": "Recommended",
+    "quality": "Quality",
+    "lossless": "Lossless",
+    "resize": "Resize",
+    "width": "Width (px)",
+    "height": "Height (px)",
+    "lockAspect": "Lock aspect ratio",
+    "exifNotice": "EXIF data is automatically removed (location, timestamp, camera info and more are stripped)",
+    "download": "Download",
+    "newFile": "New Image",
+    "processing": "Processing…",
+    "metrics": {
+      "original": "Original Size",
+      "optimized": "Optimized",
+      "reduction": "Reduction"
+    },
+    "meta": {
+      "title": "Image Optimizer Studio – WebP Converter, Compressor & Resizer | Yuustudio",
+      "description": "Compress, resize, and convert images to WebP, JPEG, or PNG entirely in your browser. Quality slider, aspect-ratio-locked resize, automatic EXIF removal. 100% free, no upload required.",
+      "keywords": ["image compressor", "WebP converter", "image resize", "EXIF remover", "image optimizer", "JPEG compress", "PNG converter", "browser image tool", "free image compressor", "client-side image processing"]
+    },
+    "content": {
+      "howTo": {
+        "heading": "How to use",
+        "steps": [
+          "Click the \"Select File\" button or drag and drop an image file onto the upload area. All major formats are supported: JPEG, PNG, WebP, GIF, BMP, TIFF, and more.",
+          "Choose your output format: WebP (best compression, recommended), JPEG (maximum compatibility), or PNG (lossless, supports transparency).",
+          "Drag the Quality slider — the right-side preview updates in real time along with the estimated file size. The slider is disabled for PNG since PNG is always lossless.",
+          "Enter a width or height in the Resize fields. Click the lock icon to toggle aspect-ratio lock; when locked, the other dimension adjusts automatically to preserve proportions.",
+          "Check the reduction badge to confirm savings, then click Download to save your optimized image."
+        ]
+      },
+      "features": {
+        "heading": "Key Features",
+        "items": [
+          "100% client-side processing: not a single byte of your image is sent to any server. The tool uses only the HTML5 Canvas API and FileReader API — everything runs inside your browser tab.",
+          "Real-time preview & metrics: every quality or format change instantly updates the optimized preview image and the file-size badge, so you can find the ideal balance at a glance.",
+          "Three output formats: WebP (20–35% smaller than JPEG at equivalent quality, supported by all modern browsers), JPEG (universal compatibility), and PNG (lossless with full alpha/transparency support).",
+          "Aspect-ratio-locked resizing: enter a target width or height and the other dimension is computed automatically. Toggle the lock icon to switch to free-form resizing.",
+          "Automatic EXIF removal: Canvas re-encoding strips GPS coordinates, timestamps, camera model, lens info, and all other EXIF metadata — protecting your privacy before you share images.",
+          "Drag & drop interface: in addition to the file picker, you can drop an image anywhere on the drop zone for a faster workflow."
+        ]
+      },
+      "faq": {
+        "heading": "FAQ",
+        "items": [
+          { "q": "Is my image uploaded to a server?", "a": "No. This tool is deployed as a fully static export (Next.js output: 'export'), meaning there is no server-side code whatsoever. There is no upload endpoint. All image processing happens inside your browser using the Canvas API and FileReader API. Your image data never leaves your device." },
+          { "q": "When should I choose WebP vs JPEG?", "a": "Choose WebP for web publishing, social media, or any modern digital use case. WebP typically achieves 20–35% smaller file sizes than JPEG at the same visual quality. All major browsers (Chrome, Safari, Firefox, Edge) fully support WebP. Choose JPEG for maximum backward compatibility — for example, legacy CMS systems, email clients, or print workflows that do not support WebP." },
+          { "q": "How much quality loss is visible at 80% vs 100%?", "a": "For JPEG and WebP, the quality slider controls a lossy compression ratio. At 80–90%, the difference from 100% is imperceptible to the human eye in most images, while file size is reduced by 30–60%. Below 60%, blocking artifacts (pixelation around edges and busy areas) become noticeable. For web images, 72–85% is the industry-standard sweet spot." },
+          { "q": "What is EXIF data and why does removing it matter?", "a": "EXIF (Exchangeable Image File Format) is metadata embedded by digital cameras and smartphones. It can contain GPS coordinates of where the photo was taken, the exact date and time, camera make and model, lens details, and more. By re-drawing the image through the Canvas API, the tool produces a new file that contains only pixel data — all EXIF fields are gone, protecting your privacy when sharing images online." },
+          { "q": "Can the optimized file be larger than the original?", "a": "Yes, in some cases. Converting a heavily compressed JPEG to PNG (lossless) or setting quality near 100% can produce a larger file. The reduction badge will show a positive number (e.g. +12%) when this happens. To reduce size, lower the quality slider or switch to WebP or JPEG." },
+          { "q": "Is transparency (alpha channel) preserved?", "a": "Yes, when you choose PNG or WebP as the output format. PNG has full lossless alpha support. WebP also supports an alpha channel. If you convert to JPEG, transparency is lost and transparent areas are filled with a white background, since JPEG does not support alpha channels." }
+        ]
+      },
+      "deepDive": {
+        "heading": "Technical Deep-dive: Client-Side Image Processing with Canvas API",
+        "paragraphs": [
+          "The core technique powering this tool is the HTML5 Canvas API. The FileReader API reads the selected file as a Blob URL, which is assigned to an HTMLImageElement. Once the image fires its load event, CanvasRenderingContext2D.drawImage() renders it onto an off-screen canvas at the target dimensions (the original dimensions, or the user-specified resize values). Finally, HTMLCanvasElement.toBlob(callback, mimeType, quality) encodes the canvas pixels into the chosen format.",
+          "The second argument to toBlob() specifies the MIME type — 'image/webp', 'image/jpeg', or 'image/png' — and the third argument is a quality hint between 0.0 and 1.0 for lossy formats (ignored for PNG, which is always lossless). The browser uses its native codec implementation, which typically delivers excellent compression speed and quality comparable to dedicated CLI tools like cwebp or libjpeg-turbo.",
+          "A valuable side-effect of Canvas re-encoding is complete EXIF stripping. JPEG files embed EXIF in the App1 marker segment, but the Canvas 2D context stores only RGBA pixel data. When toBlob() writes the result, there is no mechanism to re-attach the original EXIF block — the output file contains pure pixel data with no metadata. This privacy benefit is achieved without any third-party library, using only the browser's built-in standards.",
+          "To keep the UI responsive while the user drags the quality slider, the tool uses a 100-millisecond debounce: toBlob() is only called 100 ms after the last slider movement, avoiding redundant encoding passes. Every time a new Blob URL is created, the previous URL is released via URL.revokeObjectURL() to prevent memory leaks. Aspect-ratio math is straightforward: on width input, newHeight = Math.round(width / aspectRatio); on height input, newWidth = Math.round(height × aspectRatio)."
+        ]
+      },
+      "security": {
+        "heading": "Privacy & Security",
+        "paragraphs": [
+          "This tool is a fully static application with zero server-side code. Built with Next.js output: 'export', it is served as plain HTML, CSS, and JavaScript. There is no API route, no upload endpoint, and no back-end service of any kind. Image files are processed exclusively in browser memory.",
+          "The optimized result is held as a Blob URL in browser memory. When you load a new image or close the page, the previous Blob URL is released via URL.revokeObjectURL(). No image data is ever written to localStorage or any other persistent storage.",
+          "Canvas re-encoding automatically strips EXIF metadata — GPS coordinates, capture timestamp, device identifiers, and all other metadata tags — from the output file. This makes the tool suitable as a privacy pre-processing step before uploading images to social media, sharing via email, or publishing on the web. Note that visible watermarks embedded as pixel data in the image cannot be removed by Canvas processing."
+        ]
+      }
+    }
+  },
   "footer": {
     "home": "Home",
     "about": "About",
@@ -1217,6 +1308,10 @@
     "grinding-companion": {
       "name": "Grinding Companion",
       "description": "Drop rate probability calculator and cycle counter with per-run timing. Document PiP overlay for gaming."
+    },
+    "image-optimizer": {
+      "name": "Image Optimizer Studio",
+      "description": "Compress, resize, and convert to WebP/JPEG/PNG in one click. Fully browser-based with automatic EXIF removal."
     }
   }
 }
