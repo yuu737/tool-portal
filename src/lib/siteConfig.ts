@@ -1,6 +1,6 @@
 /** サイト固有の定数とSEOヘルパー */
 export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://toolbox-yuu.vercel.app";
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://yuustudio.app";
 
 /**
  * hreflang タグ用 alternates オブジェクトを生成する。
