@@ -476,6 +476,99 @@
       }
     }
   },
+  "timerCounter": {
+    "title": "Timer, Stopwatch & Cycle Counter",
+    "description": "An all-in-one tool built for game grinding and Pomodoro work sessions. Features a Document Picture-in-Picture mini window so you can keep the timer on screen while gaming or watching videos.",
+    "tabs": { "timer": "Timer", "stopwatch": "Stopwatch", "counter": "Counter" },
+    "timer": {
+      "hours": "Hours",
+      "minutes": "Minutes",
+      "seconds": "Seconds",
+      "start": "Start",
+      "pause": "Pause",
+      "reset": "Reset",
+      "complete": "Time's up!"
+    },
+    "stopwatch": {
+      "start": "Start",
+      "pause": "Pause",
+      "reset": "Reset",
+      "lap": "Lap",
+      "lapLabel": "Lap"
+    },
+    "counter": {
+      "reset": "Reset",
+      "goalPlaceholder": "Enter target count…",
+      "setGoal": "Set Goal",
+      "goalReached": "Goal reached! Congratulations!",
+      "storageNote": "Count is auto-saved to local storage and persists after closing the page."
+    },
+    "pip": {
+      "title": "Mini Window (PiP) Mode",
+      "description": "Always-on-top mini window — stays visible even while gaming. Powered by Document PiP API.",
+      "unsupported": "Your browser does not support Document PiP. A floating overlay will be used instead.",
+      "open": "Mini View",
+      "close": "Close",
+      "miniMode": "Mini Mode"
+    },
+    "meta": {
+      "title": "Timer & Cycle Counter – Game Grinding & Pomodoro | Yuustudio",
+      "description": "All-in-one timer, stopwatch, and cycle counter optimized for game grinding and Pomodoro sessions. Document Picture-in-Picture API keeps the display always on top. Supports lap recording, goal tracking, and LocalStorage persistence.",
+      "keywords": ["game grinding counter", "online timer", "Pomodoro timer", "cycle counter", "PiP timer", "stopwatch online", "goal tracker", "game productivity", "free counter tool", "mini window timer"]
+    },
+    "content": {
+      "howTo": {
+        "heading": "How to use",
+        "steps": [
+          "Select a mode from the tabs at the top: Timer, Stopwatch, or Counter.",
+          "[Timer] Enter hours, minutes, and seconds, then press Start to begin the countdown. A progress bar shows time remaining.",
+          "[Stopwatch] Press Start to begin timing. Press Lap at any point to record a split time.",
+          "[Counter] Press +1 to count a run. Set a target count to display a progress bar. Use +5 and +10 for faster counting.",
+          "Press 'Mini View' to open a Document PiP window showing the timer and counter always on top. Requires Chrome 116+. An in-page floating overlay is shown on unsupported browsers."
+        ]
+      },
+      "features": {
+        "heading": "Features",
+        "items": [
+          "Document Picture-in-Picture API: Float the timer and counter in a persistent mini window — keep it visible while gaming or watching videos without minimizing your browser.",
+          "Drift-corrected timer: Uses a Date.now() anchor to calculate remaining time, so background throttling never causes the countdown to fall behind.",
+          "Smooth stopwatch: requestAnimationFrame-driven updates show centiseconds in real time. Lap recording included.",
+          "Game grinding counter: +1 / +5 / +10 and −1 / −5 buttons for fast counting. Set a goal to visualize progress with a progress bar.",
+          "LocalStorage persistence: Counter value and goal survive page refreshes and browser restarts automatically.",
+          "Haptic feedback: On supported Android devices, the counter buttons trigger a short vibration via the Web Vibration API.",
+          "Private by design: All data stays in your browser. Nothing is ever sent to a server."
+        ]
+      },
+      "faq": {
+        "heading": "FAQ",
+        "items": [
+          { "q": "The PiP mini window doesn't open — what should I do?", "a": "Document Picture-in-Picture is supported in Chrome 116 and later. Firefox and Safari do not currently support it. On unsupported browsers the tool automatically falls back to a floating overlay in the bottom-right corner. In Chrome, check that pop-up blocking is not preventing the window from opening." },
+          { "q": "Will the timer lose accuracy if I switch to another tab?", "a": "No. The timer records the target end time as a Date.now() epoch millisecond when you start it. Each interval tick computes remaining = Math.ceil((endTime - Date.now()) / 1000). Even if the browser throttles the interval in the background, the anchor-based calculation self-corrects on every tick so accumulated drift is effectively zero." },
+          { "q": "My counter was reset — how do I prevent that?", "a": "Counter data is stored in localStorage. Clearing browser history or cache, using private/incognito mode, or using a different browser will erase the stored count. For important session counts, note the number externally. The storage keys are yuu-tc-count and yuu-tc-goal." },
+          { "q": "Vibration doesn't work on my phone", "a": "The Web Vibration API is supported on Chrome for Android. iOS (Safari and Chrome) does not implement the Vibration API, so no haptic feedback occurs on iPhones or iPads. The counter button animation provides visual confirmation of each tap regardless of haptics." },
+          { "q": "How do I clear the goal and hide the progress bar?", "a": "Clear the goal input field and press 'Set Goal'. This resets the goal to 0 and hides the progress bar." },
+          { "q": "Does running the stopwatch affect page performance?", "a": "The stopwatch uses requestAnimationFrame which runs at ~60 fps, but each frame only updates a single React state value. Timer uses a 200ms setInterval. The counter only processes events on button press. CPU and memory impact is negligible for normal use." }
+        ]
+      },
+      "deepDive": {
+        "heading": "Technical Deep Dive: Document PiP API, Timer Accuracy & requestAnimationFrame",
+        "paragraphs": [
+          "The Document Picture-in-Picture API (document-picture-in-picture) was shipped in Chrome 116 and extends the browser's existing Video PiP capability to arbitrary HTML content. Calling window.documentPictureInPicture.requestWindow() returns a Promise that resolves to a Window object with its own Document. By passing this window's body element to ReactDOM.createRoot(), a full React tree can be rendered inside the PiP window — the same component model used in the main page. The expansion from video-only to arbitrary content reflects the W3C's broader push for richer ambient display APIs, enabling use cases like always-visible dashboards, assistive overlays, and — as demonstrated here — gaming utility windows.",
+          "The classic pitfall of web timers is interval drift. setInterval(fn, 1000) does not guarantee exactly 1000ms between calls; JS engine garbage collection, event loop congestion, and background tab throttling (Chrome throttles background timers to ~1s minimum, some browsers to 1-minute intervals) all introduce cumulative errors. This tool uses an anchor approach: on Start, it records endTime = Date.now() + remainingMs. Every 200ms tick recomputes remaining = Math.ceil((endTime − Date.now()) / 1000). The absolute time reference self-corrects any delay, so even a 5-minute timer paused and resumed multiple times stays within ±1 second of the true elapsed time.",
+          "The stopwatch relies on requestAnimationFrame (rAF) for sub-second resolution. rAF delivers callbacks at the display's refresh rate (~60 Hz or ~120 Hz on high-refresh screens), providing 8–16ms precision. The implementation stores a start timestamp via performance.now() (monotonic, higher-resolution than Date.now()) and accumulates an offset on pause: offset += performance.now() − startRef. On resume, a new startRef is recorded. This means swElapsed = offset + (performance.now() − startRef) always reflects the correct elapsed time even across many pause/resume cycles, and the displayed centiseconds never drift from the internal value.",
+          "The counter's gamification design draws on Edwin Locke's Goal-Setting Theory (1968), which demonstrates that specific, challenging goals with visible progress feedback outperform vague 'do your best' goals in motivation and performance. By pairing a numeric counter with a configurable target and a color-coded progress bar (blue → green at 100%), the tool makes abstract repetition — farming materials in an RPG, completing ranked matches, running event stages in mobile games — feel like a structured challenge with a clear endpoint. The micro-animation on each +1 press (spring-eased translateY + scale via CSS transition) and optional haptic feedback reinforce each individual action, reducing the cognitive load of manual tallying."
+        ]
+      },
+      "security": {
+        "heading": "Privacy & Security Guarantee",
+        "paragraphs": [
+          "All counter data is stored exclusively in the browser's localStorage under the keys yuu-tc-count and yuu-tc-goal. localStorage is a client-side storage mechanism; data never leaves the device and is never transmitted to Yuustudio's servers or any third party. You can verify zero network traffic at any time using your browser's DevTools → Network tab.",
+          "Timer and stopwatch state is held only in React component state (browser memory). It is not persisted to localStorage or anywhere else. Closing or refreshing the page discards all timing data. Only the counter and goal values survive a page reload.",
+          "When using the Document PiP API, the PiP window runs in the same JavaScript execution context as the main page, bound by the same same-origin policy. Third-party scripts loaded by ad networks or analytics cannot access the PiP window's DOM. The security model of the PiP window is identical to that of the main browsing context."
+        ]
+      }
+    }
+  },
   "footer": { "home": "Home", "about": "About", "privacy": "Privacy Policy", "contact": "Contact" },
   "tools": {
     "word-count": { "name": "Word Counter", "description": "Count characters, words, and lines in real time. Perfect for articles and reports." },
@@ -484,6 +577,7 @@
     "images-to-pdf": { "name": "Images to PDF", "description": "Combine multiple images into one PDF. Drag to reorder. Fully browser-based and private." },
     "json-formatter": { "name": "JSON Formatter", "description": "Paste JSON to instantly format and validate it. Syntax errors highlighted immediately." },
     "unit-converter": { "name": "Unit Converter", "description": "Convert length, weight, temperature, and data units in real time." },
-    "base64": { "name": "Base64 Converter", "description": "Encode text to Base64 or decode Base64 back to text. Full Unicode support." }
+    "base64": { "name": "Base64 Converter", "description": "Encode text to Base64 or decode Base64 back to text. Full Unicode support." },
+    "timer-counter": { "name": "Timer & Cycle Counter", "description": "Built for game grinding and Pomodoro sessions. Always-on-top mini window via Document PiP API." }
   }
 }

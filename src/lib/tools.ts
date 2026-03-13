@@ -12,4 +12,5 @@ export const tools: Tool[] = [
   { id: "json-formatter",     href: "/tools/json-formatter",     icon: "Braces" },
   { id: "unit-converter",     href: "/tools/unit-converter",     icon: "ArrowLeftRight" },
   { id: "base64",             href: "/tools/base64",             icon: "Binary" },
+  { id: "timer-counter",      href: "/tools/timer-counter",      icon: "Timer" },
 ];

@@ -220,6 +220,44 @@ export type Dictionary = {
     meta: ToolMeta;
     content: ToolContent;
   };
+  timerCounter: {
+    title: string;
+    description: string;
+    tabs: { timer: string; stopwatch: string; counter: string };
+    timer: {
+      hours: string;
+      minutes: string;
+      seconds: string;
+      start: string;
+      pause: string;
+      reset: string;
+      complete: string;
+    };
+    stopwatch: {
+      start: string;
+      pause: string;
+      reset: string;
+      lap: string;
+      lapLabel: string;
+    };
+    counter: {
+      reset: string;
+      goalPlaceholder: string;
+      setGoal: string;
+      goalReached: string;
+      storageNote: string;
+    };
+    pip: {
+      title: string;
+      description: string;
+      unsupported: string;
+      open: string;
+      close: string;
+      miniMode: string;
+    };
+    meta: ToolMeta;
+    content: ToolContent;
+  };
   footer: {
     home: string;
     about: string;

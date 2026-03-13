@@ -7,6 +7,7 @@ import {
   Braces,
   ArrowLeftRight,
   Binary,
+  Timer,
   type LucideIcon,
 } from "lucide-react";
 
@@ -18,6 +19,7 @@ const iconMap: Record<string, LucideIcon> = {
   Braces,
   ArrowLeftRight,
   Binary,
+  Timer,
 };
 
 type LocalizedTool = {
