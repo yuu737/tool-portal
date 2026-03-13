@@ -45,6 +45,7 @@ export default async function ToolsPage({ params }: Props) {
     name: dict.tools[tool.id]?.name ?? tool.id,
     description: dict.tools[tool.id]?.description ?? "",
     href: `/${locale}${tool.href}`,
+    tags: tool.tags.map((key) => dict.toolsSection.tags[key] ?? key),
   }));
 
   return (

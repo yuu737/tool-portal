@@ -21,6 +21,31 @@
       "TEXT_PROCESS": "Text & Docs",
       "DEV_SYSTEM": "Dev & System",
       "LIFE_UTILITY": "Life & Utility"
+    },
+    "tags": {
+      "Text": "Text",
+      "Writing": "Writing",
+      "Counter": "Counter",
+      "Security": "Security",
+      "Privacy": "Privacy",
+      "Generator": "Generator",
+      "QR": "QR",
+      "Scanner": "Scanner",
+      "PDF": "PDF",
+      "Image": "Image",
+      "Converter": "Converter",
+      "JSON": "JSON",
+      "Formatter": "Formatter",
+      "Developer": "Developer",
+      "Math": "Math",
+      "Units": "Units",
+      "Encoder": "Encoder",
+      "Decoder": "Decoder",
+      "Timer": "Timer",
+      "Stopwatch": "Stopwatch",
+      "Pomodoro": "Pomodoro",
+      "Gaming": "Gaming",
+      "Probability": "Probability"
     }
   },
   "toolCard": {

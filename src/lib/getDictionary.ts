@@ -35,6 +35,7 @@ export type Dictionary = {
     noResults: string;
     allCategory: string;
     categories: Record<string, string>;
+    tags: Record<string, string>;
   };
   toolCard: {
     cta: string;
