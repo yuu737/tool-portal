@@ -1,0 +1,357 @@
+{
+  "header": { "home": "Home", "tools": "Tools" },
+  "hero": {
+    "heading": "All the ",
+    "headingHighlight": "web tools",
+    "headingSuffix": " you need, completely free.",
+    "description": "Word counters, password generators, QR code creators and more —\nfree tools to make everyday tasks easier.",
+    "cta": "Browse all tools"
+  },
+  "toolsSection": {
+    "heading": "Tools",
+    "description": "All tools are completely free and run entirely in your browser for maximum privacy."
+  },
+  "toolCard": { "cta": "Try it" },
+  "about": {
+    "title": "About",
+    "description": "Learn about yuu, the developer behind ToolBox, and the mission behind this site.",
+    "operatorLabel": "Operator",
+    "operatorName": "yuu",
+    "profile": { "heading": "Profile", "text": "I'm a university student majoring in Information Engineering. I build and publish free web tools using the programming skills I've learned — React, Next.js, TypeScript, and more — to make everyday tasks easier for everyone." },
+    "mission": { "heading": "Mission", "text": "My goal is to provide fast, safe, and multilingual web tools that streamline everyday workflows. I turn what I learn in university into real products that are useful to people around the world." },
+    "safety": { "heading": "Privacy by Design", "text": "All tools process data entirely in your browser. No data is ever sent to any server, so you can safely use these tools with personal or sensitive information." },
+    "i18n": { "heading": "Multilingual Support", "text": "ToolBox is available in both Japanese and English, making it accessible to users worldwide. You can switch languages anytime using the toggle in the header." },
+    "techStack": { "heading": "Tech Stack" }
+  },
+  "privacy": {
+    "title": "Privacy Policy & Disclaimer",
+    "description": "This page explains how ToolBox handles personal information, uses advertising and analytics services, and limits liability.",
+    "lastUpdated": "Last updated",
+    "lastUpdatedDate": "January 1, 2025",
+    "sections": {
+      "basic": { "heading": "Overview", "text": "ToolBox (\"this site\") takes the protection of user privacy seriously and complies with applicable privacy laws and regulations." },
+      "adsense": { "heading": "Advertising (Google AdSense)", "text": "This site uses Google AdSense, an advertising service provided by Google LLC. Google AdSense may use cookies to serve ads based on your interests. Through cookies, Google can identify your browser and deliver relevant ads. You can disable cookies in your browser settings. For more information, please see Google's Privacy Policy (policies.google.com/privacy)." },
+      "analytics": { "heading": "Analytics (Google Analytics)", "text": "This site uses Google Analytics, a web analytics service provided by Google LLC, to understand how visitors use the site. Google Analytics collects data using cookies; this data is collected anonymously and does not identify individuals. You can opt out by disabling cookies. For details, see the Google Analytics Terms of Service (marketingplatform.google.com/about/analytics/terms/)." },
+      "personalInfo": { "heading": "Personal Information", "text": "Any personal information (such as your email address) provided via the contact form is used solely to respond to your inquiry and will never be shared with third parties. Furthermore, all tools on this site process data entirely client-side — no input data is ever transmitted to or stored on any server." },
+      "cookies": { "heading": "Cookies", "text": "This site uses a cookie (NEXT_LOCALE) to remember your language preference. Cookies store small pieces of information in your browser to maintain settings between visits. You can disable cookies in your browser settings, though doing so may affect some site functionality." },
+      "disclaimer": { "heading": "Disclaimer", "text": "While we strive to keep the information on this site accurate, we make no warranties regarding the accuracy, completeness, or usefulness of any content. This site accepts no liability for any damages (direct or indirect) arising from the use of any tool or information provided here. The same applies to content on external sites linked from this site. Use all tools at your own risk and discretion." },
+      "changes": { "heading": "Changes to This Policy", "text": "This privacy policy may be updated from time to time. Changes take effect from the date they are posted on this page. Material changes will be announced on the site." }
+    }
+  },
+  "contact": {
+    "title": "Contact",
+    "description": "Have a question, feedback, or found a bug? Feel free to reach out by email.",
+    "emailLabel": "Email",
+    "inquiryTypesHeading": "Types of Inquiries",
+    "inquiryTypes": ["Questions about tools", "Bug reports", "Feature requests", "Other inquiries"],
+    "note": "Please note that responses may be delayed or unavailable depending on the nature of the inquiry."
+  },
+  "wordCount": {
+    "title": "Word Counter",
+    "description": "Count characters (with/without spaces), words, and lines in real time. Perfect for articles, reports, and any writing task.",
+    "placeholder": "Type or paste your text here…",
+    "stats": { "charsWithSpaces": "Characters (with spaces)", "charsWithoutSpaces": "Characters (no spaces)", "words": "Words", "lines": "Lines" },
+    "buttons": { "clear": "Clear", "copyResult": "Copy results", "copied": "Copied!" },
+    "meta": {
+      "title": "Word Counter – Real-time character, word & line count",
+      "description": "Count characters (with/without spaces), words, and lines in real time. Supports Japanese, Chinese, Korean via Intl.Segmenter API. Perfect for articles, reports, and social media character limits.",
+      "keywords": ["word counter", "character counter", "word count tool", "text length checker", "real-time word count", "Japanese word counter"]
+    },
+    "content": {
+      "howTo": {
+        "heading": "How to use the Word Counter",
+        "steps": [
+          "Type or paste your text into the text area.",
+          "Character count (with/without spaces), word count, and line count update instantly as you type — no button to press.",
+          "Use 'Copy results' to copy the statistics to your clipboard, or 'Clear' to reset the input."
+        ]
+      },
+      "features": {
+        "heading": "Features",
+        "items": [
+          "Real-time counting: Results update instantly as you type — no button to press.",
+          "Multilingual support: Uses the Intl.Segmenter API to accurately count words in Japanese, Chinese, Korean, and other languages that don't use spaces as word delimiters.",
+          "4 metrics at once: Character count (with spaces), character count (no spaces), word count, and line count — all on one screen.",
+          "100% browser-based: Your text is never sent to any server, keeping personal or sensitive content completely private."
+        ]
+      },
+      "faq": {
+        "heading": "FAQ",
+        "items": [
+          { "q": "Can it accurately count Japanese or Chinese words?", "a": "Yes. The Intl.Segmenter API performs language-aware word segmentation for Japanese, Chinese, Korean, and other non-space-separated languages. Browsers that don't support Segmenter automatically fall back to space-based counting." },
+          { "q": "Is there a character limit?", "a": "No. You can process long documents, novels, reports, or large data files without any restriction." },
+          { "q": "Can I use it to check social media character limits?", "a": "Yes. It's ideal for checking Twitter/X's 280-character limit, Instagram captions, email lengths, and any other platform character restrictions." }
+        ]
+      }
+    }
+  },
+  "passwordGenerator": {
+    "title": "Password Generator & Strength Checker",
+    "description": "Generate strong random passwords in one click. Strength presets make it easy to tailor settings to your needs. You can also check the strength of any existing password.",
+    "sections": { "generator": "Generate Password", "checker": "Check Strength" },
+    "presets": { "label": "Presets", "simple": "Simple", "standard": "Standard", "strong": "Strong" },
+    "options": { "length": "Length", "uppercase": "Uppercase (A-Z)", "lowercase": "Lowercase (a-z)", "numbers": "Numbers (0-9)", "symbols": "Symbols (!@#$)" },
+    "buttons": { "copy": "Copy", "copied": "Copied!", "regenerate": "Regenerate" },
+    "checker": {
+      "label": "Enter a password to check its strength",
+      "placeholder": "Paste or type a password…",
+      "strength": { "label": "Strength", "veryWeak": "Very Weak", "weak": "Weak", "fair": "Fair", "strong": "Strong", "veryStrong": "Very Strong" },
+      "advice": { "tooShort": "Use at least 8 characters", "addLength": "Use 12 or more characters for better security", "addUppercase": "Add uppercase letters (A-Z) to make it stronger", "addLowercase": "Add lowercase letters (a-z) to make it stronger", "addNumbers": "Add numbers (0-9) to make it stronger", "addSymbols": "Add symbols (!@#$ etc.) to make it stronger", "great": "Excellent! This is a very strong password." }
+    },
+    "meta": {
+      "title": "Password Generator & Strength Checker – Secure Random Passwords",
+      "description": "Generate cryptographically secure random passwords in one click. 3 strength presets, adjustable length (4–64 chars), custom character types. Includes a password strength checker. 100% browser-based.",
+      "keywords": ["password generator", "random password", "secure password", "password strength checker", "free password generator", "strong password creator"]
+    },
+    "content": {
+      "howTo": {
+        "heading": "How to use the Password Generator",
+        "steps": [
+          "Click a preset (Simple, Standard, or Strong) to generate a password instantly with recommended settings.",
+          "Use the length slider (4–64 characters) and toggle uppercase, lowercase, numbers, and symbols as needed.",
+          "Click 'Copy' to copy the password to your clipboard, or 'Regenerate' to get a new one with the same settings.",
+          "Use the 'Check Strength' tab to evaluate the strength of any existing password on a 5-level scale."
+        ]
+      },
+      "features": {
+        "heading": "Features",
+        "items": [
+          "Cryptographically secure: Uses crypto.getRandomValues() from the Web Cryptography API — not the predictable Math.random().",
+          "Fisher-Yates shuffle ensures uniform randomness and guarantees at least one character from each enabled character set.",
+          "5-level strength gauge: Scores based on length, character variety, and complexity  for clear visual feedback.",
+          "100% browser-based: No password is ever sent to any server. All processing is local and completely private."
+        ]
+      },
+      "faq": {
+        "heading": "FAQ",
+        "items": [
+          { "q": "What makes this generator more secure than others?", "a": "This tool uses crypto.getRandomValues(), a cryptographically strong random number generator built into browsers. Unlike Math.random(), it produces unpredictable values — a critical requirement for password security." },
+          { "q": "What makes a strong password?", "a": "Use at least 12 characters combining uppercase, lowercase, numbers, and symbols. The 'Strong' preset (20 characters, all character types) provides the highest security level offered by this tool." },
+          { "q": "Are generated passwords saved anywhere?", "a": "No. All processing happens completely in your browser. Generated passwords are never transmitted to or stored on any server." }
+        ]
+      }
+    }
+  },
+  "qrCode": {
+    "title": "QR Code Generator",
+    "description": "Turn URLs, text, or Wi-Fi credentials into QR codes in one click. Customize colors, margin, and error correction, then download as PNG or SVG.",
+    "tabs": { "url": "URL", "text": "Text", "wifi": "Wi-Fi" },
+    "input": {
+      "url": { "label": "URL", "placeholder": "https://example.com" },
+      "text": { "label": "Text", "placeholder": "Enter text to encode…" },
+      "wifi": { "ssid": "Network Name (SSID)", "ssidPlaceholder": "MyNetwork", "password": "Password", "passwordPlaceholder": "Enter password", "security": "Security Type", "securityTypes": { "WPA": "WPA / WPA2", "WEP": "WEP", "nopass": "None (Open)" } }
+    },
+    "customize": { "heading": "Customize", "fgColor": "Code Color", "bgColor": "Background", "margin": "Margin", "errorLevel": "Error Correction", "errorLevels": { "L": "L – Low (7%)", "M": "M – Medium (15%)", "Q": "Q – Quartile (25%)", "H": "H – High (30%)" } },
+    "preview": { "heading": "Preview", "empty": "Enter content to generate a QR code", "downloadPNG": "Download PNG", "downloadSVG": "Download SVG", "downloaded": "Downloaded!" },
+    "meta": {
+      "title": "QR Code Generator – URL, Text & Wi-Fi | PNG & SVG Download",
+      "description": "Free online QR code generator. Create QR codes from URLs, text, or Wi-Fi credentials. Customize colors, margins, and error correction. Download as high-resolution PNG (1024px) or scalable SVG.",
+      "keywords": ["QR code generator", "free QR code", "Wi-Fi QR code", "QR code PNG", "QR code SVG", "custom QR code", "online QR generator"]
+    },
+    "content": {
+      "howTo": {
+        "heading": "How to use the QR Code Generator",
+        "steps": [
+          "Choose a tab: enter a URL for links, free text for any content, or Wi-Fi credentials for network sharing.",
+          "A live preview of your QR code appears instantly in the right panel.",
+          "Optionally customize the foreground/background color, margin, and error correction level.",
+          "Click 'Download PNG' for a high-resolution 1024px image, or 'Download SVG' for a scalable vector file."
+        ]
+      },
+      "features": {
+        "heading": "Features",
+        "items": [
+          "PNG & SVG download: SVG is ideal for print and scaling; PNG is convenient for web and digital use.",
+          "Wi-Fi QR codes: Enter SSID, password, and security type to create a scannable Wi-Fi connection QR code.",
+          "Error correction levels L/M/Q/H: Use the H level (30% correction) when overlaying logos or custom designs.",
+          "100% browser-based: No data is ever uploaded — all QR generation happens locally in your browser."
+        ]
+      },
+      "faq": {
+        "heading": "FAQ",
+        "items": [
+          { "q": "Should I download PNG or SVG?", "a": "Choose SVG for print materials, business cards, or posters where scaling is important. Choose PNG for websites, apps, or when a standard raster image file is required." },
+          { "q": "Do Android and iPhone both support Wi-Fi QR codes?", "a": "Yes. Android 10+ and iOS 11+ can read Wi-Fi QR codes using their built-in camera apps, connecting to the network without manually entering a password." },
+          { "q": "Which error correction level should I use?", "a": "M (15%) is suitable for most purposes. Use H (30%) when you plan to overlay a logo or decorative element on the QR code, as this provides extra data redundancy." }
+        ]
+      }
+    }
+  },
+  "imagesToPdf": {
+    "title": "Images to PDF",
+    "description": "Upload multiple images, reorder them by drag-and-drop, and download as a single PDF. All processing happens entirely in your browser — your images never leave your device.",
+    "dropZone": { "heading": "Drop images here", "sub": "or click to browse (JPG, PNG, WebP, GIF)" },
+    "buttons": { "addMore": "Add images", "generate": "Generate & Download PDF", "generating": "Generating…", "clear": "Remove all", "remove": "Remove" },
+    "info": { "safety": "All processing happens in your browser. Your images are never uploaded to any server.", "dragHint": "Drag thumbnails to reorder pages" },
+    "errors": { "noImages": "Please add at least one image." },
+    "meta": {
+      "title": "Images to PDF – Combine JPG, PNG & WebP files into one PDF",
+      "description": "Convert multiple images to a single PDF with one click. Drag to reorder pages. Supports JPG, PNG, WebP, and GIF. All processing is done entirely in your browser — no uploads required.",
+      "keywords": ["images to PDF", "JPG to PDF", "PNG to PDF", "convert photos to PDF", "combine images PDF", "free PDF converter", "browser PDF maker"]
+    },
+    "content": {
+      "howTo": {
+        "heading": "How to use Images to PDF",
+        "steps": [
+          "Drag and drop image files onto the drop zone, or click to browse and select files.",
+          "Thumbnails appear for each image. Drag them to rearrange the page order — the number badge shows the page number.",
+          "Click 'Add images' to add more files at any time.",
+          "Click 'Generate & Download PDF' to create and download the PDF entirely in your browser."
+        ]
+      },
+      "features": {
+        "heading": "Features",
+        "items": [
+          "100% browser-based: PDF generation uses the jsPDF library client-side. Your images never leave your device.",
+          "Drag-to-reorder: Intuitively rearrange pages by dragging thumbnails. Number badges show the page sequence.",
+          "Supports JPG, PNG, WebP, and GIF. Images are routed through a Canvas element to normalize them to JPEG before embedding.",
+          "A4 format (210×297mm): Images are centered on each page with aspect ratio preserved and a 10mm margin on all sides."
+        ]
+      },
+      "faq": {
+        "heading": "FAQ",
+        "items": [
+          { "q": "Are my images uploaded to a server?", "a": "No. PDF generation runs entirely in your browser using jsPDF. No image data is ever transmitted to or stored on any server." },
+          { "q": "Is there a limit on the number of images?", "a": "There is no hard limit, though processing many large files will use more browser memory. Up to around 50 images generally works smoothly." },
+          { "q": "Can I change the PDF page size?", "a": "Currently, output is fixed to A4 (210×297mm). Images are automatically resized to fit the page while preserving their aspect ratio." }
+        ]
+      }
+    }
+  },
+  "jsonFormatter": {
+    "title": "JSON Formatter & Validator",
+    "description": "Paste JSON to instantly format and validate it. Syntax errors are highlighted with details. An essential tool for developers.",
+    "inputLabel": "JSON Input",
+    "outputLabel": "Formatted Output",
+    "placeholder": "Paste your JSON here…",
+    "indent": { "label": "Indent", "two": "2 spaces", "four": "4 spaces", "tab": "Tab" },
+    "buttons": { "format": "Format", "minify": "Minify", "copy": "Copy", "copied": "Copied!", "clear": "Clear", "sample": "Sample" },
+    "status": { "valid": "✓ Valid JSON", "invalid": "✗ Error", "empty": "Waiting for input" },
+    "meta": {
+      "title": "JSON Formatter & Validator – Format, minify, and validate JSON",
+      "description": "Paste JSON to instantly format and validate it. Syntax errors highlighted with full details. Choose 2-space, 4-space, or tab indentation. Minify with one click. Free online JSON tool for developers.",
+      "keywords": ["JSON formatter", "JSON validator", "JSON beautifier", "JSON minifier", "format JSON online", "JSON syntax checker", "free JSON tool"]
+    },
+    "content": {
+      "howTo": {
+        "heading": "How to use the JSON Formatter",
+        "steps": [
+          "Paste your JSON into the left text area, or click 'Sample' to insert an example.",
+          "Select your preferred indentation style (2 spaces, 4 spaces, or tab) from the toolbar.",
+          "The formatted JSON appears instantly in the right panel. Syntax errors are shown in red with full details.",
+          "Click 'Copy' to copy the formatted output, or 'Minify' to produce compact JSON with whitespace removed."
+        ]
+      },
+      "features": {
+        "heading": "Features",
+        "items": [
+          "Real-time validation: JSON is parsed and validated on every keystroke. Errors are surfaced immediately with details.",
+          "3 indent options: 2 spaces, 4 spaces, or tab — to match your team's coding style guidelines.",
+          "Minify (compress): Remove all whitespace to minimize JSON size, ideal for API responses or storage optimization.",
+          "100% browser-based: API keys, tokens, or sensitive JSON data is never sent to any server."
+        ]
+      },
+      "faq": {
+        "heading": "FAQ",
+        "items": [
+          { "q": "What syntax errors can it detect?", "a": "It parses JSON according to RFC 8259, detecting trailing commas, missing quotes, mismatched brackets and braces, invalid Unicode escapes, and all other standard JSON syntax errors." },
+          { "q": "Does it support JSON5 or JSONC (JSON with comments)?", "a": "No. This tool validates against the JSON standard (RFC 8259). Comments (// or /* */) and trailing commas found in JSON5/JSONC will cause syntax errors." },
+          { "q": "Can it handle large JSON files?", "a": "Yes. Everything runs in the browser. Files up to several MB work fine; very large files may increase browser memory usage." }
+        ]
+      }
+    }
+  },
+  "unitConverter": {
+    "title": "Universal Unit Converter",
+    "description": "Convert length, weight, temperature, and data storage units in real time. Covers both metric and imperial systems.",
+    "categories": { "length": "Length", "weight": "Weight", "temperature": "Temperature", "data": "Data Size" },
+    "labels": { "from": "From", "to": "To" },
+    "placeholder": "Enter a value",
+    "swap": "Swap",
+    "meta": {
+      "title": "Unit Converter – Length, weight, temperature & data size",
+      "description": "Instantly convert between metric and imperial units. Supports length (mm–miles), weight (mg–tonnes), temperature (°C/°F/K), and data sizes (B–PB). Real-time results, no button needed.",
+      "keywords": ["unit converter", "length converter", "weight converter", "temperature converter", "data size converter", "metric imperial conversion", "online unit calculator"]
+    },
+    "content": {
+      "howTo": {
+        "heading": "How to use the Unit Converter",
+        "steps": [
+          "Select a category from the tabs at the top: Length, Weight, Temperature, or Data Size.",
+          "Enter a numeric value in the 'From' field and select its unit from the dropdown.",
+          "Select the target unit in the 'To' dropdown — the converted value appears instantly.",
+          "Use the ⇄ Swap button to quickly reverse the conversion direction."
+        ]
+      },
+      "features": {
+        "heading": "Features",
+        "items": [
+          "4 categories: Length (mm–miles), Weight (mg–tonnes), Temperature (°C/°F/K), Data Size (B–PB).",
+          "Special temperature logic: Uses °C as the base with formulas °F = °C × 9/5 + 32 and K = °C + 273.15 for precision.",
+          "High-precision results: Uses toPrecision(10) to minimize floating-point errors in conversion calculations.",
+          "Swap button: Instantly exchange From and To units to quickly reverse any conversion."
+        ]
+      },
+      "faq": {
+        "heading": "FAQ",
+        "items": [
+          { "q": "What temperature formula is used?", "a": "Celsius (°C) is the base unit. Fahrenheit: °F = °C × 9/5 + 32. Kelvin: K = °C + 273.15. Absolute zero is −273.15°C = 0K = −459.67°F." },
+          { "q": "Is 1 KB equal to 1000 B or 1024 B?", "a": "This tool uses the binary (computing) standard: 1KB = 1024B, 1MB = 1024KB (= 1,048,576B). This differs from the decimal standard (1KB = 1000B) used by some storage manufacturers." },
+          { "q": "Can you add more units?", "a": "Feel free to request additional units via the contact page. High-demand units will be considered for future additions." }
+        ]
+      }
+    }
+  },
+  "base64": {
+    "title": "Base64 Encoder / Decoder",
+    "description": "Encode text to Base64 or decode Base64 back to text. Full Unicode and Japanese character support.",
+    "tabs": { "encode": "Encode", "decode": "Decode" },
+    "labels": { "input": "Input Text", "output": "Base64 Result", "inputDecode": "Base64 String", "outputDecode": "Decoded Text" },
+    "placeholders": { "encode": "Enter text to encode…", "decode": "Enter Base64 string to decode…" },
+    "buttons": { "copy": "Copy", "copied": "Copied!", "clear": "Clear", "swap": "Swap input & output" },
+    "errors": { "invalidBase64": "Invalid Base64 string. Please check the input." },
+    "meta": {
+      "title": "Base64 Encoder / Decoder – Full Unicode & Japanese support",
+      "description": "Encode text to Base64 or decode Base64 back to text. Full Unicode support including Japanese, Chinese, and emoji via TextEncoder/TextDecoder API. Real-time conversion, no server required.",
+      "keywords": ["Base64 encoder", "Base64 decoder", "Base64 converter", "encode Base64 online", "decode Base64 online", "Base64 Unicode", "Base64 Japanese"]
+    },
+    "content": {
+      "howTo": {
+        "heading": "How to use the Base64 Converter",
+        "steps": [
+          "Select 'Encode' or 'Decode' from the mode tabs at the top.",
+          "Type or paste your input text — the result appears immediately in the output area below.",
+          "Click 'Copy' to copy the result to your clipboard.",
+          "Use 'Swap input & output' to feed the current output as the next input — useful for verifying a round-trip encode then decode."
+        ]
+      },
+      "features": {
+        "heading": "Features",
+        "items": [
+          "Full Unicode support: Uses TextEncoder (UTF-8) and TextDecoder APIs for accurate handling of Japanese, Chinese, emoji, and all multilingual text.",
+          "Real-time conversion: Results update instantly as you type — no submit button needed.",
+          "Swap feature: Transfer the output directly to the input with one click to quickly reverse the conversion.",
+          "100% browser-based: Input text is never sent to any server. Safe for sensitive or private data."
+        ]
+      },
+      "faq": {
+        "heading": "FAQ",
+        "items": [
+          { "q": "Why does encoding Japanese text require special handling?", "a": "JavaScript's built-in btoa() only supports ASCII. Multi-byte characters like Japanese cause errors if passed directly. This tool uses TextEncoder to convert text to a UTF-8 byte array first, handling all Unicode characters correctly." },
+          { "q": "Decoded text looks garbled — what's wrong?", "a": "This tool assumes UTF-8 encoding when decoding. If the Base64 string was created from text encoded in Shift-JIS or another legacy encoding, the decoded output may appear as garbled characters." },
+          { "q": "Where is Base64 commonly used?", "a": "Base64 is widely used in email attachments (MIME), embedding images in HTML/CSS as Data URLs, JWT (JSON Web Token) payloads, and transmitting binary data over text-based APIs." }
+        ]
+      }
+    }
+  },
+  "footer": { "home": "Home", "about": "About", "privacy": "Privacy Policy", "contact": "Contact" },
+  "tools": {
+    "word-count": { "name": "Word Counter", "description": "Count characters, words, and lines in real time. Perfect for articles and reports." },
+    "password-generator": { "name": "Password Generator", "description": "Generate strong random passwords in one click. Customize length and character types." },
+    "qr-code": { "name": "QR Code Generator", "description": "Instantly create QR codes from URLs or text. Download and use them right away." },
+    "images-to-pdf": { "name": "Images to PDF", "description": "Combine multiple images into one PDF. Drag to reorder. Fully browser-based and private." },
+    "json-formatter": { "name": "JSON Formatter", "description": "Paste JSON to instantly format and validate it. Syntax errors highlighted immediately." },
+    "unit-converter": { "name": "Unit Converter", "description": "Convert length, weight, temperature, and data units in real time." },
+    "base64": { "name": "Base64 Converter", "description": "Encode text to Base64 or decode Base64 back to text. Full Unicode support." }
+  }
+}
