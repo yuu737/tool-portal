@@ -74,6 +74,46 @@ export default function ToolContentSection({ content }: Props) {
           ))}
         </div>
       </section>
+
+      {/* Technical Deep Dive */}
+      <section aria-labelledby="deep-dive-heading">
+        <h2
+          id="deep-dive-heading"
+          className="mb-5 text-lg font-bold text-gray-900 sm:text-xl"
+        >
+          {content.deepDive.heading}
+        </h2>
+        <div className="space-y-4 rounded-xl border border-blue-50 bg-blue-50/40 p-5">
+          {content.deepDive.paragraphs.map((para, i) => (
+            <p
+              key={i}
+              className="text-sm leading-relaxed text-gray-700 sm:text-base"
+            >
+              {para}
+            </p>
+          ))}
+        </div>
+      </section>
+
+      {/* Security & Privacy */}
+      <section aria-labelledby="security-heading">
+        <h2
+          id="security-heading"
+          className="mb-5 text-lg font-bold text-gray-900 sm:text-xl"
+        >
+          {content.security.heading}
+        </h2>
+        <div className="space-y-4 rounded-xl border border-green-100 bg-green-50/40 p-5">
+          {content.security.paragraphs.map((para, i) => (
+            <p
+              key={i}
+              className="text-sm leading-relaxed text-gray-700 sm:text-base"
+            >
+              {para}
+            </p>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

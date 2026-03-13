@@ -25,17 +25,17 @@
   },
   "privacy": {
     "title": "Privacy Policy & Disclaimer",
-    "description": "This page explains how Yuustudio handles personal information, uses advertising and analytics services, and limits liability.",
+    "description": "This page explains how Yuustudio collects and uses information, how advertising and analytics services operate on this site, how cookies are used, and the limits of our liability.",
     "lastUpdated": "Last updated",
     "lastUpdatedDate": "January 1, 2025",
     "sections": {
-      "basic": { "heading": "Overview", "text": "Yuustudio (\"this site\") takes the protection of user privacy seriously and complies with applicable privacy laws and regulations." },
-      "adsense": { "heading": "Advertising (Google AdSense)", "text": "This site uses Google AdSense, an advertising service provided by Google LLC. Google AdSense may use cookies to serve ads based on your interests. Through cookies, Google can identify your browser and deliver relevant ads. You can disable cookies in your browser settings. For more information, please see Google's Privacy Policy (policies.google.com/privacy)." },
-      "analytics": { "heading": "Analytics (Google Analytics)", "text": "This site uses Google Analytics, a web analytics service provided by Google LLC, to understand how visitors use the site. Google Analytics collects data using cookies; this data is collected anonymously and does not identify individuals. You can opt out by disabling cookies. For details, see the Google Analytics Terms of Service (marketingplatform.google.com/about/analytics/terms/)." },
-      "personalInfo": { "heading": "Personal Information", "text": "Any personal information (such as your email address) provided via the contact form is used solely to respond to your inquiry and will never be shared with third parties. Furthermore, all tools on this site process data entirely client-side — no input data is ever transmitted to or stored on any server." },
-      "cookies": { "heading": "Cookies", "text": "This site uses a cookie (NEXT_LOCALE) to remember your language preference. Cookies store small pieces of information in your browser to maintain settings between visits. You can disable cookies in your browser settings, though doing so may affect some site functionality." },
-      "disclaimer": { "heading": "Disclaimer", "text": "While we strive to keep the information on this site accurate, we make no warranties regarding the accuracy, completeness, or usefulness of any content. This site accepts no liability for any damages (direct or indirect) arising from the use of any tool or information provided here. The same applies to content on external sites linked from this site. Use all tools at your own risk and discretion." },
-      "changes": { "heading": "Changes to This Policy", "text": "This privacy policy may be updated from time to time. Changes take effect from the date they are posted on this page. Material changes will be announced on the site." }
+      "basic": { "heading": "Overview", "text": "Yuustudio (\"this site\") is committed to protecting the privacy of its users and complies with applicable privacy laws and regulations, including Japan's Act on the Protection of Personal Information (APPI) and, where applicable, the EU General Data Protection Regulation (GDPR). All web tools on this site are built on a Privacy by Design principle: user input data is processed exclusively inside the browser and is never transmitted to or stored on any server operated by this site." },
+      "adsense": { "heading": "Advertising — Google AdSense", "text": "This site uses Google AdSense, an advertising service operated by Google LLC (1600 Amphitheatre Parkway, Mountain View, CA 94043, USA). Google AdSense may serve interest-based and behavioural advertising using first-party and third-party cookies (including the DoubleClick cookie). These cookies allow Google to identify your browser across sites and deliver ads that may be relevant to your interests based on browsing history. Under GDPR and Japan's revised APPI, cookie-based advertising relies on user consent or legitimate interest. You can opt out of personalised ads through Google's Ad Settings page (adssettings.google.com) or by disabling third-party cookies in your browser settings. For full details, see Google's Privacy Policy at policies.google.com/privacy." },
+      "analytics": { "heading": "Analytics — Google Analytics", "text": "This site may use Google Analytics 4 (GA4), a web analytics service provided by Google LLC, to understand how visitors interact with the site and to improve its content. Google Analytics collects data using cookies; all data is anonymised and aggregated — no personally identifiable information is collected. Data is transmitted to and stored on Google's servers with IP address masking applied. You can opt out by disabling cookies in your browser settings or by installing the Google Analytics Opt-out Browser Add-on available at tools.google.com/dlpage/gaoptout. For details, see the Google Analytics Terms of Service at marketingplatform.google.com/about/analytics/terms/." },
+      "personalInfo": { "heading": "Personal Information", "text": "Any personal information (such as your email address) submitted via the contact form is used solely to respond to your inquiry and will never be sold, rented, or disclosed to third parties. Collected personal information is stored securely and deleted after the inquiry is resolved. Furthermore, all tools on this site process data entirely client-side: no input data — including text, images, passwords, or any other user-entered content — is ever transmitted to or stored on any server." },
+      "cookies": { "heading": "Cookies", "text": "This site uses cookies for the following purposes: (1) Language preference — the NEXT_LOCALE cookie stores your selected language (Japanese or English) for one year so your preference is remembered on return visits. (2) Advertising — Google AdSense may set first- and third-party cookies to serve relevant ads, as described in the Advertising section above. (3) Analytics — Google Analytics may set cookies to collect anonymised usage data, as described in the Analytics section above. You can manage or disable cookies at any time through your browser settings. Disabling cookies may affect the language preference feature and the personalisation of advertisements." },
+      "disclaimer": { "heading": "Disclaimer", "text": "While every effort is made to keep the information on this site accurate and up to date, no warranty is given as to the accuracy, completeness, fitness for purpose, or reliability of any content or tool output. This site and its operator accept no liability for any loss or damage — direct, indirect, consequential, or otherwise — arising from use of any tool or information provided here. Do not rely solely on tool outputs for critical business, legal, medical, or financial decisions; always verify results against authoritative primary sources. This disclaimer extends to the content of any external sites linked from this site." },
+      "changes": { "heading": "Changes to This Policy", "text": "This privacy policy may be updated at any time without prior notice in response to changes in law, service features, or other circumstances. Revised versions take effect from the date they are published on this page. Significant changes will be announced on the site. Continued use of the site following publication of changes constitutes acceptance of the revised policy. For any questions about this policy, please use the contact page." }
     }
   },
   "contact": {
@@ -83,6 +83,23 @@
           { "q": "Can I use it to check social media character limits?", "a": "Yes. It's ideal for checking Twitter/X's 280-character limit, Instagram captions, email lengths, and any other platform character restrictions." },
           { "q": "How are spaces and line breaks counted?", "a": "Characters (with spaces) counts every space, tab, and newline as one character. Characters (no spaces) excludes all whitespace — only visible characters are counted. Line count equals the number of newline characters plus one." },
           { "q": "Are HTML tags or Markdown syntax included in the count?", "a": "Yes. The tool counts the raw text as typed, so HTML tags (<p>, <br>, etc.) and Markdown syntax (#, **, -, etc.) are each counted as individual characters. To count only the visible content, paste the plain text without any markup." }
+        ]
+      },
+      "deepDive": {
+        "heading": "Technical Deep Dive: How Character Counting Works",
+        "paragraphs": [
+          "JavaScript strings are internally represented as UTF-16 sequences, so str.length actually returns the number of code units, not the number of visible characters. Emoji and characters above U+FFFF — such as '😀' (U+1F600) — are encoded as surrogate pairs (two UTF-16 code units), so \"😀\".length evaluates to 2. This tool uses [...str].length (spread iteration over Unicode code points) to count surrogate pairs as a single character, matching the user's intuitive expectation.",
+          "Word segmentation uses the Intl.Segmenter API, standardized in ECMA-402. Unlike English, where words are delimited by spaces, languages like Japanese, Chinese, and Thai require morphological analysis. The browser's built-in language engine segments text at the appropriate granularity (granularity: 'word'). For example, the Japanese sentence '東京タワーが好きだ' is split into five words — '東京', 'タワー', 'が', '好き', 'だ' — a precision that simple space-based splitting cannot achieve.",
+          "Line count is calculated as the number of newline characters '\\n' (LF) plus one. On Windows, the '\\r\\n' (CRLF) line ending is normalized to '\\n' before counting, eliminating OS-specific inconsistencies. An empty text area still returns a line count of 1 (representing one empty line).",
+          "The 'no-spaces' character count strips all whitespace using the regular expression /[\\s\\u3000]/g, which covers ASCII spaces (U+0020), full-width Japanese spaces (U+3000), tabs (U+0009), and all newline variants. This ensures full-width spaces common in Japanese text are excluded alongside standard ASCII whitespace."
+        ]
+      },
+      "security": {
+        "heading": "Security & Privacy Guarantee",
+        "paragraphs": [
+          "This tool runs entirely client-side inside your browser. Text entered into the textarea is captured by React's onChange event handler and processed using only JavaScript string functions — no HTTP requests are made at any point. Your input never travels over any network.",
+          "You can safely use this tool with confidential documents, legal texts, personal data, source code, or draft manuscripts that you would not want sent to an external server. To verify this yourself, open your browser's DevTools Network tab while typing — you will see zero network requests generated.",
+          "All text data lives exclusively in browser memory. Closing or refreshing the page automatically clears everything. This service never logs or analyses the content of what you type."
         ]
       }
     }
@@ -133,6 +150,23 @@
           { "q": "Can I use generated passwords with a password manager?", "a": "Yes. Click 'Copy' to copy the password to your clipboard and paste it directly into 1Password, Bitwarden, LastPass, or any password manager. It also works seamlessly with browser autofill." },
           { "q": "What should I do if a site doesn't allow symbols?", "a": "Simply uncheck the 'Symbols' option and regenerate. A combination of uppercase, lowercase, and numbers at 16+ characters still provides strong security without any symbols." }
         ]
+      },
+      "deepDive": {
+        "heading": "Technical Deep Dive: Cryptographic Randomness & Password Generation",
+        "paragraphs": [
+          "Math.random() — the browser's built-in pseudo-random number generator (PRNG) — is based on algorithms like xorshift128+ or linear congruential generation. Because it is deterministic, knowledge of the internal seed allows full prediction of future outputs, making it wholly unsuitable for security-sensitive use. This tool uses crypto.getRandomValues() from the W3C Web Cryptography API, which calls the operating system's cryptographically secure PRNG (CSPRNG): getrandom() or /dev/urandom on Linux, BCryptGenRandom on Windows, and SecRandomCopyBytes on macOS/iOS. These sources derive entropy from physical events such as hardware interrupts, thermal noise, and timing jitter.",
+          "A naive random character selection may produce outputs with an unintentional bias toward certain characters. This tool applies the Fisher-Yates (Knuth) shuffle algorithm to guarantee a uniform distribution across all positions of the generated string. Additionally, at least one character from each enabled character class (uppercase, lowercase, digits, symbols) is guaranteed to be present — verified and re-sampled after initial generation if needed.",
+          "Password strength is measured in bits of entropy: H = L × log₂(N), where L is the password length and N is the size of the character pool. The 'Strong' preset (20 characters, all character types, N = 94) yields approximately H ≈ 131 bits of entropy. At 10¹² guesses per second — the approximate throughput of a modern GPU cluster — exhaustively searching this space would require astronomically more time than the universe has existed.",
+          "The strength gauge combines entropy with character-diversity scoring. Points are awarded for length, the presence of uppercase, lowercase, digits, and symbols, producing a composite score displayed across five levels from 'Very Weak' to 'Very Strong'. This gives actionable visual feedback beyond raw bit counts."
+        ]
+      },
+      "security": {
+        "heading": "Security & Privacy Guarantee",
+        "paragraphs": [
+          "Generated passwords exist only in browser memory. The string produced by crypto.getRandomValues() is written to the clipboard via navigator.clipboard.writeText() when you click 'Copy' — no network communication occurs at any step.",
+          "Passwords entered into the 'Check Strength' tab are evaluated entirely by a local JavaScript scoring function. The password you type never reaches this service's servers. You can verify this by opening the DevTools Network tab and confirming zero outbound requests are made.",
+          "As a tool that handles one of the most sensitive categories of user data, client-side processing is a foundational security property. It is architecturally impossible for this service to log or analyse any password entered or generated here."
+        ]
       }
     }
   },
@@ -180,6 +214,23 @@
           { "q": "Can I overlay a logo on the QR code?", "a": "The tool doesn't support image compositing directly, but you can download the SVG at error correction level H (30%), open it in Figma or Illustrator, overlay your logo, and export. Level H tolerates up to 30% data loss, giving enough margin for logo placement without breaking scan readability." },
           { "q": "What should I do if my QR code fails to scan?", "a": "Common causes include the code being too small, low contrast between foreground and background, or insufficient margin. Try increasing the margin to 4+, boosting color contrast, ensuring the printed size is at least 2cm × 2cm, and raising the error correction level to M or H." }
         ]
+      },
+      "deepDive": {
+        "heading": "Technical Deep Dive: QR Code Structure & Reed-Solomon Error Correction",
+        "paragraphs": [
+          "QR Code (Quick Response Code) was developed by Denso Wave in 1994 and is standardized as ISO/IEC 18004. Data is encoded in one of four modes — Numeric, Alphanumeric, Byte, or Kanji — chosen to maximize data density. URLs and general text are encoded in Byte mode using a UTF-8 byte sequence, while pure numeric data benefits from the more compact Numeric mode, which encodes three digits in only 10 bits.",
+          "Reliability is provided by Reed-Solomon error correction, an algorithm that treats the original data as a polynomial over the finite field GF(2⁸) (a Galois field) and computes additional correction codewords. The four error correction levels — L (7%), M (15%), Q (25%), and H (30%) — specify the maximum percentage of the codeword data that can be damaged or obscured and still be fully recovered. When overlaying a logo on a QR code, choose level H to tolerate up to 30% data loss.",
+          "The three square finder patterns positioned in the top-left, top-right, and bottom-left corners (a quiet corner is left at bottom-right for timing reference) have a black-white-black width ratio of 1:1:3:1:1. Scanners detect this distinctive ratio at any angle of rotation, enabling the decoder to determine the code's orientation, skew, and scale before reading the data modules.",
+          "The version number (1–40) controls the matrix size: Version 1 uses a 21×21 module grid; Version 40 uses 177×177. Maximum data capacity at Version 40 with error correction Level L is 4,296 alphanumeric characters or 7,089 digits. The qrcode.react library used by this tool automatically selects the smallest version that fits the input data."
+        ]
+      },
+      "security": {
+        "heading": "Security & Privacy Guarantee",
+        "paragraphs": [
+          "This tool uses the qrcode.react library to render QR codes directly into SVG or Canvas DOM elements inside your browser. The entire QR generation process runs in the JavaScript runtime — no data is sent over the network. URLs, text content, and Wi-Fi credentials (SSID and password) you enter never leave your device.",
+          "Wi-Fi passwords embedded in QR codes are particularly sensitive. The architecture of this tool makes it technically impossible to transmit that information to a server. PNG and SVG files are generated from in-memory canvas data and downloaded directly — they do not pass through any server.",
+          "Generated QR code image data resides only in browser memory and is released when you close the tab. This service retains no record of what content was encoded or downloaded."
+        ]
       }
     }
   },
@@ -222,6 +273,23 @@
           { "q": "Can I change the PDF page size?", "a": "Currently, output is fixed to A4 (210×297mm). Images are automatically resized to fit the page while preserving their aspect ratio." },
           { "q": "What image quality is used in the output PDF?", "a": "Images are routed through the Canvas API and embedded at JPEG quality 0.92 (on a scale of 0–1). This balances file size and visual quality well. For maximum fidelity, use high-resolution source images and avoid upscaling them beforehand." },
           { "q": "Do portrait photos from my phone fit on A4 pages?", "a": "Yes. Each image is automatically fitted inside the A4 page (with 10mm margins) while preserving its original aspect ratio. Portrait images scale to fit the page width; landscape images scale to the page height. No forced stretching or cropping occurs." }
+        ]
+      },
+      "deepDive": {
+        "heading": "Technical Deep Dive: Client-Side PDF Generation Pipeline",
+        "paragraphs": [
+          "PDF generation runs entirely in the browser using the jsPDF library. The pipeline works as follows: first, FileReader.readAsDataURL() reads each image file as a Base64-encoded data URL. Next, an HTMLImageElement is created and the image is decoded into pixel data via Canvas's drawImage() call. The canvas is then serialized to a JPEG data URL at quality 0.92 via canvas.toDataURL('image/jpeg', 0.92). Finally, jsPDF's addImage() method embeds the compressed image data into a PDF page.",
+          "Fitting each image onto an A4 page (210×297mm) while preserving aspect ratio requires computing the available print area (190×277mm after 10mm margins on all sides). The aspect ratio r = width/height is calculated for each image. If r > 190/277 (landscape orientation), the image is scaled so its width equals 190mm and height is calculated proportionally. Otherwise (portrait), height is set to 277mm and width scaled accordingly. This guarantees no cropping or distortion.",
+          "WebP, GIF, and other formats that cannot be directly embedded into PDF are normalized to JPEG through the Canvas element. The Canvas API uses the browser's native image decoders, so any format supported by the browser — JPEG, PNG, WebP, GIF, AVIF — is handled transparently. For animated GIFs, only the first frame is used.",
+          "The finished PDF is constructed as an in-memory Blob object. URL.createObjectURL(blob) produces a temporary object URL, which is set as the href of a dynamically created <a> element with a download attribute to trigger the browser's native download. After the download starts, URL.revokeObjectURL() releases the object URL to prevent memory leaks."
+        ]
+      },
+      "security": {
+        "heading": "Security & Privacy Guarantee",
+        "paragraphs": [
+          "Every image you add is read into browser memory by the FileReader API as an ArrayBuffer or Blob — it never leaves your device. The entire PDF generation pipeline runs inside jsPDF's JavaScript code without any network requests. Medical images, scanned legal documents, personal photos, and confidential paperwork can all be processed with complete privacy.",
+          "You can confirm zero data transmission by opening your browser's DevTools Network tab before processing images. No upload requests or API calls will appear, because the tool is architecturally incapable of sending your files anywhere.",
+          "Image data is managed by the browser's garbage collector and is fully released when you close or reload the tab. This service never records the content, filenames, or number of images you process."
         ]
       }
     }
@@ -268,6 +336,23 @@
           { "q": "Can I validate JSON without formatting it?", "a": "Yes. Validation runs automatically as you type, and the status badge shows '✓ Valid JSON' or '✗ Error' instantly — no need to click Format. Live feedback is always active." },
           { "q": "Does it support JSONC (JSON with comments) or JSON5?", "a": "No. This tool validates strictly against the RFC 8259 JSON standard. Comments (// or /* */) and trailing commas in JSONC or JSON5 will trigger a syntax error. Remove any comments before pasting." }
         ]
+      },
+      "deepDive": {
+        "heading": "Technical Deep Dive: JSON Parsing, RFC 8259, and the Stringify Pipeline",
+        "paragraphs": [
+          "Validation is powered by the JavaScript engine's built-in JSON.parse(), which implements RFC 8259 strictly. Engines such as V8 (Chrome/Node.js) and SpiderMonkey (Firefox) process JSON through a tokenizer → AST construction → object mapping pipeline. When a syntax error is encountered, a SyntaxError exception is thrown with a detailed message (e.g., 'Unexpected token } in JSON at position 42') that this tool surfaces directly to the user for immediate diagnosis.",
+          "Formatting is handled by JSON.stringify(parsed, null, indent). The third argument — a space count (2 or 4) or a tab character '\\t' — controls indentation depth. Each level of nesting increases the indentation by one unit, dramatically improving readability of deeply nested structures. Passing null as the replacer argument causes JSON.stringify to automatically omit properties with undefined, function, or Symbol values, which cannot be represented in standard JSON.",
+          "Minification — the inverse of formatting — is equivalent to JSON.stringify(parsed). It removes all optional whitespace, producing the most compact representation of the same data. This is valuable for reducing API response sizes, minimizing localStorage usage, and removing unnecessary bytes before network transmission.",
+          "RFC 8259 (the IETF standard) and ECMA-404 (the Ecma Language Specification) are the two canonical JSON specifications. Both explicitly prohibit trailing commas, comments, and serialization of NaN or Infinity values. These restrictions are precisely why JSON5 and JSONC were created as supersets, but this tool targets the interoperable RFC 8259 standard used by all HTTP APIs and language parsers."
+        ]
+      },
+      "security": {
+        "heading": "Security & Privacy Guarantee",
+        "paragraphs": [
+          "JSON payloads frequently contain API keys, OAuth tokens, JWTs, database connection strings, and other highly sensitive data. All formatting and validation in this tool runs inside the browser's JavaScript engine — JSON.parse() and JSON.stringify() are synchronous, browser-native APIs that involve no network communication whatsoever.",
+          "Pasted JSON data never reaches this service's servers. The tool is architecturally incapable of exfiltrating input content, making it safe for use with production secrets. Verify this at any time via the DevTools Network tab — you will see no outbound requests.",
+          "Data in the textarea is held only in React state (browser memory). Closing or refreshing the page clears it immediately. This service performs no server-side logging or analysis of any pasted JSON content."
+        ]
       }
     }
   },
@@ -310,6 +395,22 @@
           { "q": "Can you add more units?", "a": "Feel free to request additional units via the contact page. High-demand units will be considered for future additions." },
           { "q": "Why do I sometimes see floating-point rounding in results?", "a": "All calculations use JavaScript's IEEE 754 double-precision floating-point numbers. The tool applies toPrecision(10) to minimize visible rounding, but very small residuals may occasionally appear. This is a known property of binary floating-point arithmetic, not a bug." },
           { "q": "Can you add cooking units like cups, tablespoons, or teaspoons?", "a": "Volume units for cooking are not yet supported. The weight category covers standard SI units. Cooking volume units are on the roadmap — feel free to request them via the contact page." }
+        ]
+      },
+      "deepDive": {
+        "heading": "Technical Deep Dive: Unit Conversion Architecture & Floating-Point Precision",
+        "paragraphs": [
+          "Length and weight conversions use a hub-unit conversion table approach: every unit is defined by its conversion factor relative to an SI base unit (meter for length, kilogram for weight). For example, 1 inch = 0.0254 m and 1 mile = 1609.344 m are exact defined values. Converting from unit A to unit B is computed as: value × (A's factor to base) / (B's factor to base). This architecture requires only N coefficients for N units rather than an N×(N-1) pairwise lookup table, keeping the implementation compact and easy to extend.",
+          "Temperature conversion cannot be represented as a simple multiplicative factor because it involves a translational (affine) component. This tool normalises all temperatures through Celsius (°C) as the intermediate pivot. The formulas are: °F to °C: (°F − 32) × 5/9; K to °C: K − 273.15; and their inverses. Converting from Fahrenheit to Kelvin is therefore a two-step process: °F → °C → K, ensuring accuracy without error accumulation.",
+          "JavaScript uses IEEE 754 double-precision floating-point arithmetic (64-bit: 52-bit mantissa + 1 implied bit = 53 bits of precision). This causes familiar artefacts like 0.1 + 0.2 = 0.30000000000000004. The tool applies toPrecision(10) to all results, rounding to 10 significant figures and eliminating visually distracting residuals in the vast majority of practical conversions.",
+          "Data size conversions follow the IEC 80000-13 binary standard: 1 KB = 1024 B = 2¹⁰ B, 1 MB = 1024 KB = 2²⁰ B, and so on. This differs from the SI/decimal standard (1 KB = 1000 B) used by many storage manufacturers when labelling hard drives — which is why a '1 TB' drive appears as approximately 931 GB in an operating system that uses the binary standard."
+        ]
+      },
+      "security": {
+        "heading": "Security & Privacy Guarantee",
+        "paragraphs": [
+          "Unit conversion performs pure arithmetic on a numeric value entered by the user. Input is captured by React's onChange handler and processed entirely within local JavaScript functions. No API calls or network requests are made at any point.",
+          "Numeric inputs — including personal measurements such as body weight or height — never leave the browser. Values exist only in component state and are discarded when the page is closed. This service collects no data from the unit converter."
         ]
       }
     }
@@ -354,6 +455,23 @@
           { "q": "Where is Base64 commonly used?", "a": "Base64 is widely used in email attachments (MIME), embedding images in HTML/CSS as Data URLs, JWT (JSON Web Token) payloads, and transmitting binary data over text-based APIs." },
           { "q": "Does this tool support URL-safe Base64 (Base64url)?", "a": "The tool uses standard Base64 (RFC 4648 §4). URL-safe Base64 (Base64url) substitutes + with -, / with _, and omits = padding. After encoding, you can manually apply those substitutions to convert to Base64url format." },
           { "q": "Can I encode binary files like images or PDFs?", "a": "The tool accepts text input only and is not designed for binary file encoding. To Base64-encode a file in JavaScript, use FileReader.readAsDataURL() in the browser, or Buffer.from(data).toString('base64') in Node.js." }
+        ]
+      },
+      "deepDive": {
+        "heading": "Technical Deep Dive: Base64 Encoding & Unicode Handling",
+        "paragraphs": [
+          "Base64 encodes arbitrary binary data as printable ASCII text. The algorithm groups the input into 3-byte (24-bit) blocks, splits each block into four 6-bit values, and maps each to one of 64 characters: A–Z, a–z, 0–9, +, and /. If the input length is not a multiple of 3, one or two '=' padding characters are appended. This transformation expands data size by approximately one-third (4 output bytes per 3 input bytes) in exchange for ASCII-safe portability.",
+          "JavaScript's built-in btoa() function only accepts characters in the Latin-1 range (U+0000–U+00FF). Passing multi-byte text like Japanese directly causes a 'InvalidCharacterError'. This tool routes encoding through the TextEncoder API (part of the WHATWG Encoding Living Standard): new TextEncoder().encode(text) produces a Uint8Array of UTF-8 bytes, which is then chunked, converted to a binary string via String.fromCharCode(), and passed to btoa(). Decoding reverses this: atob() → binary string → Uint8Array → new TextDecoder('utf-8').decode().",
+          "Standard Base64 (RFC 4648 §4) uses '+' and '/' which are special characters in URLs and HTTP query strings. URL-safe Base64 (Base64url, RFC 4648 §5) solves this by substituting '+' with '-' and '/' with '_', and omitting the '=' padding. JWT (JSON Web Token) headers and payloads use Base64url encoding. This tool implements standard Base64; manual character substitution converts the output to Base64url when needed.",
+          "A common use case for Base64 is embedding binary assets in text-based contexts: inline images in HTML/CSS as Data URLs (data:image/png;base64,...), MIME-encoded email attachments, JWT payload inspection, and transporting binary blobs over text APIs that lack native binary support (e.g., some WebSocket or Server-Sent Events implementations)."
+        ]
+      },
+      "security": {
+        "heading": "Security & Privacy Guarantee",
+        "paragraphs": [
+          "All Base64 encoding and decoding is performed using browser-native synchronous APIs: TextEncoder, TextDecoder, btoa(), and atob(). None of these APIs involve network communication. Input text never leaves the browser's JavaScript runtime.",
+          "API keys, JWT tokens, OAuth authorization codes, and other sensitive strings can be safely encoded or decoded without any risk of server-side exposure. You can verify the absence of network traffic at any time using your browser's DevTools Network tab.",
+          "Input and output data are held only in React state (browser memory) and are released immediately when you click 'Clear', navigate away, or close the tab. This service performs no logging or analysis of content entered into the encoder or decoder."
         ]
       }
     }

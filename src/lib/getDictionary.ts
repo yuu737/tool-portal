@@ -6,6 +6,8 @@ export type ToolContent = {
   howTo: { heading: string; steps: string[] };
   features: { heading: string; items: string[] };
   faq: { heading: string; items: Array<{ q: string; a: string }> };
+  deepDive: { heading: string; paragraphs: string[] };
+  security: { heading: string; paragraphs: string[] };
 };
 
 export type ToolMeta = {
