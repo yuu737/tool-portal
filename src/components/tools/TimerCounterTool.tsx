@@ -98,6 +98,71 @@ function Ring({ pct, color, size = 240, track = "#e2e8f0", sw = 10 }: {
   );
 }
 
+// ─── Canvas PiP frame renderer (mobile Video PiP) ────────────────────────────
+function drawCanvasFrame(
+  ctx: CanvasRenderingContext2D,
+  w: number, h: number,
+  display: string,
+  pct: number,
+  ringColor: string,
+  tabLabel: string,
+  isDone: boolean,
+) {
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = "#0c0f1a";
+  ctx.fillRect(0, 0, w, h);
+
+  // Ring dimensions – centered
+  const ringR = Math.min(h * 0.34, w * 0.26);
+  const cx = w / 2;
+  const cy = h * 0.5;
+  const sw = Math.max(2, ringR * 0.18);
+
+  // Track ring
+  ctx.beginPath();
+  ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
+  ctx.strokeStyle = "#1e2d45";
+  ctx.lineWidth = sw;
+  ctx.stroke();
+
+  // Progress arc
+  const p = Math.min(1, Math.max(0, pct / 100));
+  if (p > 0) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, ringR, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * p);
+    ctx.strokeStyle = ringColor;
+    ctx.lineWidth = sw + 1;
+    ctx.lineCap = "round";
+    ctx.stroke();
+  }
+
+  // Label (small, above center)
+  const labelSize = Math.max(7, h * 0.13);
+  ctx.fillStyle = "#475569";
+  ctx.font = `${labelSize}px sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
+  ctx.fillText(tabLabel.toUpperCase(), cx, cy - ringR * 0.45);
+
+  // Time (large, center)
+  const timeSize = Math.max(10, h * 0.27);
+  ctx.fillStyle = isDone ? "#22c55e" : "#f1f5f9";
+  ctx.font = `bold ${timeSize}px "Courier New", Courier, monospace`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(display, cx, cy + h * 0.06);
+
+  // Done text
+  if (isDone) {
+    const doneSize = Math.max(7, h * 0.13);
+    ctx.fillStyle = "#22c55e";
+    ctx.font = `bold ${doneSize}px sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillText("DONE ✓", cx, cy + ringR + sw + doneSize + 2);
+  }
+}
+
 // ─── PiP View ─────────────────────────────────────────────────────────────────
 type PipProps = {
   time: string; count: number; goal: number; tabLabel: string; tab: Tab;
@@ -539,11 +604,42 @@ export default function TimerCounterTool({ dict }: Props) {
   const overlayDragRef = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number } | null>(null);
   const overlayResizeRef = useRef<{ startX: number; startY: number; startW: number; startH: number } | null>(null);
 
+  // ── Mobile Canvas Video PiP ───────────────────────────────────────────────
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobilePipOpen, setMobilePipOpen] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const mobilePipActiveRef = useRef(false);
+  const canvasRafRef = useRef<number | null>(null);
+  const canvasDataRef = useRef({
+    display: "00:00",
+    pct: 100,
+    ringColor: "#6366f1",
+    tabLabel: "Timer",
+    timerDone: false,
+  });
+
   // ─── Init ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     setPipSupported("documentPictureInPicture" in window);
     setGoalInput(goal > 0 ? goal.toString() : "");
+    // Mobile detection
+    const ua = navigator.userAgent || "";
+    setIsMobile(/iPhone|iPad|iPod|Android/i.test(ua) || window.innerWidth <= 768);
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ─── Video PiP leave event ────────────────────────────────────────────────
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const onLeave = () => {
+      mobilePipActiveRef.current = false;
+      if (canvasRafRef.current) cancelAnimationFrame(canvasRafRef.current);
+      setMobilePipOpen(false);
+    };
+    video.addEventListener("leavepictureinpicture", onLeave);
+    return () => video.removeEventListener("leavepictureinpicture", onLeave);
   }, []);
 
   // ─── Persist ───────────────────────────────────────────────────────────────
@@ -749,6 +845,15 @@ export default function TimerCounterTool({ dict }: Props) {
     }
   }, [editMode, timerH, timerM, timerS, timerRemaining, timerRunning]);
 
+  // ─── Sync canvas data ref (used by mobile PiP RAF loop) ─────────────────────
+  canvasDataRef.current = {
+    display: currentDisplay,
+    pct: currentPct,
+    ringColor: currentRingColor,
+    tabLabel: currentTabLabel,
+    timerDone,
+  };
+
   // ─── PiP handlers ref ────────────────────────────────────────────────────────
   pipHandlersRef.current = {
     playPause: () => {
@@ -844,6 +949,70 @@ export default function TimerCounterTool({ dict }: Props) {
     try { pipWinRef.current?.close(); } catch { /* noop */ }
     pipWinRef.current = null; pipRootRef.current = null; setPipOpen(false); setPipFallback(false);
   }, []);
+
+  // ─── Mobile Canvas Video PiP ──────────────────────────────────────────────
+  const openMobilePip = useCallback(async () => {
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+    if (!canvas || !video) return;
+    // Size: screen width/3 × screen height/8
+    const sw = window.screen.width;
+    const sh = window.screen.height;
+    canvas.width = Math.floor(sw / 3);
+    canvas.height = Math.floor(sh / 8);
+    // Initial frame draw
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      const d = canvasDataRef.current;
+      drawCanvasFrame(ctx, canvas.width, canvas.height, d.display, d.pct, d.ringColor, d.tabLabel, d.timerDone);
+    }
+    try {
+      const stream = canvas.captureStream(30);
+      video.srcObject = stream;
+      video.muted = true;
+      await video.play();
+      await video.requestPictureInPicture();
+      setMobilePipOpen(true);
+    } catch (e) {
+      console.warn("Mobile Canvas PiP failed:", e);
+    }
+  }, []);
+
+  const closeMobilePip = useCallback(async () => {
+    mobilePipActiveRef.current = false;
+    if (canvasRafRef.current) cancelAnimationFrame(canvasRafRef.current);
+    try {
+      if (document.pictureInPictureElement) await document.exitPictureInPicture();
+    } catch { /* noop */ }
+    setMobilePipOpen(false);
+  }, []);
+
+  // ─── Canvas RAF loop (runs while mobilePipOpen) ───────────────────────────
+  useEffect(() => {
+    if (!mobilePipOpen) {
+      mobilePipActiveRef.current = false;
+      if (canvasRafRef.current) cancelAnimationFrame(canvasRafRef.current);
+      return;
+    }
+    mobilePipActiveRef.current = true;
+    const loop = () => {
+      if (!mobilePipActiveRef.current) return;
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          const d = canvasDataRef.current;
+          drawCanvasFrame(ctx, canvas.width, canvas.height, d.display, d.pct, d.ringColor, d.tabLabel, d.timerDone);
+        }
+      }
+      canvasRafRef.current = requestAnimationFrame(loop);
+    };
+    canvasRafRef.current = requestAnimationFrame(loop);
+    return () => {
+      mobilePipActiveRef.current = false;
+      if (canvasRafRef.current) cancelAnimationFrame(canvasRafRef.current);
+    };
+  }, [mobilePipOpen]);
 
   // ─── Probability distribution color ──────────────────────────────────────────
   const distBarColor = (prob: number) => {
@@ -1184,7 +1353,8 @@ export default function TimerCounterTool({ dict }: Props) {
         </div>
       )}
 
-      {/* ── PiP Settings Panel ── */}
+      {/* ── PiP Settings Panel (PC only) ── */}
+      {!isMobile && (
       <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
         <button onClick={() => setShowSettings((v) => !v)}
           className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
@@ -1206,16 +1376,33 @@ export default function TimerCounterTool({ dict }: Props) {
           </div>
         )}
       </div>
+      )}
 
       {/* ── PiP Bar ── */}
       <div className="flex items-center gap-3 rounded-2xl border border-indigo-100 bg-indigo-50 px-4 py-3">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-indigo-800">{dict.pip.title}</p>
           <p className="truncate text-xs text-indigo-500">
-            {pipSupported ? dict.pip.description : dict.pip.unsupported}
+            {isMobile
+              ? (typeof document !== "undefined" && "pictureInPictureEnabled" in document)
+                ? dict.pip.description
+                : dict.pip.unsupported
+              : pipSupported ? dict.pip.description : dict.pip.unsupported}
           </p>
         </div>
-        {pipOpen || pipFallback ? (
+        {isMobile ? (
+          mobilePipOpen ? (
+            <button onClick={closeMobilePip}
+              className="flex items-center gap-2 rounded-xl border border-indigo-200 bg-white px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition-colors">
+              <Minimize2 size={14} />{dict.pip.close}
+            </button>
+          ) : (
+            <button onClick={openMobilePip}
+              className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors">
+              <PictureInPicture size={14} />{dict.pip.open}
+            </button>
+          )
+        ) : pipOpen || pipFallback ? (
           <button onClick={closePip}
             className="flex items-center gap-2 rounded-xl border border-indigo-200 bg-white px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition-colors">
             <Minimize2 size={14} />{dict.pip.close}
@@ -1228,8 +1415,11 @@ export default function TimerCounterTool({ dict }: Props) {
         )}
       </div>
 
-      {/* ── Fallback floating overlay (draggable + resizable) ── */}
-      {pipFallback && pipPos && pipSize && (
+      {/* ── Fallback floating overlay (PC only, draggable + resizable) ── */}
+      {!isMobile && pipFallback && pipPos && pipSize && (() => {
+        const NATIVE_W = 288;
+        const pipScale = pipSize.w / NATIVE_W;
+        return (
         <div style={{
           position: "fixed",
           left: pipPos.x,
@@ -1268,31 +1458,40 @@ export default function TimerCounterTool({ dict }: Props) {
             >×</button>
           </div>
 
-          {/* スクロール可能なコンテンツ */}
-          <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
-            <PipView
-              time={currentDisplay} count={count} goal={goal}
-              tabLabel={currentTabLabel} tab={tab} isRunning={isRunning}
-              pct={currentPct} ringColor={currentRingColor}
-              probDrops={probDrops} probAttempts={probAttempts} observedPct={observedRate}
-              calcN={calcN} calcP={calcP} pAtLeastOne={pAtLeastOne}
-              pipShowTimer={pipShowTimer} pipShowStopwatch={pipShowStopwatch}
-              pipShowCounter={pipShowCounter} pipShowProbability={pipShowProbability}
-              compact={true}
-              dict={dict}
-              onPlayPause={() => pipHandlersRef.current.playPause()}
-              onCounterInc={() => pipHandlersRef.current.counterInc()}
-              onProbDropInc={() => pipHandlersRef.current.probDropInc()}
-              onProbAttemptInc={() => pipHandlersRef.current.probAttemptInc()}
-              onTabChange={(t) => pipHandlersRef.current.tabChange(t)}
-              onTimerReset={() => pipHandlersRef.current.timerReset()}
-              onSwReset={() => pipHandlersRef.current.swReset()}
-              onCounterReset={() => pipHandlersRef.current.counterReset()}
-              onProbReset={() => pipHandlersRef.current.probReset()}
-              onTimerAddTime={(s) => pipHandlersRef.current.timerAddTime(s)}
-              counterPipSource={counterPipSource}
-              onCounterPipSourceChange={(s) => pipHandlersRef.current.counterPipSourceChange(s)}
-            />
+          {/* スケールされたコンテンツ */}
+          <div style={{ flex: 1, overflow: "hidden", position: "relative" }}>
+            <div style={{
+              width: NATIVE_W,
+              transformOrigin: "top left",
+              transform: `scale(${pipScale})`,
+              position: "absolute",
+              top: 0,
+              left: 0,
+            }}>
+              <PipView
+                time={currentDisplay} count={count} goal={goal}
+                tabLabel={currentTabLabel} tab={tab} isRunning={isRunning}
+                pct={currentPct} ringColor={currentRingColor}
+                probDrops={probDrops} probAttempts={probAttempts} observedPct={observedRate}
+                calcN={calcN} calcP={calcP} pAtLeastOne={pAtLeastOne}
+                pipShowTimer={pipShowTimer} pipShowStopwatch={pipShowStopwatch}
+                pipShowCounter={pipShowCounter} pipShowProbability={pipShowProbability}
+                compact={true}
+                dict={dict}
+                onPlayPause={() => pipHandlersRef.current.playPause()}
+                onCounterInc={() => pipHandlersRef.current.counterInc()}
+                onProbDropInc={() => pipHandlersRef.current.probDropInc()}
+                onProbAttemptInc={() => pipHandlersRef.current.probAttemptInc()}
+                onTabChange={(t) => pipHandlersRef.current.tabChange(t)}
+                onTimerReset={() => pipHandlersRef.current.timerReset()}
+                onSwReset={() => pipHandlersRef.current.swReset()}
+                onCounterReset={() => pipHandlersRef.current.counterReset()}
+                onProbReset={() => pipHandlersRef.current.probReset()}
+                onTimerAddTime={(s) => pipHandlersRef.current.timerAddTime(s)}
+                counterPipSource={counterPipSource}
+                onCounterPipSourceChange={(s) => pipHandlersRef.current.counterPipSourceChange(s)}
+              />
+            </div>
           </div>
 
           {/* リサイズハンドル (右下コーナー) */}
@@ -1321,7 +1520,13 @@ export default function TimerCounterTool({ dict }: Props) {
             </svg>
           </div>
         </div>
-      )}
+        );
+      })()}
+
+      {/* Hidden canvas and video for mobile Canvas Video PiP */}
+      <canvas ref={canvasRef} style={{ display: "none" }} aria-hidden />
+      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+      <video ref={videoRef} style={{ display: "none" }} playsInline aria-hidden />
     </div>
   );
 }
