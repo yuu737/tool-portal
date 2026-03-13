@@ -10,6 +10,7 @@ import {
   Timer,
   Target,
   ImageDown,
+  Eraser,
   type LucideIcon,
 } from "lucide-react";
 
@@ -24,6 +25,7 @@ const iconMap: Record<string, LucideIcon> = {
   Timer,
   Target,
   ImageDown,
+  Eraser,
 };
 
 export type LocalizedTool = {

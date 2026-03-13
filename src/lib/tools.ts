@@ -86,4 +86,11 @@ export const tools: Tool[] = [
     category: "TEXT_PROCESS",
     tags: ["Image", "Converter", "Optimizer", "Privacy"],
   },
+  {
+    id: "background-remover",
+    href: "/tools/background-remover",
+    icon: "Eraser",
+    category: "TEXT_PROCESS",
+    tags: ["Image", "AI", "Privacy", "Converter"],
+  },
 ];

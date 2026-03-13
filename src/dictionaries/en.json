@@ -46,7 +46,8 @@
       "Pomodoro": "Pomodoro",
       "Gaming": "Gaming",
       "Probability": "Probability",
-      "Optimizer": "Optimizer"
+      "Optimizer": "Optimizer",
+      "AI": "AI"
     }
   },
   "toolCard": {
@@ -1213,7 +1214,18 @@
     "meta": {
       "title": "Image Optimizer Studio – WebP Converter, Compressor & Resizer | Yuustudio",
       "description": "Compress, resize, and convert images to WebP, JPEG, or PNG entirely in your browser. Quality slider, aspect-ratio-locked resize, automatic EXIF removal. 100% free, no upload required.",
-      "keywords": ["image compressor", "WebP converter", "image resize", "EXIF remover", "image optimizer", "JPEG compress", "PNG converter", "browser image tool", "free image compressor", "client-side image processing"]
+      "keywords": [
+        "image compressor",
+        "WebP converter",
+        "image resize",
+        "EXIF remover",
+        "image optimizer",
+        "JPEG compress",
+        "PNG converter",
+        "browser image tool",
+        "free image compressor",
+        "client-side image processing"
+      ]
     },
     "content": {
       "howTo": {
@@ -1240,12 +1252,30 @@
       "faq": {
         "heading": "FAQ",
         "items": [
-          { "q": "Is my image uploaded to a server?", "a": "No. This tool is deployed as a fully static export (Next.js output: 'export'), meaning there is no server-side code whatsoever. There is no upload endpoint. All image processing happens inside your browser using the Canvas API and FileReader API. Your image data never leaves your device." },
-          { "q": "When should I choose WebP vs JPEG?", "a": "Choose WebP for web publishing, social media, or any modern digital use case. WebP typically achieves 20–35% smaller file sizes than JPEG at the same visual quality. All major browsers (Chrome, Safari, Firefox, Edge) fully support WebP. Choose JPEG for maximum backward compatibility — for example, legacy CMS systems, email clients, or print workflows that do not support WebP." },
-          { "q": "How much quality loss is visible at 80% vs 100%?", "a": "For JPEG and WebP, the quality slider controls a lossy compression ratio. At 80–90%, the difference from 100% is imperceptible to the human eye in most images, while file size is reduced by 30–60%. Below 60%, blocking artifacts (pixelation around edges and busy areas) become noticeable. For web images, 72–85% is the industry-standard sweet spot." },
-          { "q": "What is EXIF data and why does removing it matter?", "a": "EXIF (Exchangeable Image File Format) is metadata embedded by digital cameras and smartphones. It can contain GPS coordinates of where the photo was taken, the exact date and time, camera make and model, lens details, and more. By re-drawing the image through the Canvas API, the tool produces a new file that contains only pixel data — all EXIF fields are gone, protecting your privacy when sharing images online." },
-          { "q": "Can the optimized file be larger than the original?", "a": "Yes, in some cases. Converting a heavily compressed JPEG to PNG (lossless) or setting quality near 100% can produce a larger file. The reduction badge will show a positive number (e.g. +12%) when this happens. To reduce size, lower the quality slider or switch to WebP or JPEG." },
-          { "q": "Is transparency (alpha channel) preserved?", "a": "Yes, when you choose PNG or WebP as the output format. PNG has full lossless alpha support. WebP also supports an alpha channel. If you convert to JPEG, transparency is lost and transparent areas are filled with a white background, since JPEG does not support alpha channels." }
+          {
+            "q": "Is my image uploaded to a server?",
+            "a": "No. This tool is deployed as a fully static export (Next.js output: 'export'), meaning there is no server-side code whatsoever. There is no upload endpoint. All image processing happens inside your browser using the Canvas API and FileReader API. Your image data never leaves your device."
+          },
+          {
+            "q": "When should I choose WebP vs JPEG?",
+            "a": "Choose WebP for web publishing, social media, or any modern digital use case. WebP typically achieves 20–35% smaller file sizes than JPEG at the same visual quality. All major browsers (Chrome, Safari, Firefox, Edge) fully support WebP. Choose JPEG for maximum backward compatibility — for example, legacy CMS systems, email clients, or print workflows that do not support WebP."
+          },
+          {
+            "q": "How much quality loss is visible at 80% vs 100%?",
+            "a": "For JPEG and WebP, the quality slider controls a lossy compression ratio. At 80–90%, the difference from 100% is imperceptible to the human eye in most images, while file size is reduced by 30–60%. Below 60%, blocking artifacts (pixelation around edges and busy areas) become noticeable. For web images, 72–85% is the industry-standard sweet spot."
+          },
+          {
+            "q": "What is EXIF data and why does removing it matter?",
+            "a": "EXIF (Exchangeable Image File Format) is metadata embedded by digital cameras and smartphones. It can contain GPS coordinates of where the photo was taken, the exact date and time, camera make and model, lens details, and more. By re-drawing the image through the Canvas API, the tool produces a new file that contains only pixel data — all EXIF fields are gone, protecting your privacy when sharing images online."
+          },
+          {
+            "q": "Can the optimized file be larger than the original?",
+            "a": "Yes, in some cases. Converting a heavily compressed JPEG to PNG (lossless) or setting quality near 100% can produce a larger file. The reduction badge will show a positive number (e.g. +12%) when this happens. To reduce size, lower the quality slider or switch to WebP or JPEG."
+          },
+          {
+            "q": "Is transparency (alpha channel) preserved?",
+            "a": "Yes, when you choose PNG or WebP as the output format. PNG has full lossless alpha support. WebP also supports an alpha channel. If you convert to JPEG, transparency is lost and transparent areas are filled with a white background, since JPEG does not support alpha channels."
+          }
         ]
       },
       "deepDive": {
@@ -1263,6 +1293,128 @@
           "This tool is a fully static application with zero server-side code. Built with Next.js output: 'export', it is served as plain HTML, CSS, and JavaScript. There is no API route, no upload endpoint, and no back-end service of any kind. Image files are processed exclusively in browser memory.",
           "The optimized result is held as a Blob URL in browser memory. When you load a new image or close the page, the previous Blob URL is released via URL.revokeObjectURL(). No image data is ever written to localStorage or any other persistent storage.",
           "Canvas re-encoding automatically strips EXIF metadata — GPS coordinates, capture timestamp, device identifiers, and all other metadata tags — from the output file. This makes the tool suitable as a privacy pre-processing step before uploading images to social media, sharing via email, or publishing on the web. Note that visible watermarks embedded as pixel data in the image cannot be removed by Canvas processing."
+        ]
+      }
+    }
+  },
+  "backgroundRemover": {
+    "title": "AI Background Remover",
+    "description": "Remove image backgrounds instantly with Edge AI — fully in your browser. Powered by Transformers.js + WebAssembly. No server upload. Complete privacy protection.",
+    "dropZone": {
+      "heading": "Drag image here",
+      "sub": "Drop an image, click to browse, or paste with Ctrl + V"
+    },
+    "selectFile": "Select Image",
+    "pasteHint": "Or press Ctrl + V to paste from clipboard",
+    "loadingModel": "AI engine is preparing...",
+    "downloadingModel": "Downloading AI model ({pct}%)",
+    "modelReady": "AI model ready",
+    "processing": "Analyzing image with AI...",
+    "beforeLabel": "Before",
+    "afterLabel": "After",
+    "dragToCompare": "Drag to compare",
+    "downloadPNG": "Download PNG",
+    "newImage": "Try another image",
+    "privacyNote": "100% local processing — your image never leaves your device",
+    "errorTitle": "Processing failed",
+    "bgColor": {
+      "label": "Background Color",
+      "transparent": "Transparent",
+      "white": "White",
+      "black": "Black",
+      "custom": "Custom"
+    },
+    "edgeAdjust": {
+      "label": "Edge Adjustment",
+      "smooth": "Smooth",
+      "feather": "Feather",
+      "refine": "Refine"
+    },
+    "meta": {
+      "title": "AI Background Remover — Free, Local, Private | Yuustudio",
+      "description": "Remove image backgrounds with Edge AI entirely in your browser. Powered by Transformers.js and the briaai/RMBG-1.4 model. No upload, no server — complete privacy.",
+      "keywords": [
+        "background remover",
+        "remove background",
+        "AI background removal",
+        "edge AI",
+        "Transformers.js",
+        "local AI",
+        "privacy",
+        "transparent background",
+        "PNG",
+        "no upload"
+      ]
+    },
+    "content": {
+      "howTo": {
+        "heading": "How to use",
+        "steps": [
+          "Wait for the AI model to load in your browser (first visit requires a one-time download of ~175 MB; subsequent visits use the cached model instantly).",
+          "Drag and drop an image onto the upload zone, click \"Select Image\" to browse your files, or press Ctrl + V to paste directly from your clipboard.",
+          "The AI analyzes the image and separates foreground from background in 1–3 seconds. A before/after comparison slider appears immediately.",
+          "Drag the slider left and right to compare the original and the result. Adjust background color (Transparent, White, Black, or Custom) to match your use case.",
+          "Use the Edge Adjustment sliders to fine-tune edge smoothness, feathering, and sharpness of the mask. Then click \"Download PNG\" to save the result with full alpha transparency."
+        ]
+      },
+      "features": {
+        "heading": "Key Features",
+        "items": [
+          "Fully client-side Edge AI: the briaai/RMBG-1.4 model runs entirely in your browser using WebAssembly. No image is ever sent to any server — your photos stay private.",
+          "RMBG-1.4 precision: this state-of-the-art model delivers remove.bg-level quality for both people and objects with accurate edge detection on hair, fur, and fine details.",
+          "Instant before/after comparison: a draggable slider overlays the original and result images so you can evaluate quality at a glance before downloading.",
+          "Transparent background support: the output is a PNG with a full alpha channel — ready for use in design tools, presentations, e-commerce product shots, and more.",
+          "Background color replacement: apply white, black, or any custom color behind the subject in one click, previewed in real time.",
+          "Edge Adjustment controls: three sliders (Smooth, Feather, Refine) let you soften hard edges, add natural-looking blur at transitions, and sharpen or soften the mask contrast.",
+          "Drag & drop + paste: load images by dragging from your desktop or file manager, pasting with Ctrl+V, or using the file picker.",
+          "Model caching: after the first download, the model is cached by the browser and loads in under a second on subsequent visits."
+        ]
+      },
+      "faq": {
+        "heading": "FAQ",
+        "items": [
+          {
+            "q": "Is my image uploaded to a server?",
+            "a": "No. This tool is a fully static application; there is no server of any kind. The AI model runs entirely in your browser via WebAssembly. Your image is processed in browser memory and never transmitted over the network."
+          },
+          {
+            "q": "How large is the AI model download?",
+            "a": "The briaai/RMBG-1.4 ONNX model is approximately 175 MB. It is downloaded once from Hugging Face on first use and then cached by the browser. All subsequent visits load from cache in under one second."
+          },
+          {
+            "q": "What image formats does it accept?",
+            "a": "Any format your browser can decode — JPEG, PNG, WebP, GIF, BMP, TIFF, AVIF, and HEIC (on supporting browsers). The output is always PNG with a preserved alpha channel."
+          },
+          {
+            "q": "Why does it work best on people and objects?",
+            "a": "RMBG-1.4 was trained on a large, diverse dataset covering portraits, animals, products, vehicles, and general objects. It performs best when the subject has a reasonably defined boundary. Very complex textures or low-contrast subjects may produce less precise masks."
+          },
+          {
+            "q": "What do the edge adjustment sliders do?",
+            "a": "Smooth applies a light blur to reduce jagged pixel-level artifacts. Feather applies a stronger blur that creates a soft, natural-looking edge fade — useful for portraits. Refine increases the contrast of the mask transition, making edges crisper and removing semi-transparent halos."
+          },
+          {
+            "q": "Can I use the result in Photoshop or Figma?",
+            "a": "Yes. The downloaded PNG file preserves the alpha channel. It can be imported directly into Photoshop, Figma, Sketch, Canva, Affinity Photo, and any other tool that supports transparent PNG."
+          }
+        ]
+      },
+      "deepDive": {
+        "heading": "Technical Deep-dive: Edge AI with Transformers.js and RMBG-1.4",
+        "paragraphs": [
+          "This tool is built on Transformers.js, a JavaScript port of Hugging Face's Transformers library. It allows ONNX-quantized neural network models to run directly in the browser using WebAssembly (WASM) as the compute backend. The model used is briaai/RMBG-1.4, a state-of-the-art image matting model developed by BRIA AI. It produces high-quality foreground masks that rival cloud-based background removal services like remove.bg.",
+          "The entire inference pipeline runs inside a Web Worker so the browser's main thread is never blocked. The worker loads AutoProcessor and AutoModel from @xenova/transformers, which handles model fetching, ONNX session creation, and WebAssembly compilation. The model is cached in the browser after the first download, so subsequent visits load in under one second.",
+          "When an image is submitted, the Worker receives its raw bytes as an ArrayBuffer transferred without copying. A Blob URL is constructed inside the Worker, and RawImage.fromURL() decodes it into an RGB tensor. The AutoProcessor normalises the image to 1024×1024 and produces a pixel_values tensor ready for the model.",
+          "The model outputs a single-channel probability mask at the same spatial resolution. The Worker uses RawImage.fromTensor() and .resize() to scale the mask back to the original image size, then assembles the final RGBA result by combining the original pixel data with the mask values as the alpha channel. This composited data is transferred back to the main thread as a zero-copy ArrayBuffer.",
+          "On the main thread, the composited data is drawn to an HTML Canvas element. Background color replacement is achieved by filling the canvas with the selected color and drawing the RGBA image on top using the browser's native alpha compositing (source-over mode). The before/after slider uses CSS clip-path on an absolutely positioned element, giving smooth GPU-accelerated visual transitions without any JavaScript animation loop."
+        ]
+      },
+      "security": {
+        "heading": "Privacy & Security",
+        "paragraphs": [
+          "This is a static-only application built with Next.js output: export. There is no server, no API endpoint, no database, and no logging of image data. When you load an image, it exists only in your browser's memory as a Blob URL and a typed array. When you close the tab or load a new image, all data is immediately released.",
+          "The AI model is downloaded from the official Hugging Face CDN over HTTPS and cached locally in the browser. No third party ever receives your image data. The only external network request is the one-time model download.",
+          "Because all processing happens entirely on-device, this tool is safe to use with sensitive images including personal photos, identity documents, medical imagery, and confidential product designs. There is no risk of your images appearing in training data, being stored in a cloud service, or being accessed by any third party."
         ]
       }
     }
@@ -1313,6 +1465,10 @@
     "image-optimizer": {
       "name": "Image Optimizer Studio",
       "description": "Compress, resize, and convert to WebP/JPEG/PNG in one click. Fully browser-based with automatic EXIF removal."
+    },
+    "background-remover": {
+      "name": "AI Background Remover",
+      "description": "Remove image backgrounds with Edge AI — fully in your browser. No upload, no server."
     }
   }
 }

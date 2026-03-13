@@ -6,9 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "postinstall": "node scripts/patch-transformers.js"
   },
   "dependencies": {
+    "@xenova/transformers": "^2.17.2",
     "framer-motion": "^12.36.0",
     "jspdf": "^4.2.0",
     "jsqr": "^1.4.0",
@@ -24,9 +26,11 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "autoprefixer": "^10.4.27",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
-    "tailwindcss": "^4",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^4.2.1",
     "typescript": "^5"
   }
 }

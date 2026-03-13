@@ -6,6 +6,36 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
+
+  // Turbopack (Next.js 16+ dev server): exclude Node.js-only packages from client bundles
+  turbopack: {
+    resolveAlias: {
+      // Packages that don't exist in the browser
+      "onnxruntime-node": "./src/lib/empty-module.js",
+      "sharp": "./src/lib/empty-module.js",
+      // @xenova/transformers calls Object.keys(fs) at init time to detect
+      // the runtime.  Turbopack resolves Node built-in `fs` to null in
+      // browser bundles, causing Object.keys(null) to throw.
+      // The env.js patch (postinstall) guards isEmpty() against null,
+      // but we still alias these so the library detects "not Node.js".
+      "fs": "./src/lib/empty-module.js",
+      "node:fs": "./src/lib/empty-module.js",
+      "fs/promises": "./src/lib/empty-module.js",
+      "node:fs/promises": "./src/lib/empty-module.js",
+    },
+  },
+
+  // Webpack: exclude Node.js-only packages from client bundles
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      "onnxruntime-node$": false,
+      "sharp$": false,
+    };
+    // Webpack 5 already stubs fs/path/url to {} for browser targets,
+    // so no explicit alias needed here.
+    return config;
+  },
 };
 
 export default nextConfig;
