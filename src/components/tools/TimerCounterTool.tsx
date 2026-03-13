@@ -517,7 +517,7 @@ export default function TimerCounterTool({ dict }: Props) {
   const [swRunning, setSwRunning] = useState(false);
   const [swElapsed, setSwElapsed] = useState(0);
   const [swLaps, setSwLaps] = useState<number[]>([]);
-  const swStartPerfRef = useRef(0);
+  const swStartWallRef = useRef(0); // Date.now() when stopwatch last started
   const swOffsetRef = useRef(0);
   const swRafRef = useRef<number | null>(null);
 
@@ -619,6 +619,14 @@ export default function TimerCounterTool({ dict }: Props) {
     timerDone: false,
   });
 
+  // ── Background keep: Web Worker + Silent audio + Media Session ───────────
+  const [bgKeepEnabled, setBgKeepEnabled] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const workerHandlerRef = useRef<() => void>(() => {});
+  const timerWorkerRef = useRef<Worker | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const silentSourceRef = useRef<AudioBufferSourceNode | null>(null);
+
   // ─── Init ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     setPipSupported("documentPictureInPicture" in window);
@@ -640,6 +648,30 @@ export default function TimerCounterTool({ dict }: Props) {
     };
     video.addEventListener("leavepictureinpicture", onLeave);
     return () => video.removeEventListener("leavepictureinpicture", onLeave);
+  }, []);
+
+  // ─── Timer Web Worker: create on mount, destroy on unmount ───────────────────
+  // Worker handles ticking so the main thread throttle doesn't affect accuracy
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const workerCode = `
+      let tid = null;
+      self.onmessage = function(e) {
+        if (e.data === 'start') {
+          if (tid !== null) clearInterval(tid);
+          tid = setInterval(function() { self.postMessage('tick'); }, 200);
+        } else if (e.data === 'stop') {
+          if (tid !== null) { clearInterval(tid); tid = null; }
+        }
+      };
+    `;
+    const blob = new Blob([workerCode], { type: "text/javascript" });
+    const url = URL.createObjectURL(blob);
+    const worker = new Worker(url);
+    worker.onmessage = () => workerHandlerRef.current();
+    timerWorkerRef.current = worker;
+    URL.revokeObjectURL(url);
+    return () => { worker.terminate(); timerWorkerRef.current = null; };
   }, []);
 
   // ─── Persist ───────────────────────────────────────────────────────────────
@@ -712,28 +744,35 @@ export default function TimerCounterTool({ dict }: Props) {
     };
   }, []);
 
-  // ─── Timer interval ─────────────────────────────────────────────────────────
+  // ─── Worker ticking: runs while timer OR stopwatch is active ────────────────
+  // timerEndRef は timerStart/timerResume で設定済みのためここでは触らない
   useEffect(() => {
-    if (!timerRunning) { if (timerIntervalRef.current) clearInterval(timerIntervalRef.current); return; }
-    if (timerRemaining === null || timerRemaining <= 0) return;
-    timerEndRef.current = Date.now() + timerRemaining * 1000;
-    timerIntervalRef.current = setInterval(() => {
-      const rem = Math.ceil((timerEndRef.current - Date.now()) / 1000);
-      if (rem <= 0) {
-        clearInterval(timerIntervalRef.current!);
-        setTimerRemaining(0); setTimerRunning(false); setTimerDone(true);
-      } else { setTimerRemaining(rem); }
-    }, 200);
-    return () => { if (timerIntervalRef.current) clearInterval(timerIntervalRef.current); };
+    const shouldRun = timerRunning || swRunning;
+    if (!shouldRun) {
+      timerWorkerRef.current?.postMessage("stop");
+      if (timerIntervalRef.current) { clearInterval(timerIntervalRef.current); timerIntervalRef.current = null; }
+      return;
+    }
+    if (timerWorkerRef.current) {
+      timerWorkerRef.current.postMessage("start");
+    } else {
+      // Worker 非対応環境: setInterval フォールバック
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = setInterval(() => workerHandlerRef.current(), 200);
+    }
+    return () => {
+      timerWorkerRef.current?.postMessage("stop");
+      if (timerIntervalRef.current) { clearInterval(timerIntervalRef.current); timerIntervalRef.current = null; }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timerRunning]);
+  }, [timerRunning, swRunning]);
 
-  // ─── Stopwatch RAF ───────────────────────────────────────────────────────────
+  // ─── Stopwatch RAF (wall-clock based – survives device sleep) ────────────────
   useEffect(() => {
     if (!swRunning) { if (swRafRef.current) cancelAnimationFrame(swRafRef.current); return; }
-    swStartPerfRef.current = performance.now();
+    swStartWallRef.current = Date.now();
     const loop = () => {
-      setSwElapsed(swOffsetRef.current + performance.now() - swStartPerfRef.current);
+      setSwElapsed(swOffsetRef.current + Date.now() - swStartWallRef.current);
       swRafRef.current = requestAnimationFrame(loop);
     };
     swRafRef.current = requestAnimationFrame(loop);
@@ -786,19 +825,28 @@ export default function TimerCounterTool({ dict }: Props) {
   const timerStart = useCallback(() => {
     const total = timerH * 3600 + timerM * 60 + timerS;
     if (total <= 0 && timerRemaining === null) return;
+    const remaining = timerRemaining ?? total;
     if (timerRemaining === null) { setTimerTotal(total); setTimerRemaining(total); setTimerDone(false); }
+    timerEndRef.current = Date.now() + remaining * 1000;
     setEditMode(false); setTimerRunning(true);
   }, [timerH, timerM, timerS, timerRemaining]);
   const timerPause = useCallback(() => setTimerRunning(false), []);
   const timerReset = useCallback(() => {
-    setTimerRunning(false); setTimerRemaining(null); setTimerDone(false); setTimerTotal(0); setEditMode(true);
+    setTimerRunning(false); setTimerRemaining(null); setTimerDone(false); setTimerTotal(0);
+    timerEndRef.current = 0; setEditMode(true);
   }, []);
-  const timerResume = useCallback(() => setTimerRunning(true), []);
+  const timerResume = useCallback(() => {
+    if (timerRemaining !== null && timerRemaining > 0) {
+      timerEndRef.current = Date.now() + timerRemaining * 1000;
+    }
+    setTimerRunning(true);
+  }, [timerRemaining]);
 
   // ─── Stopwatch handlers ───────────────────────────────────────────────────────
   const swStart = useCallback(() => setSwRunning(true), []);
   const swPause = useCallback(() => {
-    setSwRunning(false); swOffsetRef.current += performance.now() - swStartPerfRef.current;
+    swOffsetRef.current += Date.now() - swStartWallRef.current;
+    setSwRunning(false);
   }, []);
   const swReset = useCallback(() => {
     setSwRunning(false); setSwElapsed(0); setSwLaps([]); swOffsetRef.current = 0;
@@ -844,6 +892,124 @@ export default function TimerCounterTool({ dict }: Props) {
       setTimerTotal((prev) => Math.max(prev, newRem));
     }
   }, [editMode, timerH, timerM, timerS, timerRemaining, timerRunning]);
+
+  // ─── Worker tick handler (updated every render to avoid stale closure) ──────
+  workerHandlerRef.current = () => {
+    // ── タイマー ──
+    if (timerRunning && timerEndRef.current > 0) {
+      const rem = Math.ceil((timerEndRef.current - Date.now()) / 1000);
+      if (rem <= 0) {
+        timerWorkerRef.current?.postMessage("stop");
+        timerEndRef.current = 0;
+        setTimerRemaining(0); setTimerRunning(false); setTimerDone(true);
+      } else {
+        setTimerRemaining(rem);
+      }
+    }
+    // ── ストップウォッチ（バックグラウンドでも Date.now() 差分で更新） ──
+    if (swRunning) {
+      setSwElapsed(swOffsetRef.current + Date.now() - swStartWallRef.current);
+    }
+  };
+
+  // ─── Background keep: silent audio + Media Session ────────────────────────────
+  const startBgKeep = useCallback(() => {
+    try {
+      const ctx = new AudioContext();
+      audioCtxRef.current = ctx;
+      const buf = ctx.createBuffer(1, ctx.sampleRate * 3, ctx.sampleRate);
+      // Buffer is all-zeros (silent) – keeps the page "active" in the OS
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.loop = true;
+      src.connect(ctx.destination);
+      src.start();
+      silentSourceRef.current = src;
+    } catch { /* AudioContext not available */ }
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const ms = (navigator as any).mediaSession;
+      if (ms) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ms.metadata = new (window as any).MediaMetadata({
+          title: "タイマー / ストップウォッチ",
+          artist: "稼働中",
+          album: "Timer & Counter",
+        });
+        ms.setActionHandler("play", () => pipHandlersRef.current.playPause());
+        ms.setActionHandler("pause", () => pipHandlersRef.current.playPause());
+      }
+    } catch { /* Media Session not available */ }
+  }, []);
+
+  const stopBgKeep = useCallback(() => {
+    try { silentSourceRef.current?.stop(); } catch { /* noop */ }
+    silentSourceRef.current = null;
+    try { audioCtxRef.current?.close(); } catch { /* noop */ }
+    audioCtxRef.current = null;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const ms = (navigator as any).mediaSession;
+      if (ms) {
+        ms.metadata = null;
+        ms.setActionHandler("play", null);
+        ms.setActionHandler("pause", null);
+      }
+    } catch { /* noop */ }
+  }, []);
+
+  const toggleBgKeep = useCallback(() => {
+    if (bgKeepEnabled) { stopBgKeep(); setBgKeepEnabled(false); }
+    else { startBgKeep(); setBgKeepEnabled(true); }
+  }, [bgKeepEnabled, startBgKeep, stopBgKeep]);
+
+  // ─── Media Session metadata update (title/playback state) ────────────────────
+  useEffect(() => {
+    if (!bgKeepEnabled) return;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const ms = (navigator as any).mediaSession;
+      if (!ms) return;
+      const isActive = timerRunning || swRunning;
+      ms.playbackState = isActive ? "playing" : "paused";
+      const timeStr = tab === "stopwatch" ? fmtMs(swElapsed)
+        : timerRemaining !== null ? fmtSec(timerRemaining) : "待機中";
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ms.metadata = new (window as any).MediaMetadata({
+        title: tab === "stopwatch" ? "ストップウォッチ" : "タイマー",
+        artist: timeStr,
+        album: "Timer & Counter",
+      });
+    } catch { /* noop */ }
+  }, [bgKeepEnabled, timerRunning, swRunning, tab, swElapsed, timerRemaining]);
+
+  // ─── Visibility change: resync on wake from sleep ─────────────────────────────
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.hidden) return;
+      // iOS/Android でスリープ復帰後に AudioContext が suspended になるため resume する
+      if (audioCtxRef.current?.state === "suspended") {
+        audioCtxRef.current.resume().catch(() => {/* noop */});
+      }
+      // Stopwatch: Date.now() survived sleep, recalculate
+      if (swRunning) {
+        setSwElapsed(swOffsetRef.current + Date.now() - swStartWallRef.current);
+      }
+      // Timer: check timestamp and finalize or re-tick
+      if (timerRunning && timerEndRef.current > 0) {
+        const rem = Math.ceil((timerEndRef.current - Date.now()) / 1000);
+        if (rem <= 0) {
+          timerWorkerRef.current?.postMessage("stop");
+          setTimerRemaining(0); setTimerRunning(false); setTimerDone(true);
+        } else {
+          setTimerRemaining(rem);
+          timerWorkerRef.current?.postMessage("start");
+        }
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [swRunning, timerRunning]);
 
   // ─── Sync canvas data ref (used by mobile PiP RAF loop) ─────────────────────
   canvasDataRef.current = {
@@ -1352,6 +1518,28 @@ export default function TimerCounterTool({ dict }: Props) {
           </div>
         </div>
       )}
+
+      {/* ── Background Keep Toggle ── */}
+      <div className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-gray-700">バックグラウンド継続</p>
+          <p className="text-xs text-gray-400 truncate">
+            {bgKeepEnabled
+              ? "無音再生中 — スリープ中も計測を継続します"
+              : "ONにするとスリープ・バックグラウンドでも動き続けます"}
+          </p>
+        </div>
+        <button
+          onClick={toggleBgKeep}
+          className={`shrink-0 rounded-xl px-4 py-2 text-sm font-semibold transition-colors ${
+            bgKeepEnabled
+              ? "bg-green-600 text-white hover:bg-green-700"
+              : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+          }`}
+        >
+          {bgKeepEnabled ? "🔔 ON" : "🔕 OFF"}
+        </button>
+      </div>
 
       {/* ── PiP Settings Panel (PC only) ── */}
       {!isMobile && (
