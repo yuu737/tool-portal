@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 export default function RootPage() {
   const router = useRouter();
   useEffect(() => {
-    router.replace("/ja");
+    const lang = navigator.language.startsWith("ja") ? "ja" : "en";
+    router.replace(`/${lang}`);
   }, [router]);
   return null;
 }

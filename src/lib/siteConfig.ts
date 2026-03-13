@@ -9,13 +9,13 @@ export const SITE_URL =
  * @param path   - ロケールを除いたパス (例: "/tools/word-count")
  * @param locale - 現在のロケール。canonical URL に使用 (デフォルト: "ja")
  */
-export function getAlternates(path: string = "", locale: string = "ja") {
+export function getAlternates(path: string = "", locale: string = "en") {
   return {
     canonical: `${SITE_URL}/${locale}${path}`,
     languages: {
       ja: `${SITE_URL}/ja${path}`,
       en: `${SITE_URL}/en${path}`,
-      "x-default": `${SITE_URL}/ja${path}`,
+      "x-default": `${SITE_URL}/en${path}`,
     },
   };
 }
