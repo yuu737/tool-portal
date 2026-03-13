@@ -284,37 +284,14 @@ export default function BackgroundRemoverTool({ dict }: Props) {
     origRGBARef.current  = null;
     setStatus("processing");
 
-    // Downscale to max 1536px before inference.
-    // RMBG-1.4 processes at 1024×1024 internally, so sending a 6000×4000 image
-    // just wastes decode/encode time without any quality benefit.
-    const MAX_SIDE = 1536;
-    (async () => {
-      let imageBuffer: ArrayBuffer;
-      let mimeType: string;
-
-      const bitmap = await createImageBitmap(file);
-      const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height));
-      if (scale < 1) {
-        const w = Math.round(bitmap.width * scale);
-        const h = Math.round(bitmap.height * scale);
-        const cv = Object.assign(document.createElement("canvas"), { width: w, height: h });
-        cv.getContext("2d")!.drawImage(bitmap, 0, 0, w, h);
-        bitmap.close();
-        imageBuffer = await new Promise<ArrayBuffer>((res, rej) =>
-          cv.toBlob((b) => (b ? b.arrayBuffer().then(res) : rej(new Error("toBlob failed"))), "image/png")
-        );
-        mimeType = "image/png";
-      } else {
-        bitmap.close();
-        imageBuffer = await file.arrayBuffer();
-        mimeType = file.type;
-      }
-
+    // Worker handles resize to 1024px internally via OffscreenCanvas.
+    // Just send the raw file buffer to avoid main-thread blocking.
+    file.arrayBuffer().then((imageBuffer) => {
       workerRef.current!.postMessage(
-        { type: "process", data: { imageBuffer, mimeType } },
+        { type: "process", data: { imageBuffer, mimeType: file.type } },
         [imageBuffer]
       );
-    })();
+    });
   }, []);
 
   // -- Drag & Drop --

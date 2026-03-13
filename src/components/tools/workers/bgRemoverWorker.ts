@@ -3,21 +3,26 @@
 
 import { AutoModel, AutoProcessor, RawImage, env } from "@xenova/transformers";
 
-// ─── Transformers.js configuration ───────────────────────────────────────────
+// ─── WASM optimisations ──────────────────────────────────────────────────────
 (env as any).allowLocalModels = false;
 (env as any).useBrowserCache = true;
-// Run single-threaded to avoid nested-worker failures in browsers
-(env as any).backends.onnx.wasm.numThreads = 1;
+(env as any).backends.onnx.wasm.simd = true;
+(env as any).backends.onnx.wasm.numThreads = 4;
+// proxy=true can fail with nested-worker restrictions; keep false.
 (env as any).backends.onnx.wasm.proxy = false;
+// Note: WebGPU EP requires onnxruntime-web ≥1.17. This package pins v1.14,
+// so we stay on WASM. Upgrade @xenova/transformers to v3 for WebGPU support.
 
 const MODEL_ID = "briaai/RMBG-1.4";
+
+// ─── Model singleton ─────────────────────────────────────────────────────────
 
 let model: any = null;
 let processor: any = null;
 
-// ─── Model loading ────────────────────────────────────────────────────────────
-
 async function loadModel(): Promise<void> {
+  if (model && processor) return;
+
   const fileProgress: Record<string, number> = {};
   let totalFiles = 0;
 
@@ -27,17 +32,17 @@ async function loadModel(): Promise<void> {
       fileProgress[p.file ?? totalFiles] = 0;
     } else if (p.status === "progress" && typeof p.progress === "number") {
       fileProgress[p.file ?? ""] = p.progress;
-      const avg =
-        Object.values(fileProgress).reduce((a, b) => a + b, 0) /
-        Math.max(Object.keys(fileProgress).length, 1);
-      self.postMessage({ type: "progress", progress: Math.min(Math.round(avg), 99), file: p.file ?? "" });
     } else if (p.status === "done") {
       fileProgress[p.file ?? ""] = 100;
-      const avg =
-        Object.values(fileProgress).reduce((a, b) => a + b, 0) /
-        Math.max(Object.keys(fileProgress).length, 1);
-      self.postMessage({ type: "progress", progress: Math.min(Math.round(avg), 99), file: p.file ?? "" });
     }
+
+    const values = Object.values(fileProgress);
+    const avg = values.reduce((a, b) => a + b, 0) / Math.max(values.length, 1);
+    self.postMessage({
+      type: "progress",
+      progress: Math.min(Math.round(avg), 99),
+      file: p.file ?? "",
+    });
   };
 
   self.postMessage({ type: "progress", progress: 0, file: "" });
@@ -52,10 +57,40 @@ async function loadModel(): Promise<void> {
   });
 }
 
-// ─── Image processing ─────────────────────────────────────────────────────────
+// ─── Image processing ────────────────────────────────────────────────────────
+
+/**
+ * Resize the input image to maxDimension using OffscreenCanvas in the worker.
+ * Returns a Blob (PNG) and the final dimensions.
+ */
+async function resizeInWorker(
+  imageBuffer: ArrayBuffer,
+  mimeType: string,
+  maxDimension: number
+): Promise<{ blob: Blob; width: number; height: number }> {
+  const srcBlob = new Blob([imageBuffer], { type: mimeType });
+  const bitmap = await createImageBitmap(srcBlob);
+  const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
+  const w = Math.round(bitmap.width * scale);
+  const h = Math.round(bitmap.height * scale);
+
+  if (scale === 1 && mimeType === "image/png") {
+    bitmap.close();
+    return { blob: srcBlob, width: w, height: h };
+  }
+
+  const canvas = new OffscreenCanvas(w, h);
+  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, w, h);
+  bitmap.close();
+  const blob = await canvas.convertToBlob({ type: "image/png" });
+  return { blob, width: w, height: h };
+}
 
 async function processImage(imageBuffer: ArrayBuffer, mimeType: string): Promise<void> {
-  const blob = new Blob([imageBuffer], { type: mimeType });
+  const MAX_DIM = 1024;
+
+  // 1. Resize in worker (OffscreenCanvas) → max 1024px
+  const { blob, width: resW, height: resH } = await resizeInWorker(imageBuffer, mimeType, MAX_DIM);
   const url = URL.createObjectURL(blob);
 
   let image: any;
@@ -65,13 +100,10 @@ async function processImage(imageBuffer: ArrayBuffer, mimeType: string): Promise
     URL.revokeObjectURL(url);
   }
 
-  const origW: number = image.width;
-  const origH: number = image.height;
-
-  // Preprocess — AutoProcessor handles resize+normalise for RMBG-1.4
+  // 2. Preprocess — AutoProcessor normalises to 1024×1024 internally
   const { pixel_values } = await processor(image);
 
-  // Inference — try both possible input key names (briaai model uses "pixel_values" or "input")
+  // 3. Inference
   let rawOutput: any;
   try {
     const out = await model({ pixel_values });
@@ -81,68 +113,50 @@ async function processImage(imageBuffer: ArrayBuffer, mimeType: string): Promise
     rawOutput = out.output ?? out[Object.keys(out)[0]];
   }
 
-  // rawOutput shape: [1 (or more), 1, H, W]  (logits before sigmoid)
+  // rawOutput shape: [1, 1, H, W]  (logits before sigmoid)
   const tensor: any = Array.isArray(rawOutput) ? rawOutput[0] : rawOutput;
   const logits: Float32Array = tensor.data as Float32Array;
-
   const dims: number[] = tensor.dims as number[];
   const maskH: number = dims[dims.length - 2] ?? 1024;
   const maskW: number = dims[dims.length - 1] ?? 1024;
 
-  // Sigmoid → [0, 255] alpha values at model resolution
+  // Sigmoid → [0, 255]
   const maskU8 = new Uint8Array(maskH * maskW);
   for (let i = 0; i < logits.length && i < maskU8.length; i++) {
     maskU8[i] = Math.round((1 / (1 + Math.exp(-logits[i]))) * 255);
   }
 
-  // Scale mask back to original resolution via RawImage resize
+  // 4. Scale mask back to resized image resolution
   const maskRaw: any = new RawImage(maskU8, maskW, maskH, 1);
-  const resizedMask: any = await maskRaw.resize(origW, origH);
+  const resizedMask: any = await maskRaw.resize(resW, resH);
   const resizedMaskData: Uint8Array = resizedMask.data as Uint8Array;
   const maskChannels: number = resizedMask.channels as number;
 
-  // Build final single-channel mask (one byte per pixel)
-  const finalMask = new Uint8Array(origW * origH);
-  for (let i = 0; i < origW * origH; i++) {
+  const finalMask = new Uint8Array(resW * resH);
+  for (let i = 0; i < resW * resH; i++) {
     finalMask[i] = resizedMaskData[i * maskChannels];
   }
 
-  // Extract RGBA from the original-resolution image
-  const src: Uint8Array = image.data as Uint8Array;
-  const srcChannels: number = image.channels as number;
-  const rgba = new Uint8ClampedArray(origW * origH * 4);
-  for (let i = 0; i < origW * origH; i++) {
-    if (srcChannels === 4) {
-      rgba[i * 4]     = src[i * 4];
-      rgba[i * 4 + 1] = src[i * 4 + 1];
-      rgba[i * 4 + 2] = src[i * 4 + 2];
-      rgba[i * 4 + 3] = src[i * 4 + 3];
-    } else if (srcChannels === 3) {
-      rgba[i * 4]     = src[i * 3];
-      rgba[i * 4 + 1] = src[i * 3 + 1];
-      rgba[i * 4 + 2] = src[i * 3 + 2];
-      rgba[i * 4 + 3] = 255;
-    } else {
-      rgba[i * 4]     = src[i];
-      rgba[i * 4 + 1] = src[i];
-      rgba[i * 4 + 2] = src[i];
-      rgba[i * 4 + 3] = 255;
-    }
-  }
+  // 5. Extract RGBA from resized image via OffscreenCanvas
+  const resBitmap = await createImageBitmap(blob);
+  const canvas = new OffscreenCanvas(resW, resH);
+  const ctx = canvas.getContext("2d")!;
+  ctx.drawImage(resBitmap, 0, 0);
+  resBitmap.close();
+  const imgData = ctx.getImageData(0, 0, resW, resH);
+  const rgba = new Uint8ClampedArray(imgData.data);
 
-  // Zero-copy transfer via Transferable —
-  // Component receives mask + orig RGBA separately so it can re-composite with
-  // different edge-adjustment parameters without re-running inference.
+  // 6. Zero-copy transfer
   const maskBuf = finalMask.buffer as ArrayBuffer;
   const origBuf = rgba.buffer as ArrayBuffer;
 
   self.postMessage(
-    { type: "result", maskBuffer: maskBuf, origBuffer: origBuf, width: origW, height: origH },
+    { type: "result", maskBuffer: maskBuf, origBuffer: origBuf, width: resW, height: resH },
     [maskBuf, origBuf]
   );
 }
 
-// ─── Message dispatcher ───────────────────────────────────────────────────────
+// ─── Message dispatcher ──────────────────────────────────────────────────────
 
 self.onmessage = async (e: MessageEvent) => {
   const { type, data } = e.data as {
