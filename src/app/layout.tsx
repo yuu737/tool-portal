@@ -1,5 +1,4 @@
 import { Geist, Geist_Mono } from "next/font/google";
-import { cookies } from "next/headers";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,16 +11,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = await cookies();
-  const lang = cookieStore.get("NEXT_LOCALE")?.value ?? "ja";
-
   return (
-    <html lang={lang}>
+    <html lang="ja">
       <body
         className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen flex-col bg-gray-50 font-sans antialiased`}
       >

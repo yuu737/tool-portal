@@ -8,6 +8,10 @@ import { getAlternates } from "@/lib/siteConfig";
 
 const supportedLocales: Locale[] = ["ja", "en"];
 
+export function generateStaticParams() {
+  return supportedLocales.map((lang) => ({ lang }));
+}
+
 type Props = {
   children: React.ReactNode;
   params: Promise<{ lang: string }>;

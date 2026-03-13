@@ -1,7 +1,12 @@
-import { redirect } from "next/navigation";
+"use client";
 
-// middleware が /ja or /en にリダイレクトするが、
-// 万一スルーした場合のフォールバック
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+
 export default function RootPage() {
-  redirect("/ja");
+  const router = useRouter();
+  useEffect(() => {
+    router.replace("/ja");
+  }, [router]);
+  return null;
 }
