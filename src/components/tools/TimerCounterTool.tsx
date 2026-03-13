@@ -104,7 +104,9 @@ type PipProps = {
   isRunning: boolean; pct: number; ringColor: string;
   probDrops: number; probAttempts: number; observedPct: number;
   calcN: number; calcP: number; pAtLeastOne: number;
+  pipShowTimer: boolean; pipShowStopwatch: boolean;
   pipShowCounter: boolean; pipShowProbability: boolean;
+  compact?: boolean;
   dict: Dictionary["timerCounter"];
   onPlayPause: () => void; onCounterInc: () => void;
   onProbDropInc: () => void; onProbAttemptInc: () => void;
@@ -119,7 +121,8 @@ type PipProps = {
 function PipView({
   time, count, goal, tabLabel, tab, isRunning, pct, ringColor,
   probDrops, probAttempts, observedPct, calcN, calcP, pAtLeastOne,
-  pipShowCounter, pipShowProbability, dict,
+  pipShowTimer, pipShowStopwatch, pipShowCounter, pipShowProbability,
+  compact, dict,
   onPlayPause, onCounterInc, onProbDropInc, onProbAttemptInc, onTabChange,
   onTimerReset, onSwReset, onCounterReset, onProbReset,
   onTimerAddTime, counterPipSource, onCounterPipSourceChange,
@@ -130,15 +133,24 @@ function PipView({
   const cPct = goal > 0 ? Math.min(100, Math.round((count / goal) * 100)) : 0;
   const observedRate = probAttempts > 0 ? probDrops / probAttempts * 100 : 0;
 
+  // 有効なタブのみを表示（設定で非表示にされたタブは除く）
+  const enabledTabs: Tab[] = [
+    ...(pipShowTimer ? ["timer" as Tab] : []),
+    ...(pipShowStopwatch ? ["stopwatch" as Tab] : []),
+    "counter" as Tab,
+    "probability" as Tab,
+  ];
+  const effectiveTab: Tab = enabledTabs.includes(tab) ? tab : (enabledTabs[0] ?? tab);
+
   // 実測ドロップ率を円に直接反映（観測データがある場合は実測率、ない場合はP(≥1)）
   const hasObservations = probAttempts > 0;
   const probRingDisplay = hasObservations ? Math.min(100, observedRate) : pAtLeastOne;
 
-  const displayPct = tab === "probability" ? probRingDisplay : pct;
+  const displayPct = effectiveTab === "probability" ? probRingDisplay : pct;
   const offset = circ * (1 - Math.min(1, Math.max(0, displayPct) / 100));
 
   // 実測率がある場合は理論値との比較で色を決定
-  const activeColor = tab === "probability"
+  const activeColor = effectiveTab === "probability"
     ? hasObservations
       ? (observedRate >= calcP * 1.5 ? "#22c55e" : observedRate >= calcP * 0.8 ? "#6366f1" : "#f59e0b")
       : (probRingDisplay >= 95 ? "#22c55e" : probRingDisplay >= 63 ? "#f59e0b" : "#6366f1")
@@ -148,7 +160,7 @@ function PipView({
     <div style={{
       background: "#0c0f1a", color: "#f1f5f9",
       fontFamily: "ui-monospace,'Courier New',monospace",
-      minHeight: "100vh", display: "flex", flexDirection: "column",
+      minHeight: compact ? "auto" : "100vh", display: "flex", flexDirection: "column",
       alignItems: "center", justifyContent: "center",
       gap: 10, padding: "12px 12px 16px", boxSizing: "border-box",
       userSelect: "none",
@@ -160,13 +172,13 @@ function PipView({
           { id: "stopwatch" as Tab, icon: "⏲" },
           { id: "counter" as Tab, icon: "#" },
           { id: "probability" as Tab, icon: "%" },
-        ]).map(({ id, icon }) => (
+        ]).filter(({ id }) => enabledTabs.includes(id)).map(({ id, icon }) => (
           <button key={id} onClick={() => onTabChange(id)} style={{
             flex: 1, padding: "5px 2px", borderRadius: 8,
-            background: tab === id ? "#2563eb" : "#1a2332",
-            border: `1px solid ${tab === id ? "#3b82f6" : "#1e2d45"}`,
-            color: tab === id ? "#fff" : "#475569",
-            fontSize: 13, fontWeight: tab === id ? 700 : 400, cursor: "pointer",
+            background: effectiveTab === id ? "#2563eb" : "#1a2332",
+            border: `1px solid ${effectiveTab === id ? "#3b82f6" : "#1e2d45"}`,
+            color: effectiveTab === id ? "#fff" : "#475569",
+            fontSize: 13, fontWeight: effectiveTab === id ? 700 : 400, cursor: "pointer",
           }}>{icon}</button>
         ))}
       </div>
@@ -185,7 +197,7 @@ function PipView({
           <span style={{ fontSize: 8, color: "#475569", letterSpacing: "0.1em", textTransform: "uppercase" }}>
             {tabLabel}
           </span>
-          {tab === "probability" ? (
+          {effectiveTab === "probability" ? (
             <>
               <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1 }}>
                 {hasObservations ? fmtRate(observedRate) : pAtLeastOne.toFixed(2) + "%"}
@@ -203,7 +215,7 @@ function PipView({
       </div>
 
       {/* Probability details - 3行: ドロップ数・試行回数・実測ドロップ率 */}
-      {tab === "probability" && (
+      {effectiveTab === "probability" && (
         <div style={{
           width: "100%", background: "#111827", borderRadius: 10,
           padding: "8px 12px", fontSize: 11, lineHeight: 1.7,
@@ -224,9 +236,9 @@ function PipView({
       )}
 
       {/* Non-probability main state */}
-      {tab !== "probability" && (
+      {effectiveTab !== "probability" && (
         <div style={{ textAlign: "center", lineHeight: 1.3 }}>
-          {tab === "counter" && (
+          {effectiveTab === "counter" && (
             <>
               <div style={{ fontSize: 22, fontWeight: 700, color: goal > 0 && count >= goal ? "#22c55e" : "#cbd5e1" }}>
                 {count.toLocaleString()}
@@ -241,7 +253,7 @@ function PipView({
       )}
 
       {/* PiP secondary modules */}
-      {tab !== "probability" && pipShowCounter && tab !== "counter" && (
+      {effectiveTab !== "probability" && pipShowCounter && effectiveTab !== "counter" && (
         <div style={{
           width: "100%", background: "#111827", borderRadius: 10,
           padding: "6px 12px", fontSize: 11,
@@ -260,7 +272,7 @@ function PipView({
         </div>
       )}
 
-      {tab !== "probability" && pipShowProbability && (
+      {effectiveTab !== "probability" && pipShowProbability && (
         <div style={{
           width: "100%", background: "#111827", borderRadius: 10,
           padding: "6px 12px", fontSize: 11,
@@ -289,7 +301,7 @@ function PipView({
       )}
 
       {/* ── カウンター：リング元選択 ── */}
-      {tab === "counter" && (
+      {effectiveTab === "counter" && (
         <div style={{ display: "flex", gap: 4, width: "100%" }}>
           {([
             { id: "stopwatch" as const, label: "⏲ SW" },
@@ -307,7 +319,7 @@ function PipView({
       )}
 
       {/* ── タイマー：時間追加ボタン ── */}
-      {tab === "timer" && (
+      {effectiveTab === "timer" && (
         <div style={{ display: "flex", gap: 4, width: "100%" }}>
           {([-60, 60, 300] as const).map((s) => (
             <button key={s} onClick={() => onTimerAddTime(s)} style={{
@@ -322,9 +334,9 @@ function PipView({
       <div style={{ display: "flex", gap: 6, width: "100%", marginTop: 2 }}>
         {/* リセットボタン */}
         <button onClick={
-          tab === "timer" ? onTimerReset :
-          tab === "stopwatch" ? onSwReset :
-          tab === "counter" ? onCounterReset : onProbReset
+          effectiveTab === "timer" ? onTimerReset :
+          effectiveTab === "stopwatch" ? onSwReset :
+          effectiveTab === "counter" ? onCounterReset : onProbReset
         } style={{
           width: 40, height: 40, borderRadius: "50%", cursor: "pointer",
           background: "#1a2332", border: "1px solid #334155",
@@ -332,9 +344,9 @@ function PipView({
         }}>↺</button>
 
         {/* 再生/停止ボタン（確率以外） */}
-        {tab !== "probability" && (
+        {effectiveTab !== "probability" && (
           <button onClick={onPlayPause} style={{
-            flex: tab === "counter" ? 1 : 2, height: 40, borderRadius: 12,
+            flex: effectiveTab === "counter" ? 1 : 2, height: 40, borderRadius: 12,
             background: isRunning ? "#d97706" : "#2563eb",
             border: "none", cursor: "pointer", fontSize: 18, color: "#fff",
             display: "flex", alignItems: "center", justifyContent: "center",
@@ -343,7 +355,7 @@ function PipView({
         )}
 
         {/* カウンター +1 */}
-        {tab === "counter" && (
+        {effectiveTab === "counter" && (
           <button onClick={onCounterInc} style={{
             flex: 1, height: 40, borderRadius: 12,
             background: "#1e3a5f", border: "2px solid #2563eb",
@@ -353,7 +365,7 @@ function PipView({
         )}
 
         {/* 確率：+Drop / +試行 */}
-        {tab === "probability" && (
+        {effectiveTab === "probability" && (
           <>
             <button onClick={onProbDropInc} style={{
               flex: 1, height: 40, borderRadius: 12,
@@ -486,6 +498,14 @@ export default function TimerCounterTool({ dict }: Props) {
     if (typeof window === "undefined") return true;
     return localStorage.getItem("yuu-tc-pip-prob") !== "false";
   });
+  const [pipShowTimer, setPipShowTimer] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    return localStorage.getItem("yuu-tc-pip-timer") !== "false";
+  });
+  const [pipShowStopwatch, setPipShowStopwatch] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    return localStorage.getItem("yuu-tc-pip-sw") !== "false";
+  });
   const [counterPipSource, setCounterPipSource] = useState<"stopwatch" | "timer">(() => {
     if (typeof window === "undefined") return "stopwatch";
     return (localStorage.getItem("yuu-tc-counter-pip-source") as "stopwatch" | "timer") ?? "stopwatch";
@@ -528,6 +548,8 @@ export default function TimerCounterTool({ dict }: Props) {
   useEffect(() => { localStorage.setItem("yuu-tc-calc-p", calcPStr); }, [calcPStr]);
   useEffect(() => { localStorage.setItem("yuu-tc-pip-counter", pipShowCounter.toString()); }, [pipShowCounter]);
   useEffect(() => { localStorage.setItem("yuu-tc-pip-prob", pipShowProbability.toString()); }, [pipShowProbability]);
+  useEffect(() => { localStorage.setItem("yuu-tc-pip-timer", pipShowTimer.toString()); }, [pipShowTimer]);
+  useEffect(() => { localStorage.setItem("yuu-tc-pip-sw", pipShowStopwatch.toString()); }, [pipShowStopwatch]);
   useEffect(() => { localStorage.setItem("yuu-tc-counter-pip-source", counterPipSource); }, [counterPipSource]);
 
   // ─── Timer interval ─────────────────────────────────────────────────────────
@@ -696,6 +718,7 @@ export default function TimerCounterTool({ dict }: Props) {
         probDrops={probDrops} probAttempts={probAttempts} observedPct={observedRate}
         calcN={calcN} calcP={calcP} pAtLeastOne={pAtLeastOne}
         pipShowCounter={pipShowCounter} pipShowProbability={pipShowProbability}
+        pipShowTimer={pipShowTimer} pipShowStopwatch={pipShowStopwatch}
         dict={dict}
         onPlayPause={() => pipHandlersRef.current.playPause()}
         onCounterInc={() => pipHandlersRef.current.counterInc()}
@@ -714,7 +737,7 @@ export default function TimerCounterTool({ dict }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentDisplay, count, goal, currentTabLabel, tab, isRunning, currentPct, currentRingColor,
     probDrops, probAttempts, observedRate, calcN, calcP, pAtLeastOne,
-    pipShowCounter, pipShowProbability, counterPipSource, dict]);
+    pipShowCounter, pipShowProbability, pipShowTimer, pipShowStopwatch, counterPipSource, dict]);
 
   useEffect(() => { if (pipOpen || pipFallback) renderPip(); }, [pipOpen, pipFallback, renderPip]);
 
@@ -1110,7 +1133,9 @@ export default function TimerCounterTool({ dict }: Props) {
         {showSettings && (
           <div className="border-t border-gray-100 px-4 py-4 space-y-3">
             <p className="text-xs text-gray-400">{dict.settings.description}</p>
-            <div className="flex flex-col gap-3 sm:flex-row sm:gap-8">
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-x-8 sm:gap-y-3">
+              <Toggle checked={pipShowTimer} onChange={setPipShowTimer} label={dict.settings.timer} />
+              <Toggle checked={pipShowStopwatch} onChange={setPipShowStopwatch} label={dict.settings.stopwatch} />
               <Toggle checked={pipShowCounter} onChange={setPipShowCounter} label={dict.settings.counter} />
               <Toggle checked={pipShowProbability} onChange={setPipShowProbability} label={dict.settings.probability} />
             </div>
@@ -1141,8 +1166,13 @@ export default function TimerCounterTool({ dict }: Props) {
 
       {/* ── Fallback floating overlay ── */}
       {pipFallback && (
-        <div className="fixed bottom-4 right-4 z-50 w-72 overflow-hidden rounded-2xl shadow-2xl"
-          style={{ background: "#0c0f1a" }}>
+        <div className="fixed bottom-4 right-4 z-50 overflow-hidden rounded-2xl shadow-2xl"
+          style={{
+            background: "#0c0f1a",
+            width: "min(288px, calc(100vw - 32px))",
+            maxHeight: "calc(100dvh - 48px)",
+            overflowY: "auto",
+          }}>
           <div className="flex items-center justify-between border-b border-white/10 px-4 py-2">
             <span className="text-xs font-medium text-slate-400">{dict.pip.miniMode}</span>
             <button onClick={closePip} className="text-lg leading-none text-slate-400 transition-colors hover:text-white">×</button>
@@ -1153,7 +1183,9 @@ export default function TimerCounterTool({ dict }: Props) {
             pct={currentPct} ringColor={currentRingColor}
             probDrops={probDrops} probAttempts={probAttempts} observedPct={observedRate}
             calcN={calcN} calcP={calcP} pAtLeastOne={pAtLeastOne}
+            pipShowTimer={pipShowTimer} pipShowStopwatch={pipShowStopwatch}
             pipShowCounter={pipShowCounter} pipShowProbability={pipShowProbability}
+            compact={true}
             dict={dict}
             onPlayPause={() => pipHandlersRef.current.playPause()}
             onCounterInc={() => pipHandlersRef.current.counterInc()}
