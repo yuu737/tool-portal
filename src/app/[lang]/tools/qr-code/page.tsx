@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: dict.qrCode.meta.title,
     description: dict.qrCode.meta.description,
     keywords: dict.qrCode.meta.keywords,
-    alternates: getAlternates("/tools/qr-code"),
+    alternates: getAlternates("/tools/qr-code", locale),
   };
 }
 

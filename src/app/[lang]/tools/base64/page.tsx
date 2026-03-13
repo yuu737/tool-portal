@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: dict.base64.meta.title,
     description: dict.base64.meta.description,
     keywords: dict.base64.meta.keywords,
-    alternates: getAlternates("/tools/base64"),
+    alternates: getAlternates("/tools/base64", locale),
   };
 }
 

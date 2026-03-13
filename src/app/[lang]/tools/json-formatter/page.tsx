@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: dict.jsonFormatter.meta.title,
     description: dict.jsonFormatter.meta.description,
     keywords: dict.jsonFormatter.meta.keywords,
-    alternates: getAlternates("/tools/json-formatter"),
+    alternates: getAlternates("/tools/json-formatter", locale),
   };
 }
 

@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang } = await params;
   const locale: Locale = lang === "ja" ? "ja" : "en";
   return {
-    alternates: getAlternates(""),
+    alternates: getAlternates("", locale),
     ...(locale === "ja"
       ? {
           title: "ToolBox | 便利なWebツール集",

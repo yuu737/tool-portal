@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: dict.wordCount.meta.title,
     description: dict.wordCount.meta.description,
     keywords: dict.wordCount.meta.keywords,
-    alternates: getAlternates("/tools/word-count"),
+    alternates: getAlternates("/tools/word-count", locale),
   };
 }
 

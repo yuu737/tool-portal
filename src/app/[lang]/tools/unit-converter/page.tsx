@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: dict.unitConverter.meta.title,
     description: dict.unitConverter.meta.description,
     keywords: dict.unitConverter.meta.keywords,
-    alternates: getAlternates("/tools/unit-converter"),
+    alternates: getAlternates("/tools/unit-converter", locale),
   };
 }
 

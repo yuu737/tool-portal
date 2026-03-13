@@ -1,10 +1,21 @@
 import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
 import { notFound } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AdSenseWrapper from "@/components/AdSenseWrapper";
 import { getDictionary, type Locale } from "@/lib/getDictionary";
 import { getAlternates } from "@/lib/siteConfig";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
 
 const supportedLocales: Locale[] = ["ja", "en"];
 
@@ -25,7 +36,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description:
         "Word counters, password generators, QR code creators and more — free web tools for everyday use.",
       keywords: ["web tools", "free tools", "word counter", "password generator", "QR code"],
-      alternates: getAlternates(),
+      alternates: getAlternates("", "en"),
       openGraph: {
         type: "website",
         locale: "en_US",
@@ -45,7 +56,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description:
       "文字数カウント、パスワード生成、QRコード作成など、日常で役立つ便利なWebツールを無料で提供するポータルサイトです。",
     keywords: ["Webツール", "無料ツール", "文字数カウント", "パスワード生成", "QRコード"],
-    alternates: getAlternates(),
+    alternates: getAlternates("", "ja"),
     openGraph: {
       type: "website",
       locale: "ja_JP",
@@ -71,23 +82,27 @@ export default async function LangLayout({ children, params }: Props) {
   const dict = await getDictionary(locale);
 
   return (
-    <>
-      <Header lang={locale} dict={dict.header} />
+    <html lang={locale}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen flex-col bg-gray-50 font-sans antialiased`}
+      >
+        <Header lang={locale} dict={dict.header} />
 
-      {/* ヘッダー下の広告枠 */}
-      <div className="mx-auto w-full max-w-6xl px-4 pt-4 sm:px-6">
-        <AdSenseWrapper slot="header-banner" className="h-[90px]" />
-      </div>
+        {/* ヘッダー下の広告枠 */}
+        <div className="mx-auto w-full max-w-6xl px-4 pt-4 sm:px-6">
+          <AdSenseWrapper slot="header-banner" className="h-[90px]" />
+        </div>
 
-      {/* メインコンテンツ */}
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">{children}</main>
+        {/* メインコンテンツ */}
+        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">{children}</main>
 
-      {/* コンテンツ下の広告枠 */}
-      <div className="mx-auto w-full max-w-6xl px-4 pb-4 sm:px-6">
-        <AdSenseWrapper slot="footer-banner" className="h-[90px]" />
-      </div>
+        {/* コンテンツ下の広告枠 */}
+        <div className="mx-auto w-full max-w-6xl px-4 pb-4 sm:px-6">
+          <AdSenseWrapper slot="footer-banner" className="h-[90px]" />
+        </div>
 
-      <Footer lang={locale} dict={dict.footer} />
-    </>
+        <Footer lang={locale} dict={dict.footer} />
+      </body>
+    </html>
   );
 }

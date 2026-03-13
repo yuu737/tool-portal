@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: dict.imagesToPdf.meta.title,
     description: dict.imagesToPdf.meta.description,
     keywords: dict.imagesToPdf.meta.keywords,
-    alternates: getAlternates("/tools/images-to-pdf"),
+    alternates: getAlternates("/tools/images-to-pdf", locale),
   };
 }
 

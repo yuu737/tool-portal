@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: dict.grindingCompanion.meta.title,
     description: dict.grindingCompanion.meta.description,
     keywords: dict.grindingCompanion.meta.keywords,
-    alternates: getAlternates("/tools/grinding-companion"),
+    alternates: getAlternates("/tools/grinding-companion", locale),
   };
 }
 

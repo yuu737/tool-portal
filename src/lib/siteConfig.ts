@@ -6,11 +6,12 @@ export const SITE_URL =
 
 /**
  * hreflang タグ用 alternates オブジェクトを生成する。
- * @param path - ロケールを除いたパス (例: "/tools/word-count")
+ * @param path   - ロケールを除いたパス (例: "/tools/word-count")
+ * @param locale - 現在のロケール。canonical URL に使用 (デフォルト: "ja")
  */
-export function getAlternates(path: string = "") {
+export function getAlternates(path: string = "", locale: string = "ja") {
   return {
-    canonical: `${SITE_URL}/ja${path}`,
+    canonical: `${SITE_URL}/${locale}${path}`,
     languages: {
       ja: `${SITE_URL}/ja${path}`,
       en: `${SITE_URL}/en${path}`,

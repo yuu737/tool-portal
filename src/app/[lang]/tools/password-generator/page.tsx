@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: dict.passwordGenerator.meta.title,
     description: dict.passwordGenerator.meta.description,
     keywords: dict.passwordGenerator.meta.keywords,
-    alternates: getAlternates("/tools/password-generator"),
+    alternates: getAlternates("/tools/password-generator", locale),
   };
 }
 

@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: dict.backgroundRemover.meta.title,
     description: dict.backgroundRemover.meta.description,
     keywords: dict.backgroundRemover.meta.keywords,
-    alternates: getAlternates("/tools/background-remover"),
+    alternates: getAlternates("/tools/background-remover", locale),
   };
 }
 

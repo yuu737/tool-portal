@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: dict.timerCounter.meta.title,
     description: dict.timerCounter.meta.description,
     keywords: dict.timerCounter.meta.keywords,
-    alternates: getAlternates("/tools/timer-counter"),
+    alternates: getAlternates("/tools/timer-counter", locale),
   };
 }
 

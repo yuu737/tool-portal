@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: dict.imageOptimizer.meta.title,
     description: dict.imageOptimizer.meta.description,
     keywords: dict.imageOptimizer.meta.keywords,
-    alternates: getAlternates("/tools/image-optimizer"),
+    alternates: getAlternates("/tools/image-optimizer", locale),
   };
 }
 
