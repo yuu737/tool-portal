@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/siteConfig";
 
+export const dynamic = "force-static";
+
 const toolPaths = [
   "/tools/word-count",
   "/tools/password-generator",
