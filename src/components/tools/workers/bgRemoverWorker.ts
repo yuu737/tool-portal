@@ -7,8 +7,10 @@ import { AutoModel, AutoProcessor, RawImage, env } from "@xenova/transformers";
 (env as any).allowLocalModels = false;
 (env as any).useBrowserCache = true;
 (env as any).backends.onnx.wasm.simd = true;
-(env as any).backends.onnx.wasm.numThreads = 4;
-// proxy=true can fail with nested-worker restrictions; keep false.
+// numThreads > 1 causes onnxruntime-web v1.14 to spawn blob sub-workers that
+// reference Turbopack module variables outside their scope → ReferenceError.
+// Keep single-threaded; SIMD + 1024px input still give meaningful speedup.
+(env as any).backends.onnx.wasm.numThreads = 1;
 (env as any).backends.onnx.wasm.proxy = false;
 // Note: WebGPU EP requires onnxruntime-web ≥1.17. This package pins v1.14,
 // so we stay on WASM. Upgrade @xenova/transformers to v3 for WebGPU support.
