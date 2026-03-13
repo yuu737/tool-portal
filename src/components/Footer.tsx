@@ -14,9 +14,9 @@ export default function Footer({ lang, dict }: Props) {
           {/* ロゴ・コピーライト */}
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <div className="flex h-6 w-6 items-center justify-center rounded bg-blue-600 text-xs font-bold text-white">
-              T
+              Y
             </div>
-            <span>&copy; {new Date().getFullYear()} ToolBox. All rights reserved.</span>
+            <span>&copy; {new Date().getFullYear()} Yuustudio. All rights reserved.</span>
           </div>
 
           {/* リンク */}

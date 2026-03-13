@@ -1,4 +1,24 @@
 import Link from "next/link";
+import {
+  FileText,
+  KeyRound,
+  QrCode,
+  Images,
+  Braces,
+  ArrowLeftRight,
+  Binary,
+  type LucideIcon,
+} from "lucide-react";
+
+const iconMap: Record<string, LucideIcon> = {
+  FileText,
+  KeyRound,
+  QrCode,
+  Images,
+  Braces,
+  ArrowLeftRight,
+  Binary,
+};
 
 type LocalizedTool = {
   id: string;
@@ -14,14 +34,16 @@ type Props = {
 };
 
 export default function ToolCard({ tool, cta }: Props) {
+  const Icon = iconMap[tool.icon] ?? FileText;
+
   return (
     <Link
       href={tool.href}
       className="group flex flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
     >
       {/* アイコン */}
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-2xl transition-colors group-hover:bg-blue-100">
-        {tool.icon}
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-100">
+        <Icon size={24} strokeWidth={1.75} />
       </div>
 
       {/* タイトル */}

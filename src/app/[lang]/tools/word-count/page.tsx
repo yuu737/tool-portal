@@ -6,6 +6,7 @@ import WordCountTool from "@/components/tools/WordCountTool";
 import ToolContentSection from "@/components/ToolContentSection";
 import { getDictionary, type Locale } from "@/lib/getDictionary";
 import { getAlternates } from "@/lib/siteConfig";
+import { FileText } from "lucide-react";
 
 const supportedLocales: Locale[] = ["ja", "en"];
 
@@ -52,8 +53,8 @@ export default async function WordCountPage({ params }: Props) {
       {/* ページヘッダー */}
       <header className="space-y-2">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-2xl">
-            📝
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+            <FileText size={22} strokeWidth={1.75} />
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 sm:text-3xl">
             {t.title}

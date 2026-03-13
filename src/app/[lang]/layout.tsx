@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang } = await params;
   if (lang === "en") {
     return {
-      title: { default: "ToolBox | Free Web Tools", template: "%s | ToolBox" },
+      title: { default: "Yuustudio | Free Web Tools", template: "%s | Yuustudio" },
       description:
         "Word counters, password generators, QR code creators and more — free web tools for everyday use.",
       keywords: ["web tools", "free tools", "word counter", "password generator", "QR code"],
@@ -29,19 +29,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       openGraph: {
         type: "website",
         locale: "en_US",
-        siteName: "ToolBox",
-        title: "ToolBox | Free Web Tools",
+        siteName: "Yuustudio",
+        title: "Yuustudio | Free Web Tools",
         description: "Word counters, password generators, QR code creators and more — free.",
       },
       twitter: {
         card: "summary_large_image",
-        title: "ToolBox | Free Web Tools",
+        title: "Yuustudio | Free Web Tools",
         description: "Word counters, password generators, QR code creators and more — free.",
       },
     };
   }
   return {
-    title: { default: "ToolBox | 便利なWebツール集", template: "%s | ToolBox" },
+    title: { default: "Yuustudio | 便利なWebツール集", template: "%s | Yuustudio" },
     description:
       "文字数カウント、パスワード生成、QRコード作成など、日常で役立つ便利なWebツールを無料で提供するポータルサイトです。",
     keywords: ["Webツール", "無料ツール", "文字数カウント", "パスワード生成", "QRコード"],
@@ -49,13 +49,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       type: "website",
       locale: "ja_JP",
-      siteName: "ToolBox",
-      title: "ToolBox | 便利なWebツール集",
+      siteName: "Yuustudio",
+      title: "Yuustudio | 便利なWebツール集",
       description: "文字数カウント、パスワード生成、QRコード作成など、日常で役立つ便利なWebツールを無料で提供。",
     },
     twitter: {
       card: "summary_large_image",
-      title: "ToolBox | 便利なWebツール集",
+      title: "Yuustudio | 便利なWebツール集",
       description:
         "文字数カウント、パスワード生成、QRコード作成など、日常で役立つ便利なWebツールを無料で提供。",
     },

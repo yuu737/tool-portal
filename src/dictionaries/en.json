@@ -14,22 +14,22 @@
   "toolCard": { "cta": "Try it" },
   "about": {
     "title": "About",
-    "description": "Learn about yuu, the developer behind ToolBox, and the mission behind this site.",
+    "description": "Learn about yuu, the developer behind Yuustudio, and the mission behind this site.",
     "operatorLabel": "Operator",
     "operatorName": "yuu",
     "profile": { "heading": "Profile", "text": "I'm a university student majoring in Information Engineering. I build and publish free web tools using the programming skills I've learned — React, Next.js, TypeScript, and more — to make everyday tasks easier for everyone." },
     "mission": { "heading": "Mission", "text": "My goal is to provide fast, safe, and multilingual web tools that streamline everyday workflows. I turn what I learn in university into real products that are useful to people around the world." },
     "safety": { "heading": "Privacy by Design", "text": "All tools process data entirely in your browser. No data is ever sent to any server, so you can safely use these tools with personal or sensitive information." },
-    "i18n": { "heading": "Multilingual Support", "text": "ToolBox is available in both Japanese and English, making it accessible to users worldwide. You can switch languages anytime using the toggle in the header." },
+    "i18n": { "heading": "Multilingual Support", "text": "Yuustudio is available in both Japanese and English, making it accessible to users worldwide. You can switch languages anytime using the toggle in the header." },
     "techStack": { "heading": "Tech Stack" }
   },
   "privacy": {
     "title": "Privacy Policy & Disclaimer",
-    "description": "This page explains how ToolBox handles personal information, uses advertising and analytics services, and limits liability.",
+    "description": "This page explains how Yuustudio handles personal information, uses advertising and analytics services, and limits liability.",
     "lastUpdated": "Last updated",
     "lastUpdatedDate": "January 1, 2025",
     "sections": {
-      "basic": { "heading": "Overview", "text": "ToolBox (\"this site\") takes the protection of user privacy seriously and complies with applicable privacy laws and regulations." },
+      "basic": { "heading": "Overview", "text": "Yuustudio (\"this site\") takes the protection of user privacy seriously and complies with applicable privacy laws and regulations." },
       "adsense": { "heading": "Advertising (Google AdSense)", "text": "This site uses Google AdSense, an advertising service provided by Google LLC. Google AdSense may use cookies to serve ads based on your interests. Through cookies, Google can identify your browser and deliver relevant ads. You can disable cookies in your browser settings. For more information, please see Google's Privacy Policy (policies.google.com/privacy)." },
       "analytics": { "heading": "Analytics (Google Analytics)", "text": "This site uses Google Analytics, a web analytics service provided by Google LLC, to understand how visitors use the site. Google Analytics collects data using cookies; this data is collected anonymously and does not identify individuals. You can opt out by disabling cookies. For details, see the Google Analytics Terms of Service (marketingplatform.google.com/about/analytics/terms/)." },
       "personalInfo": { "heading": "Personal Information", "text": "Any personal information (such as your email address) provided via the contact form is used solely to respond to your inquiry and will never be shared with third parties. Furthermore, all tools on this site process data entirely client-side — no input data is ever transmitted to or stored on any server." },
@@ -80,7 +80,9 @@
         "items": [
           { "q": "Can it accurately count Japanese or Chinese words?", "a": "Yes. The Intl.Segmenter API performs language-aware word segmentation for Japanese, Chinese, Korean, and other non-space-separated languages. Browsers that don't support Segmenter automatically fall back to space-based counting." },
           { "q": "Is there a character limit?", "a": "No. You can process long documents, novels, reports, or large data files without any restriction." },
-          { "q": "Can I use it to check social media character limits?", "a": "Yes. It's ideal for checking Twitter/X's 280-character limit, Instagram captions, email lengths, and any other platform character restrictions." }
+          { "q": "Can I use it to check social media character limits?", "a": "Yes. It's ideal for checking Twitter/X's 280-character limit, Instagram captions, email lengths, and any other platform character restrictions." },
+          { "q": "How are spaces and line breaks counted?", "a": "Characters (with spaces) counts every space, tab, and newline as one character. Characters (no spaces) excludes all whitespace — only visible characters are counted. Line count equals the number of newline characters plus one." },
+          { "q": "Are HTML tags or Markdown syntax included in the count?", "a": "Yes. The tool counts the raw text as typed, so HTML tags (<p>, <br>, etc.) and Markdown syntax (#, **, -, etc.) are each counted as individual characters. To count only the visible content, paste the plain text without any markup." }
         ]
       }
     }
@@ -127,7 +129,9 @@
         "items": [
           { "q": "What makes this generator more secure than others?", "a": "This tool uses crypto.getRandomValues(), a cryptographically strong random number generator built into browsers. Unlike Math.random(), it produces unpredictable values — a critical requirement for password security." },
           { "q": "What makes a strong password?", "a": "Use at least 12 characters combining uppercase, lowercase, numbers, and symbols. The 'Strong' preset (20 characters, all character types) provides the highest security level offered by this tool." },
-          { "q": "Are generated passwords saved anywhere?", "a": "No. All processing happens completely in your browser. Generated passwords are never transmitted to or stored on any server." }
+          { "q": "Are generated passwords saved anywhere?", "a": "No. All processing happens completely in your browser. Generated passwords are never transmitted to or stored on any server." },
+          { "q": "Can I use generated passwords with a password manager?", "a": "Yes. Click 'Copy' to copy the password to your clipboard and paste it directly into 1Password, Bitwarden, LastPass, or any password manager. It also works seamlessly with browser autofill." },
+          { "q": "What should I do if a site doesn't allow symbols?", "a": "Simply uncheck the 'Symbols' option and regenerate. A combination of uppercase, lowercase, and numbers at 16+ characters still provides strong security without any symbols." }
         ]
       }
     }
@@ -172,7 +176,9 @@
         "items": [
           { "q": "Should I download PNG or SVG?", "a": "Choose SVG for print materials, business cards, or posters where scaling is important. Choose PNG for websites, apps, or when a standard raster image file is required." },
           { "q": "Do Android and iPhone both support Wi-Fi QR codes?", "a": "Yes. Android 10+ and iOS 11+ can read Wi-Fi QR codes using their built-in camera apps, connecting to the network without manually entering a password." },
-          { "q": "Which error correction level should I use?", "a": "M (15%) is suitable for most purposes. Use H (30%) when you plan to overlay a logo or decorative element on the QR code, as this provides extra data redundancy." }
+          { "q": "Which error correction level should I use?", "a": "M (15%) is suitable for most purposes. Use H (30%) when you plan to overlay a logo or decorative element on the QR code, as this provides extra data redundancy." },
+          { "q": "Can I overlay a logo on the QR code?", "a": "The tool doesn't support image compositing directly, but you can download the SVG at error correction level H (30%), open it in Figma or Illustrator, overlay your logo, and export. Level H tolerates up to 30% data loss, giving enough margin for logo placement without breaking scan readability." },
+          { "q": "What should I do if my QR code fails to scan?", "a": "Common causes include the code being too small, low contrast between foreground and background, or insufficient margin. Try increasing the margin to 4+, boosting color contrast, ensuring the printed size is at least 2cm × 2cm, and raising the error correction level to M or H." }
         ]
       }
     }
@@ -213,7 +219,9 @@
         "items": [
           { "q": "Are my images uploaded to a server?", "a": "No. PDF generation runs entirely in your browser using jsPDF. No image data is ever transmitted to or stored on any server." },
           { "q": "Is there a limit on the number of images?", "a": "There is no hard limit, though processing many large files will use more browser memory. Up to around 50 images generally works smoothly." },
-          { "q": "Can I change the PDF page size?", "a": "Currently, output is fixed to A4 (210×297mm). Images are automatically resized to fit the page while preserving their aspect ratio." }
+          { "q": "Can I change the PDF page size?", "a": "Currently, output is fixed to A4 (210×297mm). Images are automatically resized to fit the page while preserving their aspect ratio." },
+          { "q": "What image quality is used in the output PDF?", "a": "Images are routed through the Canvas API and embedded at JPEG quality 0.92 (on a scale of 0–1). This balances file size and visual quality well. For maximum fidelity, use high-resolution source images and avoid upscaling them beforehand." },
+          { "q": "Do portrait photos from my phone fit on A4 pages?", "a": "Yes. Each image is automatically fitted inside the A4 page (with 10mm margins) while preserving its original aspect ratio. Portrait images scale to fit the page width; landscape images scale to the page height. No forced stretching or cropping occurs." }
         ]
       }
     }
@@ -256,7 +264,9 @@
         "items": [
           { "q": "What syntax errors can it detect?", "a": "It parses JSON according to RFC 8259, detecting trailing commas, missing quotes, mismatched brackets and braces, invalid Unicode escapes, and all other standard JSON syntax errors." },
           { "q": "Does it support JSON5 or JSONC (JSON with comments)?", "a": "No. This tool validates against the JSON standard (RFC 8259). Comments (// or /* */) and trailing commas found in JSON5/JSONC will cause syntax errors." },
-          { "q": "Can it handle large JSON files?", "a": "Yes. Everything runs in the browser. Files up to several MB work fine; very large files may increase browser memory usage." }
+          { "q": "Can it handle large JSON files?", "a": "Yes. Everything runs in the browser. Files up to several MB work fine; very large files may increase browser memory usage." },
+          { "q": "Can I validate JSON without formatting it?", "a": "Yes. Validation runs automatically as you type, and the status badge shows '✓ Valid JSON' or '✗ Error' instantly — no need to click Format. Live feedback is always active." },
+          { "q": "Does it support JSONC (JSON with comments) or JSON5?", "a": "No. This tool validates strictly against the RFC 8259 JSON standard. Comments (// or /* */) and trailing commas in JSONC or JSON5 will trigger a syntax error. Remove any comments before pasting." }
         ]
       }
     }
@@ -297,7 +307,9 @@
         "items": [
           { "q": "What temperature formula is used?", "a": "Celsius (°C) is the base unit. Fahrenheit: °F = °C × 9/5 + 32. Kelvin: K = °C + 273.15. Absolute zero is −273.15°C = 0K = −459.67°F." },
           { "q": "Is 1 KB equal to 1000 B or 1024 B?", "a": "This tool uses the binary (computing) standard: 1KB = 1024B, 1MB = 1024KB (= 1,048,576B). This differs from the decimal standard (1KB = 1000B) used by some storage manufacturers." },
-          { "q": "Can you add more units?", "a": "Feel free to request additional units via the contact page. High-demand units will be considered for future additions." }
+          { "q": "Can you add more units?", "a": "Feel free to request additional units via the contact page. High-demand units will be considered for future additions." },
+          { "q": "Why do I sometimes see floating-point rounding in results?", "a": "All calculations use JavaScript's IEEE 754 double-precision floating-point numbers. The tool applies toPrecision(10) to minimize visible rounding, but very small residuals may occasionally appear. This is a known property of binary floating-point arithmetic, not a bug." },
+          { "q": "Can you add cooking units like cups, tablespoons, or teaspoons?", "a": "Volume units for cooking are not yet supported. The weight category covers standard SI units. Cooking volume units are on the roadmap — feel free to request them via the contact page." }
         ]
       }
     }
@@ -339,7 +351,9 @@
         "items": [
           { "q": "Why does encoding Japanese text require special handling?", "a": "JavaScript's built-in btoa() only supports ASCII. Multi-byte characters like Japanese cause errors if passed directly. This tool uses TextEncoder to convert text to a UTF-8 byte array first, handling all Unicode characters correctly." },
           { "q": "Decoded text looks garbled — what's wrong?", "a": "This tool assumes UTF-8 encoding when decoding. If the Base64 string was created from text encoded in Shift-JIS or another legacy encoding, the decoded output may appear as garbled characters." },
-          { "q": "Where is Base64 commonly used?", "a": "Base64 is widely used in email attachments (MIME), embedding images in HTML/CSS as Data URLs, JWT (JSON Web Token) payloads, and transmitting binary data over text-based APIs." }
+          { "q": "Where is Base64 commonly used?", "a": "Base64 is widely used in email attachments (MIME), embedding images in HTML/CSS as Data URLs, JWT (JSON Web Token) payloads, and transmitting binary data over text-based APIs." },
+          { "q": "Does this tool support URL-safe Base64 (Base64url)?", "a": "The tool uses standard Base64 (RFC 4648 §4). URL-safe Base64 (Base64url) substitutes + with -, / with _, and omits = padding. After encoding, you can manually apply those substitutions to convert to Base64url format." },
+          { "q": "Can I encode binary files like images or PDFs?", "a": "The tool accepts text input only and is not designed for binary file encoding. To Base64-encode a file in JavaScript, use FileReader.readAsDataURL() in the browser, or Buffer.from(data).toString('base64') in Node.js." }
         ]
       }
     }

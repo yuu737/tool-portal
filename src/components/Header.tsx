@@ -14,9 +14,9 @@ export default function Header({ lang, dict }: Props) {
         {/* ロゴ */}
         <Link href={`/${lang}`} className="flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-lg font-bold text-white">
-            T
+            Y
           </div>
-          <span className="text-xl font-bold text-gray-900">ToolBox</span>
+          <span className="text-xl font-bold text-gray-900">Yuustudio</span>
         </Link>
 
         {/* ナビゲーション + 言語切替 */}

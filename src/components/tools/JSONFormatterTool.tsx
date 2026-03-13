@@ -7,7 +7,7 @@ type IndentType = 2 | 4 | "tab";
 type Props = { dict: Dictionary["jsonFormatter"] };
 
 const SAMPLE_JSON = `{
-  "name": "ToolBox",
+  "name": "Yuustudio",
   "tools": ["Word Counter", "Password Generator", "QR Code"],
   "version": 1,
   "free": true,
