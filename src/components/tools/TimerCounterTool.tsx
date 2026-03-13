@@ -532,6 +532,13 @@ export default function TimerCounterTool({ dict }: Props) {
     counterPipSourceChange: (_s: "stopwatch" | "timer") => {},
   });
 
+  // ── Fallback overlay drag/resize ──────────────────────────────────────────
+  const [pipPos, setPipPos] = useState<{ x: number; y: number } | null>(null);
+  const [pipSize, setPipSize] = useState<{ w: number; h: number } | null>(null);
+  const pipSizeRef = useRef<{ w: number; h: number }>({ w: 288, h: 300 });
+  const overlayDragRef = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number } | null>(null);
+  const overlayResizeRef = useRef<{ startX: number; startY: number; startW: number; startH: number } | null>(null);
+
   // ─── Init ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     setPipSupported("documentPictureInPicture" in window);
@@ -551,6 +558,63 @@ export default function TimerCounterTool({ dict }: Props) {
   useEffect(() => { localStorage.setItem("yuu-tc-pip-timer", pipShowTimer.toString()); }, [pipShowTimer]);
   useEffect(() => { localStorage.setItem("yuu-tc-pip-sw", pipShowStopwatch.toString()); }, [pipShowStopwatch]);
   useEffect(() => { localStorage.setItem("yuu-tc-counter-pip-source", counterPipSource); }, [counterPipSource]);
+
+  // ─── Fallback overlay: position/size initialization ───────────────────────
+  useEffect(() => {
+    if (pipFallback) {
+      const w = Math.max(200, Math.floor(window.innerWidth / 2));
+      const h = Math.max(150, Math.floor(window.innerHeight / 4));
+      const x = Math.max(0, window.innerWidth - w - 16);
+      const y = Math.max(0, window.innerHeight - h - 16);
+      pipSizeRef.current = { w, h };
+      setPipSize({ w, h });
+      setPipPos({ x, y });
+    } else {
+      setPipPos(null);
+      setPipSize(null);
+    }
+  }, [pipFallback]);
+
+  // ─── Fallback overlay: global drag/resize pointer handlers ───────────────
+  useEffect(() => {
+    const getXY = (e: MouseEvent | TouchEvent): { x: number; y: number } =>
+      'touches' in e
+        ? { x: (e as TouchEvent).touches[0].clientX, y: (e as TouchEvent).touches[0].clientY }
+        : { x: (e as MouseEvent).clientX, y: (e as MouseEvent).clientY };
+
+    const onMove = (e: MouseEvent | TouchEvent) => {
+      if (overlayDragRef.current) {
+        const { x, y } = getXY(e);
+        const d = overlayDragRef.current;
+        const sz = pipSizeRef.current;
+        const nx = Math.max(0, Math.min(window.innerWidth - sz.w, d.startPosX + x - d.startX));
+        const ny = Math.max(0, Math.min(window.innerHeight - 44, d.startPosY + y - d.startY));
+        if ('touches' in e) e.preventDefault();
+        setPipPos({ x: nx, y: ny });
+      }
+      if (overlayResizeRef.current) {
+        const { x, y } = getXY(e);
+        const d = overlayResizeRef.current;
+        const nw = Math.max(200, Math.min(window.innerWidth, d.startW + x - d.startX));
+        const nh = Math.max(150, Math.min(window.innerHeight, d.startH + y - d.startY));
+        if ('touches' in e) e.preventDefault();
+        pipSizeRef.current = { w: nw, h: nh };
+        setPipSize({ w: nw, h: nh });
+      }
+    };
+    const onEnd = () => { overlayDragRef.current = null; overlayResizeRef.current = null; };
+
+    window.addEventListener('mousemove', onMove as EventListener);
+    window.addEventListener('mouseup', onEnd);
+    window.addEventListener('touchmove', onMove as EventListener, { passive: false });
+    window.addEventListener('touchend', onEnd);
+    return () => {
+      window.removeEventListener('mousemove', onMove as EventListener);
+      window.removeEventListener('mouseup', onEnd);
+      window.removeEventListener('touchmove', onMove as EventListener);
+      window.removeEventListener('touchend', onEnd);
+    };
+  }, []);
 
   // ─── Timer interval ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -1164,42 +1228,98 @@ export default function TimerCounterTool({ dict }: Props) {
         )}
       </div>
 
-      {/* ── Fallback floating overlay ── */}
-      {pipFallback && (
-        <div className="fixed bottom-4 right-4 z-50 overflow-hidden rounded-2xl shadow-2xl"
-          style={{
-            background: "#0c0f1a",
-            width: "min(288px, calc(100vw - 32px))",
-            maxHeight: "calc(100dvh - 48px)",
-            overflowY: "auto",
-          }}>
-          <div className="flex items-center justify-between border-b border-white/10 px-4 py-2">
-            <span className="text-xs font-medium text-slate-400">{dict.pip.miniMode}</span>
-            <button onClick={closePip} className="text-lg leading-none text-slate-400 transition-colors hover:text-white">×</button>
+      {/* ── Fallback floating overlay (draggable + resizable) ── */}
+      {pipFallback && pipPos && pipSize && (
+        <div style={{
+          position: "fixed",
+          left: pipPos.x,
+          top: pipPos.y,
+          width: pipSize.w,
+          height: pipSize.h,
+          zIndex: 50,
+          background: "#0c0f1a",
+          borderRadius: 16,
+          boxShadow: "0 25px 50px -12px rgba(0,0,0,0.6)",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}>
+          {/* ドラッグハンドル (ヘッダー) */}
+          <div
+            style={{ cursor: "grab", userSelect: "none", flexShrink: 0, touchAction: "none" }}
+            className="flex items-center justify-between border-b border-white/10 px-4 py-2"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              overlayDragRef.current = { startX: e.clientX, startY: e.clientY, startPosX: pipPos.x, startPosY: pipPos.y };
+            }}
+            onTouchStart={(e) => {
+              const t = e.touches[0];
+              overlayDragRef.current = { startX: t.clientX, startY: t.clientY, startPosX: pipPos.x, startPosY: pipPos.y };
+            }}
+          >
+            <span className="text-xs font-medium text-slate-400 select-none">
+              ☰ {dict.pip.miniMode}
+            </span>
+            <button
+              onClick={(e) => { e.stopPropagation(); closePip(); }}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+              className="text-lg leading-none text-slate-400 transition-colors hover:text-white"
+            >×</button>
           </div>
-          <PipView
-            time={currentDisplay} count={count} goal={goal}
-            tabLabel={currentTabLabel} tab={tab} isRunning={isRunning}
-            pct={currentPct} ringColor={currentRingColor}
-            probDrops={probDrops} probAttempts={probAttempts} observedPct={observedRate}
-            calcN={calcN} calcP={calcP} pAtLeastOne={pAtLeastOne}
-            pipShowTimer={pipShowTimer} pipShowStopwatch={pipShowStopwatch}
-            pipShowCounter={pipShowCounter} pipShowProbability={pipShowProbability}
-            compact={true}
-            dict={dict}
-            onPlayPause={() => pipHandlersRef.current.playPause()}
-            onCounterInc={() => pipHandlersRef.current.counterInc()}
-            onProbDropInc={() => pipHandlersRef.current.probDropInc()}
-            onProbAttemptInc={() => pipHandlersRef.current.probAttemptInc()}
-            onTabChange={(t) => pipHandlersRef.current.tabChange(t)}
-            onTimerReset={() => pipHandlersRef.current.timerReset()}
-            onSwReset={() => pipHandlersRef.current.swReset()}
-            onCounterReset={() => pipHandlersRef.current.counterReset()}
-            onProbReset={() => pipHandlersRef.current.probReset()}
-            onTimerAddTime={(s) => pipHandlersRef.current.timerAddTime(s)}
-            counterPipSource={counterPipSource}
-            onCounterPipSourceChange={(s) => pipHandlersRef.current.counterPipSourceChange(s)}
-          />
+
+          {/* スクロール可能なコンテンツ */}
+          <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
+            <PipView
+              time={currentDisplay} count={count} goal={goal}
+              tabLabel={currentTabLabel} tab={tab} isRunning={isRunning}
+              pct={currentPct} ringColor={currentRingColor}
+              probDrops={probDrops} probAttempts={probAttempts} observedPct={observedRate}
+              calcN={calcN} calcP={calcP} pAtLeastOne={pAtLeastOne}
+              pipShowTimer={pipShowTimer} pipShowStopwatch={pipShowStopwatch}
+              pipShowCounter={pipShowCounter} pipShowProbability={pipShowProbability}
+              compact={true}
+              dict={dict}
+              onPlayPause={() => pipHandlersRef.current.playPause()}
+              onCounterInc={() => pipHandlersRef.current.counterInc()}
+              onProbDropInc={() => pipHandlersRef.current.probDropInc()}
+              onProbAttemptInc={() => pipHandlersRef.current.probAttemptInc()}
+              onTabChange={(t) => pipHandlersRef.current.tabChange(t)}
+              onTimerReset={() => pipHandlersRef.current.timerReset()}
+              onSwReset={() => pipHandlersRef.current.swReset()}
+              onCounterReset={() => pipHandlersRef.current.counterReset()}
+              onProbReset={() => pipHandlersRef.current.probReset()}
+              onTimerAddTime={(s) => pipHandlersRef.current.timerAddTime(s)}
+              counterPipSource={counterPipSource}
+              onCounterPipSourceChange={(s) => pipHandlersRef.current.counterPipSourceChange(s)}
+            />
+          </div>
+
+          {/* リサイズハンドル (右下コーナー) */}
+          <div
+            style={{
+              position: "absolute", bottom: 0, right: 0,
+              width: 28, height: 28,
+              cursor: "nwse-resize",
+              touchAction: "none",
+              display: "flex", alignItems: "flex-end", justifyContent: "flex-end",
+              padding: "5px 5px",
+            }}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              overlayResizeRef.current = { startX: e.clientX, startY: e.clientY, startW: pipSize.w, startH: pipSize.h };
+            }}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+              const t = e.touches[0];
+              overlayResizeRef.current = { startX: t.clientX, startY: t.clientY, startW: pipSize.w, startH: pipSize.h };
+            }}
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M11 1L1 11M11 6L6 11M11 11" stroke="#64748b" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+          </div>
         </div>
       )}
     </div>
