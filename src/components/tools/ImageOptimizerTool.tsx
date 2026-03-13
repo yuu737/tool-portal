@@ -144,6 +144,32 @@ export default function ImageOptimizerTool({ dict }: Props) {
     [format, quality, processImage]
   );
 
+  // Stable ref so the paste listener always calls the latest loadFile
+  // without needing to re-register on every format/quality change
+  const loadFileRef = useRef(loadFile);
+  useEffect(() => {
+    loadFileRef.current = loadFile;
+  }, [loadFile]);
+
+  // Ctrl+V / ⌘V clipboard paste support
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of Array.from(items)) {
+        if (item.type.startsWith("image/")) {
+          const f = item.getAsFile();
+          if (f) {
+            loadFileRef.current(f);
+            break;
+          }
+        }
+      }
+    };
+    document.addEventListener("paste", handlePaste);
+    return () => document.removeEventListener("paste", handlePaste);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleFormatChange = (key: FormatKey) => {
     setFormat(key);
     scheduleProcess(key, quality, resizeW, resizeH);
@@ -261,6 +287,7 @@ export default function ImageOptimizerTool({ dict }: Props) {
             <Upload size={14} />
             {dict.selectFile}
           </div>
+          <p className="text-xs text-gray-400">{dict.pasteHint}</p>
           <input
             ref={fileInputRef}
             type="file"

@@ -377,6 +377,7 @@ export type Dictionary = {
     description: string;
     dropZone: { heading: string; sub: string };
     selectFile: string;
+    pasteHint: string;
     original: string;
     optimized: string;
     format: string;

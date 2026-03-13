@@ -777,6 +777,7 @@
       "sub": "JPEG, PNG, WebP, GIF, BMP, TIFF など対応"
     },
     "selectFile": "ファイルを選択",
+    "pasteHint": "Ctrl+V / ⌘V で画像を貼り付けることもできます",
     "original": "オリジナル",
     "optimized": "最適化後",
     "format": "出力フォーマット",

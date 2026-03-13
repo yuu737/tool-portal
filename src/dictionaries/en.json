@@ -1184,6 +1184,7 @@
       "sub": "Supports JPEG, PNG, WebP, GIF, BMP, TIFF and more"
     },
     "selectFile": "Select File",
+    "pasteHint": "You can also paste an image with Ctrl+V / ⌘V",
     "original": "Original",
     "optimized": "Optimized",
     "format": "Output Format",
