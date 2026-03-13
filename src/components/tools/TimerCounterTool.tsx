@@ -910,6 +910,38 @@ export default function TimerCounterTool({ dict }: Props) {
     if (swRunning) {
       setSwElapsed(swOffsetRef.current + Date.now() - swStartWallRef.current);
     }
+    // ── モバイル Canvas PiP：RAF が停止するバックグラウンドでも canvas を更新 ──
+    // refs から直接計算するため state が古くても正確な時刻を表示できる
+    if (mobilePipOpen) {
+      const canvas = canvasRef.current;
+      if (canvas && canvas.width > 0) {
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          let display: string;
+          let pct: number;
+          let color: string;
+          let isDone = timerDone;
+          if (tab === "stopwatch") {
+            const elapsed = swRunning
+              ? swOffsetRef.current + Date.now() - swStartWallRef.current
+              : swElapsed;
+            display = fmtMs(elapsed);
+            pct = ((elapsed / 1000) % 60) / 60 * 100;
+            color = "#6366f1";
+            isDone = false;
+          } else {
+            const rem = (timerRunning && timerEndRef.current > 0)
+              ? Math.max(0, Math.ceil((timerEndRef.current - Date.now()) / 1000))
+              : (timerRemaining ?? (timerH * 3600 + timerM * 60 + timerS));
+            const effTotal = timerTotal > 0 ? timerTotal : (timerH * 3600 + timerM * 60 + timerS);
+            pct = isDone ? 0 : (effTotal > 0 ? Math.min(100, (rem / effTotal) * 100) : 100);
+            color = isDone ? "#22c55e" : pct < 20 ? "#ef4444" : pct < 50 ? "#f59e0b" : "#6366f1";
+            display = fmtSec(rem);
+          }
+          drawCanvasFrame(ctx, canvas.width, canvas.height, display, pct, color, currentTabLabel, isDone);
+        }
+      }
+    }
   };
 
   // ─── Background keep: silent audio + Media Session ────────────────────────────
