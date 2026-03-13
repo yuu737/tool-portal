@@ -70,6 +70,35 @@ function boxBlur(
   return out;
 }
 
+/** Otsu's method: find threshold that maximises between-class variance. */
+function otsuThreshold(mask: Uint8Array | Uint8Array<ArrayBuffer>): number {
+  const hist = new Int32Array(256);
+  for (let i = 0; i < mask.length; i++) hist[mask[i]]++;
+  const n = mask.length;
+  let sum = 0;
+  for (let i = 0; i < 256; i++) sum += i * hist[i];
+  let wB = 0, sumB = 0, maxVar = 0, best = 127;
+  for (let i = 0; i < 256; i++) {
+    wB += hist[i];
+    if (wB === 0 || wB === n) continue;
+    const wF = n - wB;
+    sumB += i * hist[i];
+    const mB = sumB / wB;
+    const mF = (sum - sumB) / wF;
+    const v = wB * wF * (mB - mF) ** 2;
+    if (v > maxVar) { maxVar = v; best = i; }
+  }
+  return best;
+}
+
+/**
+ * Build composited RGBA from raw mask using:
+ *  1. smooth – box-blur the mask before thresholding (noise reduction)
+ *  2. Otsu threshold  – auto-computed from the raw mask
+ *  3. refine  – controls soft-range around the threshold
+ *               (0 = very soft ±80, 10 = hard binary ±0)
+ *  4. feather – box-blur after thresholding (edge softening)
+ */
 function buildComposite(
   origRGBA: Uint8ClampedArray,
   rawMask: Uint8Array,
@@ -79,18 +108,27 @@ function buildComposite(
   feather: number,
   refine: number
 ): Uint8ClampedArray {
+  // Otsu on the raw mask (bimodal distribution is clearest before blur)
+  const thresh = otsuThreshold(rawMask);
+
+  // Pre-threshold smooth
   let mask: Uint8Array<ArrayBuffer> = rawMask.slice();
+  if (smooth > 0) mask = boxBlur(mask, width, height, smooth);
 
-  const blur = Math.round(smooth * 1 + feather * 2);
-  if (blur > 0) mask = boxBlur(mask, width, height, blur);
-
-  if (refine > 0) {
-    const factor = 1 + refine * 0.3;
-    for (let i = 0; i < mask.length; i++) {
-      const v = mask[i] / 255;
-      mask[i] = Math.max(0, Math.min(255, Math.round((0.5 + (v - 0.5) * factor) * 255)));
-    }
+  // Threshold clamp with softness controlled by refine
+  const softRange = (10 - refine) * 8;           // refine=10 → 0, refine=0 → 80
+  const lo = Math.max(0, thresh - softRange);
+  const hi = Math.min(255, thresh + softRange);
+  const range = hi - lo;
+  for (let i = 0; i < mask.length; i++) {
+    const v = mask[i];
+    if (v <= lo) mask[i] = 0;
+    else if (v >= hi) mask[i] = 255;
+    else mask[i] = range > 0 ? Math.round((v - lo) / range * 255) : (v >= thresh ? 255 : 0);
   }
+
+  // Post-threshold feather (soften the hard boundary)
+  if (feather > 0) mask = boxBlur(mask, width, height, feather * 2);
 
   const result = new Uint8ClampedArray(origRGBA.length);
   for (let i = 0; i < width * height; i++) {
@@ -189,6 +227,13 @@ export default function BackgroundRemoverTool({ dict }: Props) {
           maskDataRef.current  = new Uint8Array(msg.maskBuffer!);
           origRGBARef.current  = new Uint8ClampedArray(msg.origBuffer!);
           imgDimsRef.current   = { width: w, height: h };
+          // Auto-apply optimal defaults for clean separation:
+          //   smooth=1  : light pre-blur to reduce mask noise
+          //   refine=8  : hard threshold (softRange=16) → removes faint bg residue
+          //   feather=1 : slight post-blur for natural edges
+          setSmooth(1);
+          setRefine(8);
+          setFeather(1);
           setStatus("done");
           break;
         }
@@ -239,12 +284,37 @@ export default function BackgroundRemoverTool({ dict }: Props) {
     origRGBARef.current  = null;
     setStatus("processing");
 
-    file.arrayBuffer().then((buf) => {
+    // Downscale to max 1536px before inference.
+    // RMBG-1.4 processes at 1024×1024 internally, so sending a 6000×4000 image
+    // just wastes decode/encode time without any quality benefit.
+    const MAX_SIDE = 1536;
+    (async () => {
+      let imageBuffer: ArrayBuffer;
+      let mimeType: string;
+
+      const bitmap = await createImageBitmap(file);
+      const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height));
+      if (scale < 1) {
+        const w = Math.round(bitmap.width * scale);
+        const h = Math.round(bitmap.height * scale);
+        const cv = Object.assign(document.createElement("canvas"), { width: w, height: h });
+        cv.getContext("2d")!.drawImage(bitmap, 0, 0, w, h);
+        bitmap.close();
+        imageBuffer = await new Promise<ArrayBuffer>((res, rej) =>
+          cv.toBlob((b) => (b ? b.arrayBuffer().then(res) : rej(new Error("toBlob failed"))), "image/png")
+        );
+        mimeType = "image/png";
+      } else {
+        bitmap.close();
+        imageBuffer = await file.arrayBuffer();
+        mimeType = file.type;
+      }
+
       workerRef.current!.postMessage(
-        { type: "process", data: { imageBuffer: buf, mimeType: file.type } },
-        [buf]
+        { type: "process", data: { imageBuffer, mimeType } },
+        [imageBuffer]
       );
-    });
+    })();
   }, []);
 
   // -- Drag & Drop --
