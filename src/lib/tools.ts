@@ -17,6 +17,34 @@ export type Tool = {
 
 export const tools: Tool[] = [
   {
+    id: "background-remover",
+    href: "/tools/background-remover",
+    icon: "Eraser",
+    category: "TEXT_PROCESS",
+    tags: ["Image", "AI", "Privacy", "Converter"],
+  },
+  {
+    id: "image-optimizer",
+    href: "/tools/image-optimizer",
+    icon: "ImageDown",
+    category: "TEXT_PROCESS",
+    tags: ["Image", "Converter", "Optimizer", "Privacy"],
+  },
+  {
+    id: "qr-code",
+    href: "/tools/qr-code",
+    icon: "QrCode",
+    category: "LIFE_UTILITY",
+    tags: ["QR", "Generator", "Scanner"],
+  },
+  {
+    id: "timer-counter",
+    href: "/tools/timer-counter",
+    icon: "Timer",
+    category: "LIFE_UTILITY",
+    tags: ["Timer", "Stopwatch", "Counter", "Pomodoro"],
+  },
+  {
     id: "word-count",
     href: "/tools/word-count",
     icon: "FileText",
@@ -29,13 +57,6 @@ export const tools: Tool[] = [
     icon: "KeyRound",
     category: "DEV_SYSTEM",
     tags: ["Security", "Privacy", "Generator"],
-  },
-  {
-    id: "qr-code",
-    href: "/tools/qr-code",
-    icon: "QrCode",
-    category: "LIFE_UTILITY",
-    tags: ["QR", "Generator", "Scanner"],
   },
   {
     id: "images-to-pdf",
@@ -66,31 +87,10 @@ export const tools: Tool[] = [
     tags: ["Encoder", "Decoder", "Developer"],
   },
   {
-    id: "timer-counter",
-    href: "/tools/timer-counter",
-    icon: "Timer",
-    category: "LIFE_UTILITY",
-    tags: ["Timer", "Stopwatch", "Counter", "Pomodoro"],
-  },
-  {
     id: "grinding-companion",
     href: "/tools/grinding-companion",
     icon: "Target",
     category: "GAMING_STATS",
     tags: ["Gaming", "Probability", "Counter", "Timer"],
-  },
-  {
-    id: "image-optimizer",
-    href: "/tools/image-optimizer",
-    icon: "ImageDown",
-    category: "TEXT_PROCESS",
-    tags: ["Image", "Converter", "Optimizer", "Privacy"],
-  },
-  {
-    id: "background-remover",
-    href: "/tools/background-remover",
-    icon: "Eraser",
-    category: "TEXT_PROCESS",
-    tags: ["Image", "AI", "Privacy", "Converter"],
   },
 ];
