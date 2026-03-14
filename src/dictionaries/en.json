@@ -1331,15 +1331,16 @@
       "refine": "Refine"
     },
     "brush": {
-      "label": "Brush Correction",
+      "label": "Edit Tools",
       "none": "View",
-      "erase": "Erase",
-      "restore": "Restore",
-      "ai": "AI Refine",
+      "erase": "Erase Brush",
+      "restore": "Restore Brush",
+      "lassoErase": "Lasso Erase",
+      "lassoRestore": "Lasso Restore",
+      "lassoHint": "Draw freehand to fill the selected area",
+      "compare": "Compare",
       "size": "Brush Size",
       "undo": "Undo",
-      "aiHint": "Drag to select an area for AI re-inference",
-      "aiRefining": "AI refining...",
       "zoom": "Zoom"
     },
     "meta": {

@@ -432,11 +432,12 @@ export type Dictionary = {
       none: string;
       erase: string;
       restore: string;
-      ai: string;
+      lassoErase: string;
+      lassoRestore: string;
+      lassoHint: string;
+      compare: string;
       size: string;
       undo: string;
-      aiHint: string;
-      aiRefining: string;
       zoom: string;
     };
     meta: ToolMeta;

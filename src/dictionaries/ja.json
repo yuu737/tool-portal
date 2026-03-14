@@ -1330,15 +1330,16 @@
       "refine": "リファイン"
     },
     "brush": {
-      "label": "ブラシ補正",
-      "none": "確認",
-      "erase": "削除",
-      "restore": "復元",
-      "ai": "AI補正",
+      "label": "補正ツール",
+      "none": "表示",
+      "erase": "削除ブラシ",
+      "restore": "復元ブラシ",
+      "lassoErase": "ラッソ削除",
+      "lassoRestore": "ラッソ復元",
+      "lassoHint": "範囲をフリーハンドで囲むと一括適用",
+      "compare": "比較",
       "size": "ブラシサイズ",
       "undo": "元に戻す",
-      "aiHint": "範囲をドラッグしてAIで再推論",
-      "aiRefining": "AI補正中...",
       "zoom": "ズーム"
     },
     "meta": {

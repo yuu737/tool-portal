@@ -9,7 +9,6 @@ import {
   type DragEvent,
   type ClipboardEvent,
   type ChangeEvent,
-  type ReactNode,
 } from "react";
 import {
   Upload,
@@ -22,25 +21,25 @@ import {
   ImageOff,
   Eraser,
   Paintbrush2,
-  Wand2,
   Undo2,
   ZoomIn,
   ZoomOut,
   MousePointer2,
+  Lasso,
 } from "lucide-react";
 import type { Dictionary } from "@/lib/getDictionary";
 
 type Props = { dict: Dictionary["backgroundRemover"] };
 
 type Status =
-  | "idle"        // component mounted, model not loaded
-  | "loading"     // model download in progress
-  | "ready"       // model loaded, waiting for image
-  | "processing"  // AI inference running
-  | "done"        // result available
+  | "idle"
+  | "loading"
+  | "ready"
+  | "processing"
+  | "done"
   | "error";
 
-type EditMode = "none" | "erase" | "restore" | "ai";
+type EditMode = "none" | "erase" | "restore" | "lasso-erase" | "lasso-restore";
 
 // ─── Pure utility functions ───────────────────────────────────────────────────
 
@@ -98,10 +97,6 @@ function otsuThreshold(mask: Uint8Array | Uint8Array<ArrayBuffer>): number {
   return best;
 }
 
-/**
- * Build alpha channel from raw mask.
- * smooth → pre-blur; Otsu threshold; refine → soft-range; feather → post-blur.
- */
 function buildCompositeAlpha(
   rawMask: Uint8Array,
   width: number,
@@ -130,7 +125,6 @@ function buildCompositeAlpha(
   return mask;
 }
 
-/** Map a pointer event to image-pixel coordinates on a canvas element. */
 function toImgCoords(
   e: { clientX: number; clientY: number },
   canvas: HTMLCanvasElement
@@ -142,59 +136,95 @@ function toImgCoords(
   };
 }
 
+/**
+ * Fill pixels inside a lasso polygon into the override array.
+ * Uses canvas rasterization (fast for any polygon complexity).
+ */
+function fillLasso(
+  override: Uint8Array,
+  width: number,
+  height: number,
+  points: { x: number; y: number }[],
+  val: 1 | 2
+): void {
+  if (points.length < 3) return;
+  const oc = document.createElement("canvas");
+  oc.width = width;
+  oc.height = height;
+  const ctx = oc.getContext("2d")!;
+  ctx.beginPath();
+  ctx.moveTo(points[0].x, points[0].y);
+  for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
+  ctx.closePath();
+  ctx.fillStyle = "white";
+  ctx.fill();
+  const d = ctx.getImageData(0, 0, width, height).data;
+  for (let i = 0; i < width * height; i++) {
+    if (d[i * 4 + 3] > 0) override[i] = val;
+  }
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function BackgroundRemoverTool({ dict }: Props) {
   // ── state ──
-  const [status,       setStatus]       = useState<Status>("idle");
-  const [loadPct,      setLoadPct]      = useState(0);
-  const [loadFile,     setLoadFile]     = useState("");
-  const [errorMsg,     setErrorMsg]     = useState("");
-  const [origUrl,      setOrigUrl]      = useState("");
-  const [isDragging,   setIsDragging]   = useState(false);
-  const [sliderPos,    setSliderPos]    = useState(50);
-  const [isSliding,    setIsSliding]    = useState(false);
-  const [bgType,       setBgType]       = useState<"transparent" | "white" | "black" | "custom">("transparent");
-  const [customColor,  setCustomColor]  = useState("#00d4ff");
-  const [smooth,       setSmooth]       = useState(0);
-  const [feather,      setFeather]      = useState(0);
-  const [refine,       setRefine]       = useState(0);
-  // brush state
-  const [editMode,     setEditMode]     = useState<EditMode>("none");
-  const [brushSize,    setBrushSize]    = useState(20);
-  const [zoom,         setZoom]         = useState(1);
-  const [canUndo,      setCanUndo]      = useState(false);
-  const [isAiRefining, setIsAiRefining] = useState(false);
+  const [status,      setStatus]      = useState<Status>("idle");
+  const [loadPct,     setLoadPct]     = useState(0);
+  const [loadFile,    setLoadFile]    = useState("");
+  const [errorMsg,    setErrorMsg]    = useState("");
+  const [origUrl,     setOrigUrl]     = useState("");
+  const [isDragging,  setIsDragging]  = useState(false);
+  const [sliderPos,   setSliderPos]   = useState(50);
+  const [showCompare, setShowCompare] = useState(false);
+  const [bgType,      setBgType]      = useState<"transparent" | "white" | "black" | "custom">("transparent");
+  const [customColor, setCustomColor] = useState("#00d4ff");
+  const [smooth,      setSmooth]      = useState(0);
+  const [feather,     setFeather]     = useState(0);
+  const [refine,      setRefine]      = useState(0);
+  const [editMode,    setEditMode]    = useState<EditMode>("none");
+  const [brushSize,   setBrushSize]   = useState(20);
+  const [zoom,        setZoom]        = useState(1);
+  const [canUndo,     setCanUndo]     = useState(false);
 
   // ── core refs ──
   const workerRef          = useRef<Worker | null>(null);
   const compositeCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const innerContainerRef  = useRef<HTMLDivElement | null>(null);   // used for slider width
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef       = useRef<HTMLInputElement | null>(null);
   const prevOrigUrlRef     = useRef("");
-  const maskDataRef        = useRef<Uint8Array | null>(null);       // raw AI mask (mutable for ROI)
+  const maskDataRef        = useRef<Uint8Array | null>(null);
   const origRGBARef        = useRef<Uint8ClampedArray | null>(null);
   const imgDimsRef         = useRef({ width: 0, height: 0 });
 
   // ── brush / overlay refs ──
-  const computedAlphaRef   = useRef<Uint8Array | null>(null);       // cached alpha after edge-adjust
-  const brushOverrideRef   = useRef<Uint8Array | null>(null);       // 0=AI, 1=force-erase, 2=force-restore
-  const maskHistoryRef     = useRef<Uint8Array[]>([]);
-  const brushCanvasRef     = useRef<HTMLCanvasElement | null>(null);
-  const isDrawingRef       = useRef(false);
-  const lastPosRef         = useRef<{ x: number; y: number } | null>(null);
-  const aiRectStartRef     = useRef<{ x: number; y: number } | null>(null);
-  const aiRectRef          = useRef<{ x: number; y: number; w: number; h: number } | null>(null);
+  const computedAlphaRef  = useRef<Uint8Array | null>(null);
+  const brushOverrideRef  = useRef<Uint8Array | null>(null);
+  const maskHistoryRef    = useRef<Uint8Array[]>([]);
+  const brushCanvasRef    = useRef<HTMLCanvasElement | null>(null);
+  const isDrawingRef      = useRef(false);
+  const lastPosRef        = useRef<{ x: number; y: number } | null>(null);
 
-  // ── stale-closure-safe refs for bg params (needed in renderCanvas called from event handlers) ──
-  const bgTypeRef      = useRef(bgType);
-  const customColorRef = useRef(customColor);
-  const smoothRef      = useRef(smooth);
-  const featherRef     = useRef(feather);
-  const refineRef      = useRef(refine);
-  const editModeRef    = useRef(editMode);
-  const brushSizeRef   = useRef(brushSize);
-  const isAiRefiningRef = useRef(isAiRefining);
+  // ── lasso refs ──
+  const lassoPointsRef    = useRef<{ x: number; y: number }[]>([]);
+
+  // ── pinch zoom refs ──
+  const activePointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pinchInitDistRef  = useRef<number | null>(null);
+  const pinchInitZoomRef  = useRef<number>(1);
+
+  // ── slider ref (avoids stale closure on mobile) ──
+  const isSlidingRef      = useRef(false);
+
+  // ── stale-closure-safe refs (read inside event handlers) ──
+  const bgTypeRef       = useRef(bgType);
+  const customColorRef  = useRef(customColor);
+  const smoothRef       = useRef(smooth);
+  const featherRef      = useRef(feather);
+  const refineRef       = useRef(refine);
+  const editModeRef     = useRef(editMode);
+  const brushSizeRef    = useRef(brushSize);
+  const showCompareRef  = useRef(showCompare);
+  const zoomRef         = useRef(zoom);
 
   useEffect(() => { bgTypeRef.current      = bgType;      }, [bgType]);
   useEffect(() => { customColorRef.current = customColor; }, [customColor]);
@@ -203,9 +233,10 @@ export default function BackgroundRemoverTool({ dict }: Props) {
   useEffect(() => { refineRef.current      = refine;      }, [refine]);
   useEffect(() => { editModeRef.current    = editMode;    }, [editMode]);
   useEffect(() => { brushSizeRef.current   = brushSize;   }, [brushSize]);
-  useEffect(() => { isAiRefiningRef.current = isAiRefining; }, [isAiRefining]);
+  useEffect(() => { showCompareRef.current = showCompare; }, [showCompare]);
+  useEffect(() => { zoomRef.current        = zoom;        }, [zoom]);
 
-  // ─── renderCanvas (imperative, reads only from refs) ──────────────────────
+  // ─── renderCanvas ──────────────────────────────────────────────────────────
   const renderCanvas = useCallback(() => {
     const canvas = compositeCanvasRef.current;
     const orig   = origRGBARef.current;
@@ -245,19 +276,7 @@ export default function BackgroundRemoverTool({ dict }: Props) {
     ctx.drawImage(tmp, 0, 0);
   }, []);
 
-  // ─── updateComputed: recalculates edge-adjusted alpha, then renders ────────
-  const updateComputed = useCallback(() => {
-    const raw = maskDataRef.current;
-    if (!raw) return;
-    const { width, height } = imgDimsRef.current;
-    computedAlphaRef.current = buildCompositeAlpha(
-      raw, width, height,
-      smoothRef.current, featherRef.current, refineRef.current
-    );
-    renderCanvas();
-  }, [renderCanvas]);
-
-  // ─── Brush helpers ────────────────────────────────────────────────────────
+  // ─── Brush helpers ─────────────────────────────────────────────────────────
 
   const applyBrush = useCallback((cx: number, cy: number, mode: "erase" | "restore") => {
     const override = brushOverrideRef.current;
@@ -277,9 +296,7 @@ export default function BackgroundRemoverTool({ dict }: Props) {
   }, []);
 
   const applyBrushLine = useCallback((
-    x1: number, y1: number,
-    x2: number, y2: number,
-    mode: "erase" | "restore"
+    x1: number, y1: number, x2: number, y2: number, mode: "erase" | "restore"
   ) => {
     const dx = x2 - x1, dy = y2 - y1;
     const dist = Math.hypot(dx, dy);
@@ -291,7 +308,7 @@ export default function BackgroundRemoverTool({ dict }: Props) {
     }
   }, [applyBrush]);
 
-  /** Draw brush cursor / AI selection rect on the overlay canvas. */
+  /** Draw brush cursor or lasso path overlay on the brush canvas. */
   const drawOverlay = useCallback((imgX?: number, imgY?: number) => {
     const bc = brushCanvasRef.current;
     const cc = compositeCanvasRef.current;
@@ -304,11 +321,11 @@ export default function BackgroundRemoverTool({ dict }: Props) {
     if (!ctx) return;
     ctx.clearRect(0, 0, bc.width, bc.height);
 
-    const mode    = editModeRef.current;
-    const scaleX  = rect.width  / cc.width;
-    const scaleY  = rect.height / cc.height;
+    const mode   = editModeRef.current;
+    const scaleX = rect.width  / cc.width;
+    const scaleY = rect.height / cc.height;
 
-    if (imgX !== undefined && imgY !== undefined && (mode === "erase" || mode === "restore")) {
+    if ((mode === "erase" || mode === "restore") && imgX !== undefined && imgY !== undefined) {
       const cx = imgX * scaleX;
       const cy = imgY * scaleY;
       const r  = (brushSizeRef.current / 2) * scaleX;
@@ -319,31 +336,43 @@ export default function BackgroundRemoverTool({ dict }: Props) {
       ctx.stroke();
       ctx.fillStyle = mode === "erase" ? "rgba(239,68,68,0.12)" : "rgba(34,197,94,0.12)";
       ctx.fill();
+      return;
     }
 
-    if (mode === "ai") {
+    if (mode === "lasso-erase" || mode === "lasso-restore") {
+      const pts   = lassoPointsRef.current;
+      const color = mode === "lasso-erase" ? "rgba(239,68,68,0.9)"  : "rgba(34,197,94,0.9)";
+      const fill  = mode === "lasso-erase" ? "rgba(239,68,68,0.10)" : "rgba(34,197,94,0.10)";
+
+      if (pts.length >= 1) {
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x * scaleX, pts[0].y * scaleY);
+        for (let i = 1; i < pts.length; i++) {
+          ctx.lineTo(pts[i].x * scaleX, pts[i].y * scaleY);
+        }
+        if (imgX !== undefined && imgY !== undefined) {
+          ctx.lineTo(imgX * scaleX, imgY * scaleY);
+        }
+        ctx.closePath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([5, 3]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = fill;
+        ctx.fill();
+      }
+
       // Crosshair cursor
       if (imgX !== undefined && imgY !== undefined) {
-        const cx = imgX * scaleX;
-        const cy = imgY * scaleY;
-        ctx.strokeStyle = "rgba(99,102,241,0.85)";
+        const cx = imgX * scaleX, cy = imgY * scaleY;
+        ctx.strokeStyle = color;
         ctx.lineWidth = 1;
         ctx.setLineDash([]);
         ctx.beginPath();
-        ctx.moveTo(cx - 10, cy); ctx.lineTo(cx + 10, cy);
-        ctx.moveTo(cx, cy - 10); ctx.lineTo(cx, cy + 10);
+        ctx.moveTo(cx - 8, cy); ctx.lineTo(cx + 8, cy);
+        ctx.moveTo(cx, cy - 8); ctx.lineTo(cx, cy + 8);
         ctx.stroke();
-      }
-      // Selection rectangle
-      const rect2 = aiRectRef.current;
-      if (rect2 && rect2.w > 2 && rect2.h > 2) {
-        ctx.strokeStyle = "rgba(99,102,241,0.9)";
-        ctx.lineWidth = 1.5;
-        ctx.setLineDash([5, 4]);
-        ctx.strokeRect(rect2.x * scaleX, rect2.y * scaleY, rect2.w * scaleX, rect2.h * scaleY);
-        ctx.fillStyle = "rgba(99,102,241,0.08)";
-        ctx.setLineDash([]);
-        ctx.fillRect(rect2.x * scaleX, rect2.y * scaleY, rect2.w * scaleX, rect2.h * scaleY);
       }
     }
   }, []);
@@ -366,12 +395,6 @@ export default function BackgroundRemoverTool({ dict }: Props) {
     renderCanvas();
   }, [renderCanvas]);
 
-  const triggerAIROI = useCallback((x: number, y: number, w: number, h: number) => {
-    if (!workerRef.current) return;
-    workerRef.current.postMessage({ type: "roi", data: { x, y, w, h } });
-    setIsAiRefining(true);
-  }, []);
-
   // ─── Worker init ──────────────────────────────────────────────────────────
   useEffect(() => {
     const worker = new Worker(
@@ -389,11 +412,6 @@ export default function BackgroundRemoverTool({ dict }: Props) {
         origBuffer?: ArrayBuffer;
         width?: number;
         height?: number;
-        maskPatch?: ArrayBuffer;
-        x?: number;
-        y?: number;
-        w?: number;
-        h?: number;
       };
 
       switch (msg.type) {
@@ -413,18 +431,17 @@ export default function BackgroundRemoverTool({ dict }: Props) {
         case "result": {
           const w = msg.width!;
           const h = msg.height!;
-          maskDataRef.current  = new Uint8Array(msg.maskBuffer!);
-          origRGBARef.current  = new Uint8ClampedArray(msg.origBuffer!);
-          imgDimsRef.current   = { width: w, height: h };
-          // Init brush state
+          maskDataRef.current      = new Uint8Array(msg.maskBuffer!);
+          origRGBARef.current      = new Uint8ClampedArray(msg.origBuffer!);
+          imgDimsRef.current       = { width: w, height: h };
           brushOverrideRef.current = new Uint8Array(w * h);
           maskHistoryRef.current   = [];
-          aiRectRef.current        = null;
+          lassoPointsRef.current   = [];
           setCanUndo(false);
           setEditMode("none");
+          setShowCompare(false);
           setZoom(1);
-          setIsAiRefining(false);
-          // Set edge defaults (effect fires after these batched updates)
+          // Trigger edge-adjust effect via batched state updates
           setSmooth(1);
           setRefine(8);
           setFeather(1);
@@ -432,62 +449,9 @@ export default function BackgroundRemoverTool({ dict }: Props) {
           break;
         }
 
-        case "roi-inferring":
-          // isAiRefining already set by triggerAIROI, nothing extra needed
-          break;
-
-        case "roi-result": {
-          const patch = new Uint8Array(msg.maskPatch!);
-          const { x: px, y: py, w: pw, h: ph } = msg as Required<typeof msg>;
-          const { width: imgW } = imgDimsRef.current;
-
-          // Apply patch to raw mask
-          if (maskDataRef.current) {
-            for (let ry = 0; ry < ph; ry++) {
-              for (let rx = 0; rx < pw; rx++) {
-                const idx = (py + ry) * imgW + (px + rx);
-                if (idx < maskDataRef.current.length) {
-                  maskDataRef.current[idx] = patch[ry * pw + rx];
-                }
-              }
-            }
-            // Clear brush overrides in the refined region
-            if (brushOverrideRef.current) {
-              for (let ry = 0; ry < ph; ry++) {
-                for (let rx = 0; rx < pw; rx++) {
-                  const idx = (py + ry) * imgW + (px + rx);
-                  if (idx < brushOverrideRef.current.length) {
-                    brushOverrideRef.current[idx] = 0;
-                  }
-                }
-              }
-            }
-          }
-
-          // Recompute with current edge params (read from refs — no stale closure)
-          const raw = maskDataRef.current;
-          if (raw) {
-            const { width, height } = imgDimsRef.current;
-            computedAlphaRef.current = buildCompositeAlpha(
-              raw, width, height,
-              smoothRef.current, featherRef.current, refineRef.current
-            );
-            renderCanvas();
-          }
-          aiRectRef.current = null;
-          setIsAiRefining(false);
-          break;
-        }
-
         case "error":
-          // If error during ROI, just clear refining state (don't break the result view)
-          if (isAiRefiningRef.current) {
-            setIsAiRefining(false);
-            aiRectRef.current = null;
-          } else {
-            setStatus("error");
-            setErrorMsg(msg.message ?? "Unknown error");
-          }
+          setStatus("error");
+          setErrorMsg(msg.message ?? "Unknown error");
           break;
       }
     };
@@ -512,6 +476,21 @@ export default function BackgroundRemoverTool({ dict }: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, bgType, customColor, smooth, feather, refine, renderCanvas]);
 
+  // ─── Ctrl+Wheel zoom (non-passive) ────────────────────────────────────────
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const handler = (e: WheelEvent) => {
+      if (!e.ctrlKey) return;
+      e.preventDefault();
+      const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+      setZoom((z) => Math.min(4, Math.max(0.5, parseFloat((z * factor).toFixed(2)))));
+    };
+    el.addEventListener("wheel", handler, { passive: false });
+    return () => el.removeEventListener("wheel", handler);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
+
   // ─── File handler ─────────────────────────────────────────────────────────
   const handleFile = useCallback((file: File) => {
     if (!file.type.startsWith("image/")) return;
@@ -519,17 +498,18 @@ export default function BackgroundRemoverTool({ dict }: Props) {
 
     if (prevOrigUrlRef.current) URL.revokeObjectURL(prevOrigUrlRef.current);
     const url = URL.createObjectURL(file);
-    prevOrigUrlRef.current = url;
+    prevOrigUrlRef.current   = url;
     setOrigUrl(url);
     maskDataRef.current      = null;
     origRGBARef.current      = null;
     computedAlphaRef.current = null;
     brushOverrideRef.current = null;
     maskHistoryRef.current   = [];
+    lassoPointsRef.current   = [];
     setCanUndo(false);
     setEditMode("none");
+    setShowCompare(false);
     setZoom(1);
-    setIsAiRefining(false);
     setStatus("processing");
 
     file.arrayBuffer().then((imageBuffer) => {
@@ -566,88 +546,137 @@ export default function BackgroundRemoverTool({ dict }: Props) {
     if (e.target.files?.[0]) handleFile(e.target.files[0]);
   };
 
+  // ─── Slider helper ────────────────────────────────────────────────────────
+  const updateSlider = useCallback((clientX: number) => {
+    const cc = compositeCanvasRef.current;
+    if (!cc) return;
+    const rect = cc.getBoundingClientRect();
+    setSliderPos(Math.max(0, Math.min(100, (clientX - rect.left) / rect.width * 100)));
+  }, []);
+
   // ─── Canvas pointer handlers ──────────────────────────────────────────────
-  const onCanvasPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (editMode === "none") {
-      // Before/after slider
-      setIsSliding(true);
-      e.currentTarget.setPointerCapture(e.pointerId);
+  const onCanvasPointerDown = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
+    activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    // Transition to pinch when two fingers land
+    if (activePointersRef.current.size === 2) {
+      const pts = Array.from(activePointersRef.current.values());
+      pinchInitDistRef.current  = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      pinchInitZoomRef.current  = zoomRef.current;
+      isDrawingRef.current      = false;
+      isSlidingRef.current      = false;
+      lassoPointsRef.current    = [];
       return;
     }
-    if (!compositeCanvasRef.current) return;
+
     e.currentTarget.setPointerCapture(e.pointerId);
+
+    const mode = editModeRef.current;
+
+    if (mode === "none") {
+      if (showCompareRef.current) {
+        isSlidingRef.current = true;
+        updateSlider(e.clientX);
+      }
+      return;
+    }
+
+    if (!compositeCanvasRef.current) return;
     const { x, y } = toImgCoords(e, compositeCanvasRef.current);
 
-    if (editMode === "erase" || editMode === "restore") {
+    if (mode === "erase" || mode === "restore") {
       pushHistory();
       isDrawingRef.current = true;
       lastPosRef.current   = { x, y };
-      applyBrush(x, y, editMode);
+      applyBrush(x, y, mode);
       renderCanvas();
-    } else if (editMode === "ai") {
-      if (isAiRefiningRef.current) return;
-      isDrawingRef.current  = true;
-      aiRectStartRef.current = { x, y };
-      aiRectRef.current      = { x, y, w: 0, h: 0 };
+    } else if (mode === "lasso-erase" || mode === "lasso-restore") {
+      pushHistory();
+      isDrawingRef.current   = true;
+      lassoPointsRef.current = [{ x, y }];
       drawOverlay(x, y);
     }
-  };
+  }, [updateSlider, pushHistory, applyBrush, renderCanvas, drawOverlay]);
 
-  const onCanvasPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (editMode === "none") {
-      if (!isSliding || !innerContainerRef.current) return;
-      const rect = innerContainerRef.current.getBoundingClientRect();
-      const xRatio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-      setSliderPos(xRatio * 100);
+  const onCanvasPointerMove = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
+    if (activePointersRef.current.has(e.pointerId)) {
+      activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    }
+
+    // Pinch zoom
+    if (activePointersRef.current.size === 2 && pinchInitDistRef.current !== null) {
+      const pts  = Array.from(activePointersRef.current.values());
+      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      const newZ = Math.min(4, Math.max(0.5,
+        parseFloat((pinchInitZoomRef.current * dist / pinchInitDistRef.current).toFixed(2))
+      ));
+      setZoom(newZ);
       return;
     }
+
+    const mode = editModeRef.current;
+
+    if (mode === "none") {
+      if (isSlidingRef.current) updateSlider(e.clientX);
+      return;
+    }
+
     if (!compositeCanvasRef.current) return;
     const { x, y } = toImgCoords(e, compositeCanvasRef.current);
 
-    if (editMode === "erase" || editMode === "restore") {
+    if (mode === "erase" || mode === "restore") {
       drawOverlay(x, y);
       if (isDrawingRef.current && lastPosRef.current) {
-        applyBrushLine(lastPosRef.current.x, lastPosRef.current.y, x, y, editMode);
+        applyBrushLine(lastPosRef.current.x, lastPosRef.current.y, x, y, mode);
         lastPosRef.current = { x, y };
         renderCanvas();
       }
-    } else if (editMode === "ai") {
-      if (isDrawingRef.current && aiRectStartRef.current) {
-        const sx = aiRectStartRef.current.x;
-        const sy = aiRectStartRef.current.y;
-        aiRectRef.current = {
-          x: Math.min(sx, x),
-          y: Math.min(sy, y),
-          w: Math.abs(x - sx),
-          h: Math.abs(y - sy),
-        };
+    } else if (mode === "lasso-erase" || mode === "lasso-restore") {
+      if (isDrawingRef.current) {
+        const pts  = lassoPointsRef.current;
+        const last = pts[pts.length - 1];
+        if (!last || Math.hypot(x - last.x, y - last.y) >= 4) {
+          pts.push({ x, y });
+        }
       }
       drawOverlay(x, y);
     }
-  };
+  }, [updateSlider, applyBrushLine, renderCanvas, drawOverlay]);
 
-  const onCanvasPointerUp = () => {
-    if (editMode === "none") {
-      setIsSliding(false);
-      return;
-    }
+  const onCanvasPointerUp = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
+    activePointersRef.current.delete(e.pointerId);
+    if (activePointersRef.current.size < 2) pinchInitDistRef.current = null;
+
+    isSlidingRef.current = false;
     isDrawingRef.current = false;
     lastPosRef.current   = null;
 
-    if (editMode === "ai") {
-      const r = aiRectRef.current;
-      if (r && r.w > 5 && r.h > 5 && !isAiRefiningRef.current) {
-        triggerAIROI(r.x, r.y, r.w, r.h);
-      } else {
-        aiRectRef.current = null;
-        drawOverlay();
+    const mode = editModeRef.current;
+
+    if ((mode === "lasso-erase" || mode === "lasso-restore") && lassoPointsRef.current.length >= 3) {
+      const override = brushOverrideRef.current;
+      if (override) {
+        const { width, height } = imgDimsRef.current;
+        fillLasso(override, width, height, lassoPointsRef.current, mode === "lasso-erase" ? 1 : 2);
+        renderCanvas();
       }
     }
-  };
+    lassoPointsRef.current = [];
+    if (mode !== "none") drawOverlay();
+  }, [renderCanvas, drawOverlay]);
 
-  const onCanvasPointerLeave = () => {
-    if (editMode !== "none") drawOverlay(); // clear cursor
-  };
+  const onCanvasPointerLeave = useCallback(() => {
+    if (editModeRef.current !== "none") drawOverlay();
+  }, [drawOverlay]);
+
+  const onCanvasPointerCancel = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
+    activePointersRef.current.delete(e.pointerId);
+    pinchInitDistRef.current = null;
+    isSlidingRef.current     = false;
+    isDrawingRef.current     = false;
+    lassoPointsRef.current   = [];
+    drawOverlay();
+  }, [drawOverlay]);
 
   // ─── Download / reset ─────────────────────────────────────────────────────
   const downloadPNG = () => {
@@ -667,10 +696,13 @@ export default function BackgroundRemoverTool({ dict }: Props) {
     computedAlphaRef.current = null;
     brushOverrideRef.current = null;
     maskHistoryRef.current   = [];
+    lassoPointsRef.current   = [];
+    activePointersRef.current.clear();
+    pinchInitDistRef.current = null;
     setCanUndo(false);
     setEditMode("none");
+    setShowCompare(false);
     setZoom(1);
-    setIsAiRefining(false);
     setStatus("ready");
     setSmooth(0);
     setFeather(0);
@@ -678,21 +710,9 @@ export default function BackgroundRemoverTool({ dict }: Props) {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  // ─── updateComputed helper exposed to edge-param sliders ──────────────────
-  // (Just calling updateComputed is enough; the effect also handles it.
-  //  Here we expose it as a stable callback for clarity.)
-
   // ── derived flags ──
   const isReady = status === "ready" || status === "done";
   const isDone  = status === "done";
-
-  // ─── Brush toolbar helpers ────────────────────────────────────────────────
-  const brushModes: { mode: EditMode; label: string; icon: ReactNode }[] = [
-    { mode: "none",    label: dict.brush.none,    icon: <MousePointer2 size={14} /> },
-    { mode: "erase",   label: dict.brush.erase,   icon: <Eraser size={14} /> },
-    { mode: "restore", label: dict.brush.restore, icon: <Paintbrush2 size={14} /> },
-    { mode: "ai",      label: dict.brush.ai,      icon: <Wand2 size={14} /> },
-  ];
 
   // ─── JSX ─────────────────────────────────────────────────────────────────
   return (
@@ -780,32 +800,71 @@ export default function BackgroundRemoverTool({ dict }: Props) {
       {/* ── Result ── */}
       {isDone && (
         <>
-          {/* ── Brush toolbar ── */}
+          {/* ── Edit toolbar ── */}
           <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               {/* Mode buttons */}
               <div className="flex items-center gap-1 flex-wrap">
                 <span className="text-xs font-semibold text-gray-500 mr-1">{dict.brush.label}</span>
-                {brushModes.map(({ mode, label, icon }) => (
-                  <button
-                    key={mode}
-                    onClick={() => setEditMode(mode)}
-                    className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors
-                      ${editMode === mode
-                        ? mode === "erase"   ? "border-red-400   bg-red-50   text-red-700"
-                        : mode === "restore" ? "border-green-400 bg-green-50 text-green-700"
-                        : mode === "ai"      ? "border-indigo-400 bg-indigo-50 text-indigo-700"
-                        :                     "border-gray-400  bg-white    text-gray-700"
-                        : "border-gray-300 bg-white text-gray-600 hover:border-gray-400"}`}
-                  >
-                    {icon}
-                    {label}
-                  </button>
-                ))}
+
+                <button
+                  onClick={() => setEditMode("none")}
+                  className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors
+                    ${editMode === "none"
+                      ? "border-gray-400 bg-white text-gray-700"
+                      : "border-gray-300 bg-white text-gray-600 hover:border-gray-400"}`}
+                >
+                  <MousePointer2 size={14} />
+                  {dict.brush.none}
+                </button>
+
+                <button
+                  onClick={() => setEditMode("erase")}
+                  className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors
+                    ${editMode === "erase"
+                      ? "border-red-400 bg-red-50 text-red-700"
+                      : "border-gray-300 bg-white text-gray-600 hover:border-gray-400"}`}
+                >
+                  <Eraser size={14} />
+                  {dict.brush.erase}
+                </button>
+
+                <button
+                  onClick={() => setEditMode("restore")}
+                  className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors
+                    ${editMode === "restore"
+                      ? "border-green-400 bg-green-50 text-green-700"
+                      : "border-gray-300 bg-white text-gray-600 hover:border-gray-400"}`}
+                >
+                  <Paintbrush2 size={14} />
+                  {dict.brush.restore}
+                </button>
+
+                <button
+                  onClick={() => setEditMode("lasso-erase")}
+                  className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors
+                    ${editMode === "lasso-erase"
+                      ? "border-red-400 bg-red-50 text-red-700"
+                      : "border-gray-300 bg-white text-gray-600 hover:border-gray-400"}`}
+                >
+                  <Lasso size={14} />
+                  {dict.brush.lassoErase}
+                </button>
+
+                <button
+                  onClick={() => setEditMode("lasso-restore")}
+                  className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors
+                    ${editMode === "lasso-restore"
+                      ? "border-green-400 bg-green-50 text-green-700"
+                      : "border-gray-300 bg-white text-gray-600 hover:border-gray-400"}`}
+                >
+                  <Lasso size={14} />
+                  {dict.brush.lassoRestore}
+                </button>
               </div>
 
-              {/* Undo + Zoom */}
-              <div className="flex items-center gap-2">
+              {/* Undo + Zoom + Compare */}
+              <div className="flex items-center gap-2 flex-wrap">
                 <button
                   onClick={undo}
                   disabled={!canUndo}
@@ -815,9 +874,10 @@ export default function BackgroundRemoverTool({ dict }: Props) {
                   <Undo2 size={13} />
                   {dict.brush.undo}
                 </button>
+
                 <div className="flex items-center rounded-lg border border-gray-300 bg-white overflow-hidden">
                   <button
-                    onClick={() => setZoom((z) => Math.max(0.5, parseFloat((z - 0.5).toFixed(1))))}
+                    onClick={() => setZoom((z) => Math.max(0.5, parseFloat((z / 1.5).toFixed(2))))}
                     className="p-1.5 hover:bg-gray-100 transition-colors"
                     title={dict.brush.zoom}
                   >
@@ -827,17 +887,30 @@ export default function BackgroundRemoverTool({ dict }: Props) {
                     {Math.round(zoom * 100)}%
                   </span>
                   <button
-                    onClick={() => setZoom((z) => Math.min(4, parseFloat((z + 0.5).toFixed(1))))}
+                    onClick={() => setZoom((z) => Math.min(4, parseFloat((z * 1.5).toFixed(2))))}
                     className="p-1.5 hover:bg-gray-100 transition-colors"
                     title={dict.brush.zoom}
                   >
                     <ZoomIn size={14} className="text-gray-600" />
                   </button>
                 </div>
+
+                {editMode === "none" && (
+                  <button
+                    onClick={() => setShowCompare((v) => !v)}
+                    className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors
+                      ${showCompare
+                        ? "border-indigo-400 bg-indigo-50 text-indigo-700"
+                        : "border-gray-300 bg-white text-gray-600 hover:border-gray-400"}`}
+                  >
+                    <ChevronsLeftRight size={14} />
+                    {dict.brush.compare}
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* Brush size (erase / restore) */}
+            {/* Brush size slider (erase / restore only) */}
             {(editMode === "erase" || editMode === "restore") && (
               <label className="flex items-center gap-3">
                 <span className="text-xs text-gray-500 w-20 shrink-0">{dict.brush.size}</span>
@@ -850,15 +923,17 @@ export default function BackgroundRemoverTool({ dict }: Props) {
               </label>
             )}
 
-            {/* AI mode hint */}
-            {editMode === "ai" && (
-              <p className="text-xs text-indigo-600">{dict.brush.aiHint}</p>
+            {/* Lasso hint */}
+            {(editMode === "lasso-erase" || editMode === "lasso-restore") && (
+              <p className={`text-xs ${editMode === "lasso-erase" ? "text-red-600" : "text-green-600"}`}>
+                {dict.brush.lassoHint}
+              </p>
             )}
           </div>
 
           {/* ── Canvas area ── */}
-          <div className="space-y-2">
-            {editMode === "none" && (
+          <div className="space-y-1">
+            {showCompare && editMode === "none" && (
               <div className="flex items-center justify-between text-xs text-gray-400 px-1">
                 <span>{dict.beforeLabel}</span>
                 <span className="flex items-center gap-1">
@@ -869,30 +944,34 @@ export default function BackgroundRemoverTool({ dict }: Props) {
               </div>
             )}
 
-            {/* Scrollable zoom container */}
+            {/* Scrollable / zoomable container */}
             <div
+              ref={scrollContainerRef}
               className="overflow-auto rounded-2xl border border-gray-200 select-none"
               style={{
                 maxHeight: "70vh",
                 background: "repeating-conic-gradient(#e5e7eb 0% 25%, #fff 0% 50%) 50% / 20px 20px",
               }}
             >
-              {/* Inner: relative so overlays can be positioned inside */}
+              {/* Inner: sized by zoom; touch-action:none so browser doesn't interfere with pointer events */}
               <div
-                ref={innerContainerRef}
                 className="relative"
                 style={{
                   width: `${zoom * 100}%`,
                   minWidth: "100%",
+                  touchAction: "none",
                   cursor:
-                    editMode === "none"    ? "ew-resize"
-                    : editMode === "ai"    ? "crosshair"
-                    : "none",
+                    editMode === "none"
+                      ? (showCompare ? "ew-resize" : "default")
+                      : (editMode === "lasso-erase" || editMode === "lasso-restore")
+                        ? "crosshair"
+                        : "none",
                 }}
                 onPointerDown={onCanvasPointerDown}
                 onPointerMove={onCanvasPointerMove}
                 onPointerUp={onCanvasPointerUp}
                 onPointerLeave={onCanvasPointerLeave}
+                onPointerCancel={onCanvasPointerCancel}
               >
                 {/* Result canvas */}
                 <canvas
@@ -900,8 +979,8 @@ export default function BackgroundRemoverTool({ dict }: Props) {
                   className="block w-full h-auto"
                 />
 
-                {/* Before (original) — only in slider mode */}
-                {editMode === "none" && (
+                {/* Before (original) overlay — only in compare mode */}
+                {editMode === "none" && showCompare && (
                   <div
                     className="absolute inset-0 overflow-hidden pointer-events-none"
                     style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}
@@ -914,8 +993,8 @@ export default function BackgroundRemoverTool({ dict }: Props) {
                   </div>
                 )}
 
-                {/* Slider divider — only in slider mode */}
-                {editMode === "none" && (
+                {/* Slider divider — only in compare mode */}
+                {editMode === "none" && showCompare && (
                   <div
                     className="absolute top-0 bottom-0 w-0.5 bg-white shadow-[0_0_8px_rgba(0,0,0,0.4)] pointer-events-none"
                     style={{ left: `${sliderPos}%`, transform: "translateX(-50%)" }}
@@ -926,23 +1005,19 @@ export default function BackgroundRemoverTool({ dict }: Props) {
                   </div>
                 )}
 
-                {/* Brush / AI selection overlay canvas */}
+                {/* Brush / lasso overlay canvas */}
                 {editMode !== "none" && (
                   <canvas
                     ref={brushCanvasRef}
                     className="absolute inset-0 w-full h-full pointer-events-none"
                   />
                 )}
-
-                {/* AI refining spinner overlay */}
-                {isAiRefining && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/30 pointer-events-none rounded-2xl">
-                    <Loader2 size={28} className="animate-spin text-white" />
-                    <p className="text-sm font-semibold text-white">{dict.brush.aiRefining}</p>
-                  </div>
-                )}
               </div>
             </div>
+
+            <p className="text-xs text-gray-400 px-1 text-right">
+              {dict.brush.zoom}: Ctrl+Scroll / ピンチ
+            </p>
           </div>
 
           {/* ── Controls row ── */}
