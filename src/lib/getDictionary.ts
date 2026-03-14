@@ -398,6 +398,29 @@ export type Dictionary = {
     meta: ToolMeta;
     content: ToolContent;
   };
+  imageUpscaler: {
+    title: string;
+    description: string;
+    dropZone: { heading: string; sub: string };
+    selectFile: string;
+    pasteHint: string;
+    loadingModel: string;
+    downloadingModel: string;
+    modelReady: string;
+    processing: string;
+    scale: { label: string; x2: string; x4: string };
+    denoise: { label: string; none: string; low: string; high: string };
+    enhance: string;
+    beforeLabel: string;
+    afterLabel: string;
+    downloadPNG: string;
+    newImage: string;
+    privacyNote: string;
+    errorTitle: string;
+    metrics: { original: string; enhanced: string; dimensions: string };
+    meta: ToolMeta;
+    content: ToolContent;
+  };
   backgroundRemover: {
     title: string;
     description: string;

@@ -11,6 +11,7 @@ import {
   Target,
   ImageDown,
   Eraser,
+  ImageUpscale,
   type LucideIcon,
 } from "lucide-react";
 
@@ -26,6 +27,7 @@ const iconMap: Record<string, LucideIcon> = {
   Target,
   ImageDown,
   Eraser,
+  ImageUpscale,
 };
 
 export type LocalizedTool = {

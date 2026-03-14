@@ -17,6 +17,7 @@ const toolPaths = [
   "/tools/grinding-companion",
   "/tools/image-optimizer",
   "/tools/background-remover",
+  "/tools/image-upscaler",
 ];
 
 const staticPaths = ["", "/tools", "/about", "/privacy", "/contact"];

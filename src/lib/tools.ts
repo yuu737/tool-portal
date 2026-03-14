@@ -24,6 +24,13 @@ export const tools: Tool[] = [
     tags: ["Image", "AI", "Privacy", "Converter"],
   },
   {
+    id: "image-upscaler",
+    href: "/tools/image-upscaler",
+    icon: "ImageUpscale",
+    category: "TEXT_PROCESS",
+    tags: ["Image", "AI", "Upscaler", "Privacy"],
+  },
+  {
     id: "image-optimizer",
     href: "/tools/image-optimizer",
     icon: "ImageDown",
