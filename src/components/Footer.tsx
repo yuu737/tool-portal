@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { Locale, Dictionary } from "@/lib/getDictionary";
 
@@ -13,9 +14,7 @@ export default function Footer({ lang, dict }: Props) {
         <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
           {/* ロゴ・コピーライト */}
           <div className="flex items-center gap-2 text-sm text-gray-500">
-            <div className="flex h-6 w-6 items-center justify-center rounded bg-blue-600 text-xs font-bold text-white">
-              Y
-            </div>
+            <Image src="/logo.png" alt="Yuustudio Logo" width={24} height={24} className="rounded object-contain" />
             <span>&copy; {new Date().getFullYear()} Yuustudio. All rights reserved.</span>
           </div>
 

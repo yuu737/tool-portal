@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { Locale, Dictionary } from "@/lib/getDictionary";
 import LanguageToggle from "@/components/LanguageToggle";
@@ -13,9 +14,7 @@ export default function Header({ lang, dict }: Props) {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         {/* ロゴ */}
         <Link href={`/${lang}`} className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-lg font-bold text-white">
-            Y
-          </div>
+          <Image src="/logo.png" alt="Yuustudio Logo" width={36} height={36} className="rounded-lg object-contain" />
           <span className="text-xl font-bold text-gray-900">Yuustudio</span>
         </Link>
 
