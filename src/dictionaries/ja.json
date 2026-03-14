@@ -1329,6 +1329,18 @@
       "feather": "フェザー",
       "refine": "リファイン"
     },
+    "brush": {
+      "label": "ブラシ補正",
+      "none": "確認",
+      "erase": "削除",
+      "restore": "復元",
+      "ai": "AI補正",
+      "size": "ブラシサイズ",
+      "undo": "元に戻す",
+      "aiHint": "範囲をドラッグしてAIで再推論",
+      "aiRefining": "AI補正中...",
+      "zoom": "ズーム"
+    },
     "meta": {
       "title": "AI 背景削除 — 無料・ローカル・プライバシー保護 | Yuustudio",
       "description": "Transformers.js と briaai/RMBG-1.4 モデルによる完全クライアントサイド AI 背景削除ツール。画像のアップロード不要。サーバーなし。完全プライバシー保護。",

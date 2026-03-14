@@ -1330,6 +1330,18 @@
       "feather": "Feather",
       "refine": "Refine"
     },
+    "brush": {
+      "label": "Brush Correction",
+      "none": "View",
+      "erase": "Erase",
+      "restore": "Restore",
+      "ai": "AI Refine",
+      "size": "Brush Size",
+      "undo": "Undo",
+      "aiHint": "Drag to select an area for AI re-inference",
+      "aiRefining": "AI refining...",
+      "zoom": "Zoom"
+    },
     "meta": {
       "title": "AI Background Remover — Free, Local, Private | Yuustudio",
       "description": "Remove image backgrounds with Edge AI entirely in your browser. Powered by Transformers.js and the briaai/RMBG-1.4 model. No upload, no server — complete privacy.",

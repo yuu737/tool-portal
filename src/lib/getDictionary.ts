@@ -427,6 +427,18 @@ export type Dictionary = {
       feather: string;
       refine: string;
     };
+    brush: {
+      label: string;
+      none: string;
+      erase: string;
+      restore: string;
+      ai: string;
+      size: string;
+      undo: string;
+      aiHint: string;
+      aiRefining: string;
+      zoom: string;
+    };
     meta: ToolMeta;
     content: ToolContent;
   };

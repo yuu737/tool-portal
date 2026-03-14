@@ -41,7 +41,6 @@ async function loadModel(): Promise<void> {
   if (model && processor) return;
 
   activeDevice = await detectDevice();
-
   self.postMessage({ type: "device", device: activeDevice });
 
   const fileProgress: Record<string, number> = {};
@@ -80,12 +79,15 @@ async function loadModel(): Promise<void> {
   });
 }
 
-// ─── Image processing ────────────────────────────────────────────────────────
+// ─── ROI storage ─────────────────────────────────────────────────────────────
 
-/**
- * Resize the input image to maxDimension using OffscreenCanvas in the worker.
- * Returns a Blob (PNG) and the final dimensions.
- */
+// Keep a copy of the resized RGBA so we can run partial re-inference without
+// the main thread sending the full image buffer again.
+let storedRGBA: Uint8ClampedArray | null = null;
+let storedDims = { width: 0, height: 0 };
+
+// ─── Image resizing ───────────────────────────────────────────────────────────
+
 async function resizeInWorker(
   imageBuffer: ArrayBuffer,
   mimeType: string,
@@ -109,13 +111,15 @@ async function resizeInWorker(
   return { blob, width: w, height: h };
 }
 
-async function processImage(imageBuffer: ArrayBuffer, mimeType: string): Promise<void> {
-  const MAX_DIM = 1024;
+// ─── Inference helpers ────────────────────────────────────────────────────────
 
-  // 1. Resize in worker (OffscreenCanvas) → max 1024px
-  const { blob, width: resW, height: resH } = await resizeInWorker(imageBuffer, mimeType, MAX_DIM);
-  const url = URL.createObjectURL(blob);
-
+/** Run RMBG-1.4 on a Blob; returns raw Uint8Array mask at (outW × outH). */
+async function runInference(
+  inputBlob: Blob,
+  outW: number,
+  outH: number
+): Promise<Uint8Array> {
+  const url = URL.createObjectURL(inputBlob);
   let image: any;
   try {
     image = await RawImage.fromURL(url);
@@ -123,10 +127,8 @@ async function processImage(imageBuffer: ArrayBuffer, mimeType: string): Promise
     URL.revokeObjectURL(url);
   }
 
-  // 2. Preprocess — AutoProcessor normalises to 1024×1024 internally
   const { pixel_values } = await processor(image);
 
-  // 3. Inference
   let rawOutput: any;
   try {
     const out = await model({ pixel_values });
@@ -149,18 +151,31 @@ async function processImage(imageBuffer: ArrayBuffer, mimeType: string): Promise
     maskU8[i] = Math.round((1 / (1 + Math.exp(-logits[i]))) * 255);
   }
 
-  // 4. Scale mask back to resized image resolution
+  // Scale mask to target output dimensions
   const maskRaw: any = new RawImage(maskU8, maskW, maskH, 1);
-  const resizedMask: any = await maskRaw.resize(resW, resH);
+  const resizedMask: any = await maskRaw.resize(outW, outH);
   const resizedMaskData: Uint8Array = resizedMask.data as Uint8Array;
   const maskChannels: number = resizedMask.channels as number;
 
-  const finalMask = new Uint8Array(resW * resH);
-  for (let i = 0; i < resW * resH; i++) {
+  const finalMask = new Uint8Array(outW * outH);
+  for (let i = 0; i < outW * outH; i++) {
     finalMask[i] = resizedMaskData[i * maskChannels];
   }
+  return finalMask;
+}
 
-  // 5. Extract RGBA from resized image via OffscreenCanvas
+// ─── Full image processing ────────────────────────────────────────────────────
+
+async function processImage(imageBuffer: ArrayBuffer, mimeType: string): Promise<void> {
+  const MAX_DIM = 1024;
+
+  // 1. Resize in worker (OffscreenCanvas) → max 1024px
+  const { blob, width: resW, height: resH } = await resizeInWorker(imageBuffer, mimeType, MAX_DIM);
+
+  // 2. Run inference
+  const finalMask = await runInference(blob, resW, resH);
+
+  // 3. Extract RGBA from resized image via OffscreenCanvas
   const resBitmap = await createImageBitmap(blob);
   const canvas = new OffscreenCanvas(resW, resH);
   const ctx = canvas.getContext("2d")!;
@@ -169,7 +184,11 @@ async function processImage(imageBuffer: ArrayBuffer, mimeType: string): Promise
   const imgData = ctx.getImageData(0, 0, resW, resH);
   const rgba = new Uint8ClampedArray(imgData.data);
 
-  // 6. Zero-copy transfer
+  // 4. Store RGBA for subsequent ROI re-inference (keep a copy before transfer)
+  storedRGBA = new Uint8ClampedArray(rgba);
+  storedDims = { width: resW, height: resH };
+
+  // 5. Zero-copy transfer to main thread
   const maskBuf = finalMask.buffer as ArrayBuffer;
   const origBuf = rgba.buffer as ArrayBuffer;
 
@@ -179,12 +198,67 @@ async function processImage(imageBuffer: ArrayBuffer, mimeType: string): Promise
   );
 }
 
+// ─── ROI partial re-inference ─────────────────────────────────────────────────
+
+const ROI_PADDING  = 64;
+const ROI_MAX_DIM  = 512;
+
+async function processROI(x: number, y: number, w: number, h: number): Promise<void> {
+  if (!storedRGBA) {
+    self.postMessage({ type: "error", message: "No stored image for ROI" });
+    return;
+  }
+
+  const { width: imgW, height: imgH } = storedDims;
+
+  // Expand ROI by padding (clamped to image bounds)
+  const px = Math.max(0, x - ROI_PADDING);
+  const py = Math.max(0, y - ROI_PADDING);
+  const pw = Math.min(imgW - px, w + ROI_PADDING * 2);
+  const ph = Math.min(imgH - py, h + ROI_PADDING * 2);
+
+  if (pw <= 0 || ph <= 0) {
+    self.postMessage({ type: "error", message: "Invalid ROI dimensions" });
+    return;
+  }
+
+  // Draw full image to OffscreenCanvas, then crop-and-scale for inference
+  const fullCanvas = new OffscreenCanvas(imgW, imgH);
+  fullCanvas.getContext("2d")!.putImageData(
+    new ImageData(storedRGBA as any, imgW, imgH),
+    0, 0
+  );
+
+  const scale   = Math.min(1, ROI_MAX_DIM / Math.max(pw, ph));
+  const inferW  = Math.max(1, Math.round(pw * scale));
+  const inferH  = Math.max(1, Math.round(ph * scale));
+
+  const inferCanvas = new OffscreenCanvas(inferW, inferH);
+  inferCanvas.getContext("2d")!.drawImage(fullCanvas, px, py, pw, ph, 0, 0, inferW, inferH);
+
+  const roiBlob  = await inferCanvas.convertToBlob({ type: "image/png" });
+  const patchMask = await runInference(roiBlob, pw, ph);
+
+  const patchBuf = patchMask.buffer as ArrayBuffer;
+  self.postMessage(
+    { type: "roi-result", maskPatch: patchBuf, x: px, y: py, w: pw, h: ph },
+    [patchBuf]
+  );
+}
+
 // ─── Message dispatcher ──────────────────────────────────────────────────────
 
 self.onmessage = async (e: MessageEvent) => {
   const { type, data } = e.data as {
-    type: "load" | "process";
-    data?: { imageBuffer: ArrayBuffer; mimeType: string };
+    type: "load" | "process" | "roi";
+    data?: {
+      imageBuffer?: ArrayBuffer;
+      mimeType?: string;
+      x?: number;
+      y?: number;
+      w?: number;
+      h?: number;
+    };
   };
 
   if (type === "load") {
@@ -204,7 +278,21 @@ self.onmessage = async (e: MessageEvent) => {
     }
     try {
       self.postMessage({ type: "inferring" });
-      await processImage(data!.imageBuffer, data!.mimeType);
+      await processImage(data!.imageBuffer!, data!.mimeType!);
+    } catch (err) {
+      self.postMessage({ type: "error", message: String(err) });
+    }
+    return;
+  }
+
+  if (type === "roi") {
+    if (!model || !processor) {
+      self.postMessage({ type: "error", message: "Model not loaded yet" });
+      return;
+    }
+    try {
+      self.postMessage({ type: "roi-inferring" });
+      await processROI(data!.x!, data!.y!, data!.w!, data!.h!);
     } catch (err) {
       self.postMessage({ type: "error", message: String(err) });
     }
