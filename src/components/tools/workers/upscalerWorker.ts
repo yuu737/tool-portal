@@ -1,226 +1,283 @@
 /// <reference lib="webworker" />
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
-import {
-  AutoModel,
-  AutoProcessor,
-  RawImage,
-  env,
-} from "@huggingface/transformers";
+import * as ort from "onnxruntime-web";
 
-// ─── Runtime config ──────────────────────────────────────────────────────────
-(env as any).allowLocalModels = false;
-(env as any).useBrowserCache = true;
-(env as any).backends.onnx.wasm.proxy = false;
+// ─── Constants ────────────────────────────────────────────────────────────────
 
-const MODEL_ID = "Xenova/swin2SR-realworld-sr-x4-64-bsrgan-psnr";
+const TILE_SIZE = 128; // model input: 128×128
+const SCALE = 4; // model output: 4× upscale
+const OUT_TILE = TILE_SIZE * SCALE; // 512
+const OVERLAP = 8; // tile overlap to avoid seam artifacts
+const MODEL_PATH = new URL("/models/realesrgan/model.onnx", self.location.origin).href;
+const MODEL_DATA_PATH = new URL("/models/realesrgan/model.data", self.location.origin).href;
 
-// ─── Device detection ────────────────────────────────────────────────────────
+// ─── ORT configuration ───────────────────────────────────────────────────────
 
-async function detectDevice(): Promise<"webgpu" | "wasm"> {
-  if (typeof navigator !== "undefined" && (navigator as any).gpu) {
-    try {
-      const adapter = await (navigator as any).gpu.requestAdapter();
-      if (adapter) return "webgpu";
-    } catch {
-      // fall through to wasm
-    }
-  }
-  return "wasm";
-}
+ort.env.wasm.simd = true;
+ort.env.wasm.numThreads = 4;
+ort.env.wasm.wasmPaths = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.24.3/dist/";
 
-// ─── Model singleton ─────────────────────────────────────────────────────────
+// ─── Singleton session ────────────────────────────────────────────────────────
 
-let model: any = null;
-let processor: any = null;
+let session: ort.InferenceSession | null = null;
 
-async function loadModel(): Promise<void> {
-  if (model && processor) return;
+async function getSession(): Promise<ort.InferenceSession> {
+  if (session) return session;
 
-  const activeDevice = await detectDevice();
-  self.postMessage({ type: "device", device: activeDevice });
-
-  const fileProgress: Record<string, number> = {};
-  let totalFiles = 0;
-
-  const progressCb = (p: any) => {
-    if (p.status === "initiate") {
-      totalFiles++;
-      fileProgress[p.file ?? totalFiles] = 0;
-    } else if (p.status === "progress" && typeof p.progress === "number") {
-      fileProgress[p.file ?? ""] = p.progress;
-    } else if (p.status === "done") {
-      fileProgress[p.file ?? ""] = 100;
-    }
-
-    const values = Object.values(fileProgress);
-    const avg = values.reduce((a, b) => a + b, 0) / Math.max(values.length, 1);
-    self.postMessage({
-      type: "progress",
-      progress: Math.min(Math.round(avg), 99),
-      file: p.file ?? "",
-    });
-  };
-
-  self.postMessage({ type: "progress", progress: 0, file: "" });
-
-  processor = await AutoProcessor.from_pretrained(MODEL_ID, {
-    progress_callback: progressCb,
-  });
-
-  model = await AutoModel.from_pretrained(MODEL_ID, {
-    device: activeDevice,
-    dtype: "fp32",
-    progress_callback: progressCb,
-  });
-}
-
-// ─── Image resizing ──────────────────────────────────────────────────────────
-
-async function resizeToMax(
-  imageBuffer: ArrayBuffer,
-  mimeType: string,
-  maxDimension: number
-): Promise<{ blob: Blob; width: number; height: number }> {
-  const srcBlob = new Blob([imageBuffer], { type: mimeType });
-  const bitmap = await createImageBitmap(srcBlob);
-  const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
-  const w = Math.round(bitmap.width * scale);
-  const h = Math.round(bitmap.height * scale);
-
-  if (scale === 1 && mimeType === "image/png") {
-    bitmap.close();
-    return { blob: srcBlob, width: w, height: h };
-  }
-
-  const canvas = new OffscreenCanvas(w, h);
-  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, w, h);
-  bitmap.close();
-  const blob = await canvas.convertToBlob({ type: "image/png" });
-  return { blob, width: w, height: h };
-}
-
-// ─── Bilinear upscale via OffscreenCanvas ────────────────────────────────────
-
-async function bilinearUpscale(
-  srcBlob: Blob,
-  targetW: number,
-  targetH: number
-): Promise<Uint8ClampedArray> {
-  const bitmap = await createImageBitmap(srcBlob);
-  const canvas = new OffscreenCanvas(targetW, targetH);
-  const ctx = canvas.getContext("2d")!;
-  ctx.drawImage(bitmap, 0, 0, targetW, targetH);
-  bitmap.close();
-  return ctx.getImageData(0, 0, targetW, targetH).data;
-}
-
-// ─── Inference ───────────────────────────────────────────────────────────────
-
-async function runUpscale(
-  inputBlob: Blob,
-): Promise<{ rgbData: Uint8Array; width: number; height: number }> {
-  const url = URL.createObjectURL(inputBlob);
-  let image: any;
+  // Try WebGPU first, fallback to WASM
+  const providers: ort.InferenceSession.ExecutionProviderConfig[] = [];
   try {
-    image = await RawImage.fromURL(url);
-  } finally {
-    URL.revokeObjectURL(url);
-  }
-
-  const inputs = await processor(image);
-  const output = await model(inputs);
-
-  // reconstruction tensor shape: [1, 3, H*4, W*4]
-  const recon = output.reconstruction;
-  const outH: number = recon.dims[2];
-  const outW: number = recon.dims[3];
-  const channelSize = outH * outW;
-
-  // Directly convert Float32 CHW [0,1] → Uint8 HWC [0,255]
-  // Avoids tensor method chains (.to("uint8") etc.) that can silently produce zeros
-  const floatData = recon.data as Float32Array;
-  const rgbData = new Uint8Array(channelSize * 3);
-  for (let c = 0; c < 3; c++) {
-    const cOff = c * channelSize;
-    for (let i = 0; i < channelSize; i++) {
-      rgbData[i * 3 + c] = Math.max(0, Math.min(255, Math.round(floatData[cOff + i] * 255)));
+    // @ts-expect-error navigator.gpu may not exist
+    if (typeof navigator !== "undefined" && navigator.gpu) {
+      // @ts-expect-error navigator.gpu may not exist
+      const adapter = await navigator.gpu.requestAdapter();
+      if (adapter) providers.push("webgpu");
     }
+  } catch {
+    // WebGPU not available
   }
+  providers.push("wasm");
 
-  return { rgbData, width: outW, height: outH };
+  self.postMessage({ type: "loading" });
+
+  const [modelBuffer, dataBuffer] = await Promise.all([
+    fetch(MODEL_PATH).then((r) => r.arrayBuffer()),
+    fetch(MODEL_DATA_PATH).then((r) => r.arrayBuffer()),
+  ]);
+
+  session = await ort.InferenceSession.create(modelBuffer, {
+    executionProviders: providers,
+    externalData: [{ path: "model.data", data: new Uint8Array(dataBuffer) }],
+  });
+
+  self.postMessage({ type: "loaded" });
+  return session;
 }
 
-// ─── Full processing pipeline ────────────────────────────────────────────────
+// ─── Image processing helpers ─────────────────────────────────────────────────
 
+/**
+ * Convert RGBA ImageData to CHW float32 tensor [1, 3, H, W] in range [0, 1]
+ */
+function rgbaToFloat32CHW(
+  data: Uint8ClampedArray,
+  w: number,
+  h: number
+): Float32Array {
+  const n = w * h;
+  const float = new Float32Array(3 * n);
+  for (let i = 0; i < n; i++) {
+    const si = i * 4;
+    float[i] = data[si] / 255; // R
+    float[n + i] = data[si + 1] / 255; // G
+    float[2 * n + i] = data[si + 2] / 255; // B
+  }
+  return float;
+}
+
+/**
+ * Convert CHW float32 tensor [1, 3, H, W] in range [0, 1] to RGBA Uint8ClampedArray
+ */
+function float32CHWToRGBA(
+  float: Float32Array,
+  w: number,
+  h: number
+): Uint8ClampedArray {
+  const n = w * h;
+  const rgba = new Uint8ClampedArray(n * 4);
+  for (let i = 0; i < n; i++) {
+    const di = i * 4;
+    rgba[di] = Math.max(0, Math.min(255, Math.round(float[i] * 255)));
+    rgba[di + 1] = Math.max(0, Math.min(255, Math.round(float[n + i] * 255)));
+    rgba[di + 2] = Math.max(0, Math.min(255, Math.round(float[2 * n + i] * 255)));
+    rgba[di + 3] = 255;
+  }
+  return rgba;
+}
+
+// ─── Tile-based inference ─────────────────────────────────────────────────────
+
+/**
+ * Run Real-ESRGAN on a single 128×128 tile
+ */
+async function inferTile(
+  sess: ort.InferenceSession,
+  tileData: Float32Array
+): Promise<Float32Array> {
+  const inputTensor = new ort.Tensor("float32", tileData, [
+    1,
+    3,
+    TILE_SIZE,
+    TILE_SIZE,
+  ]);
+  const results = await sess.run({ image: inputTensor });
+  const output = results["upscaled_image"];
+  return output.data as Float32Array;
+}
+
+/**
+ * Process an image with tile-based Real-ESRGAN inference.
+ * - Resizes input to fit MAX_INPUT px on the longest side
+ * - Pads to a multiple of TILE_SIZE
+ * - Splits into overlapping 128×128 tiles
+ * - Runs each tile through the model
+ * - Blends overlapping regions linearly
+ * - Crops to the correct output size
+ * - Resizes according to the output mode (×1, ×2, ×4)
+ */
 async function processImage(
   imageBuffer: ArrayBuffer,
   mimeType: string,
-  scale: 2 | 4,
-  denoise: "none" | "low" | "high"
+  mode: 1 | 2 | 4,
+  maxInput: number
 ): Promise<void> {
-  const MAX_INPUT = 256;
+  const sess = await getSession();
 
-  // 1. Resize input to max 512px
-  const { blob, width: inW, height: inH } = await resizeToMax(imageBuffer, mimeType, MAX_INPUT);
+  // 1. Decode image
+  const srcBlob = new Blob([imageBuffer], { type: mimeType });
+  const bitmap = await createImageBitmap(srcBlob);
+  const origW = bitmap.width;
+  const origH = bitmap.height;
 
-  // 2. Run 4x super-resolution
-  const { rgbData: aiRgb, width: aiW, height: aiH } = await runUpscale(blob);
+  // 2. Resize to fit maxInput
+  const scale = Math.min(1, maxInput / Math.max(origW, origH));
+  const inW = Math.round(origW * scale);
+  const inH = Math.round(origH * scale);
 
-  // 3. Noise reduction via blending with bilinear upscale
-  const strength = denoise === "none" ? 0.7 : denoise === "low" ? 0.9 : 1.0;
-  let finalW = aiW;
-  let finalH = aiH;
+  // 3. Pad to multiple of TILE_SIZE
+  const padW = Math.ceil(inW / TILE_SIZE) * TILE_SIZE;
+  const padH = Math.ceil(inH / TILE_SIZE) * TILE_SIZE;
 
-  let finalRgba: Uint8ClampedArray;
+  const inCanvas = new OffscreenCanvas(padW, padH);
+  const inCtx = inCanvas.getContext("2d")!;
+  // Fill with edge pixels by drawing at original position (edges will wrap naturally)
+  inCtx.drawImage(bitmap, 0, 0, inW, inH);
+  bitmap.close();
 
-  if (strength < 1.0) {
-    // Blend AI output with bilinear upscale
-    const bilinear = await bilinearUpscale(blob, aiW, aiH);
-    finalRgba = new Uint8ClampedArray(aiW * aiH * 4);
-    const aiChannels = aiRgb.length / (aiW * aiH); // 3 for RGB
-    for (let i = 0; i < aiW * aiH; i++) {
-      const biR = bilinear[i * 4];
-      const biG = bilinear[i * 4 + 1];
-      const biB = bilinear[i * 4 + 2];
-      const aiR = aiRgb[i * aiChannels];
-      const aiG = aiRgb[i * aiChannels + 1];
-      const aiB = aiRgb[i * aiChannels + 2];
-      finalRgba[i * 4] = Math.round(biR * (1 - strength) + aiR * strength);
-      finalRgba[i * 4 + 1] = Math.round(biG * (1 - strength) + aiG * strength);
-      finalRgba[i * 4 + 2] = Math.round(biB * (1 - strength) + aiB * strength);
-      finalRgba[i * 4 + 3] = 255;
+  const inputData = inCtx.getImageData(0, 0, padW, padH);
+
+  // 4. Calculate tile grid
+  const tilesX = Math.ceil(padW / (TILE_SIZE - OVERLAP));
+  const tilesY = Math.ceil(padH / (TILE_SIZE - OVERLAP));
+  const totalTiles = tilesX * tilesY;
+
+  // 5. Allocate output buffer (padded size × SCALE)
+  const outW = padW * SCALE;
+  const outH = padH * SCALE;
+  const outRGBA = new Uint8ClampedArray(outW * outH * 4);
+  // Weight buffer for overlap blending
+  const weightBuf = new Float32Array(outW * outH);
+
+  self.postMessage({ type: "inferring", total: totalTiles, done: 0 });
+
+  // 6. Process tiles
+  let tilesDone = 0;
+  for (let ty = 0; ty < tilesY; ty++) {
+    for (let tx = 0; tx < tilesX; tx++) {
+      const sx = Math.min(tx * (TILE_SIZE - OVERLAP), padW - TILE_SIZE);
+      const sy = Math.min(ty * (TILE_SIZE - OVERLAP), padH - TILE_SIZE);
+
+      // Extract tile pixels → CHW float32
+      const tileRGBA = new Uint8ClampedArray(TILE_SIZE * TILE_SIZE * 4);
+      for (let row = 0; row < TILE_SIZE; row++) {
+        const srcOff = ((sy + row) * padW + sx) * 4;
+        const dstOff = row * TILE_SIZE * 4;
+        tileRGBA.set(
+          inputData.data.subarray(srcOff, srcOff + TILE_SIZE * 4),
+          dstOff
+        );
+      }
+      const tileCHW = rgbaToFloat32CHW(tileRGBA, TILE_SIZE, TILE_SIZE);
+
+      // Run inference
+      const outCHW = await inferTile(sess, tileCHW);
+      const outTileRGBA = float32CHWToRGBA(outCHW, OUT_TILE, OUT_TILE);
+
+      // Place tile in output buffer with overlap blending
+      const ox = sx * SCALE;
+      const oy = sy * SCALE;
+      for (let row = 0; row < OUT_TILE; row++) {
+        for (let col = 0; col < OUT_TILE; col++) {
+          const outX = ox + col;
+          const outY = oy + row;
+          if (outX >= outW || outY >= outH) continue;
+
+          // Linear feather weight in overlap zones
+          const featherX =
+            col < OVERLAP * SCALE
+              ? col / (OVERLAP * SCALE)
+              : col >= OUT_TILE - OVERLAP * SCALE
+                ? (OUT_TILE - 1 - col) / (OVERLAP * SCALE)
+                : 1;
+          const featherY =
+            row < OVERLAP * SCALE
+              ? row / (OVERLAP * SCALE)
+              : row >= OUT_TILE - OVERLAP * SCALE
+                ? (OUT_TILE - 1 - row) / (OVERLAP * SCALE)
+                : 1;
+          const w = featherX * featherY;
+
+          const oi = (outY * outW + outX) * 4;
+          const ti = (row * OUT_TILE + col) * 4;
+          const wi = outY * outW + outX;
+
+          const prevW = weightBuf[wi];
+          const newW = prevW + w;
+          if (newW > 0) {
+            outRGBA[oi] = (outRGBA[oi] * prevW + outTileRGBA[ti] * w) / newW;
+            outRGBA[oi + 1] =
+              (outRGBA[oi + 1] * prevW + outTileRGBA[ti + 1] * w) / newW;
+            outRGBA[oi + 2] =
+              (outRGBA[oi + 2] * prevW + outTileRGBA[ti + 2] * w) / newW;
+            outRGBA[oi + 3] = 255;
+          }
+          weightBuf[wi] = newW;
+        }
+      }
+
+      tilesDone++;
+      self.postMessage({ type: "inferring", total: totalTiles, done: tilesDone });
     }
+  }
+
+  // 7. Crop to actual upscaled size (remove padding)
+  const cropW = inW * SCALE;
+  const cropH = inH * SCALE;
+
+  // 8. Determine final output size based on mode
+  let finalW: number;
+  let finalH: number;
+  if (mode === 4) {
+    finalW = cropW;
+    finalH = cropH;
+  } else if (mode === 2) {
+    finalW = Math.round(cropW / 2);
+    finalH = Math.round(cropH / 2);
   } else {
-    // 100% AI — just convert RGB to RGBA
-    finalRgba = new Uint8ClampedArray(aiW * aiH * 4);
-    const aiChannels = aiRgb.length / (aiW * aiH);
-    for (let i = 0; i < aiW * aiH; i++) {
-      finalRgba[i * 4] = aiRgb[i * aiChannels];
-      finalRgba[i * 4 + 1] = aiRgb[i * aiChannels + 1];
-      finalRgba[i * 4 + 2] = aiRgb[i * aiChannels + 2];
-      finalRgba[i * 4 + 3] = 255;
-    }
+    // mode === 1: same as input
+    finalW = inW;
+    finalH = inH;
   }
 
-  // 4. If 2x, resize 4x output down to 2x
-  if (scale === 2) {
-    finalW = inW * 2;
-    finalH = inH * 2;
-    const canvas = new OffscreenCanvas(finalW, finalH);
-    const ctx = canvas.getContext("2d")!;
-    const imgData = new ImageData(new Uint8ClampedArray(finalRgba.buffer as ArrayBuffer), aiW, aiH);
-    const tmpCanvas = new OffscreenCanvas(aiW, aiH);
-    tmpCanvas.getContext("2d")!.putImageData(imgData, 0, 0);
-    ctx.drawImage(tmpCanvas, 0, 0, finalW, finalH);
-    finalRgba = ctx.getImageData(0, 0, finalW, finalH).data;
-  }
+  // 9. Draw cropped result, then scale to final size
+  const cropCanvas = new OffscreenCanvas(cropW, cropH);
+  const cropCtx = cropCanvas.getContext("2d")!;
+  const fullImg = new ImageData(outRGBA, outW, outH);
+  cropCtx.putImageData(fullImg, 0, 0);
 
-  // 5. Zero-copy transfer
-  const buf = finalRgba.buffer as ArrayBuffer;
+  const finalCanvas = new OffscreenCanvas(finalW, finalH);
+  const finalCtx = finalCanvas.getContext("2d")!;
+  finalCtx.imageSmoothingEnabled = true;
+  finalCtx.imageSmoothingQuality = "high";
+  finalCtx.drawImage(cropCanvas, 0, 0, cropW, cropH, 0, 0, finalW, finalH);
+
+  // 10. Encode to PNG
+  const outBlob = await finalCanvas.convertToBlob({ type: "image/png" });
+  const pngBuffer = await outBlob.arrayBuffer();
+
   self.postMessage(
-    { type: "result", rgbaBuffer: buf, width: finalW, height: finalH },
-    [buf]
+    { type: "result", pngBuffer, width: finalW, height: finalH },
+    [pngBuffer]
   );
 }
 
@@ -230,35 +287,29 @@ self.onmessage = async (e: MessageEvent) => {
   const { type, data } = e.data as {
     type: "load" | "process";
     data?: {
-      imageBuffer?: ArrayBuffer;
-      mimeType?: string;
-      scale?: 2 | 4;
-      denoise?: "none" | "low" | "high";
+      imageBuffer: ArrayBuffer;
+      mimeType: string;
+      mode: 1 | 2 | 4;
+      maxInput: number;
     };
   };
 
   if (type === "load") {
     try {
-      await loadModel();
-      self.postMessage({ type: "loaded" });
+      await getSession();
     } catch (err) {
       self.postMessage({ type: "error", message: String(err) });
     }
     return;
   }
 
-  if (type === "process") {
-    if (!model || !processor) {
-      self.postMessage({ type: "error", message: "Model not loaded yet" });
-      return;
-    }
+  if (type === "process" && data) {
     try {
-      self.postMessage({ type: "inferring" });
       await processImage(
-        data!.imageBuffer!,
-        data!.mimeType!,
-        data!.scale ?? 4,
-        data!.denoise ?? "high"
+        data.imageBuffer,
+        data.mimeType,
+        data.mode,
+        data.maxInput
       );
     } catch (err) {
       self.postMessage({ type: "error", message: String(err) });

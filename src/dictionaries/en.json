@@ -1301,29 +1301,23 @@
   },
   "imageUpscaler": {
     "title": "AI Image Upscaler",
-    "description": "AI-powered image upscaling. Enhance your images to 2x or 4x with noise reduction — all processed locally in your browser.",
+    "description": "Upscale images up to 4× using Real-ESRGAN AI — all processed locally in your browser with complete privacy.",
     "dropZone": {
       "heading": "Drag your image here",
       "sub": "Drop, click to browse, or Ctrl+V to paste"
     },
     "selectFile": "Select Image",
     "pasteHint": "or Ctrl + V to paste from clipboard",
-    "loadingModel": "Preparing AI engine...",
-    "downloadingModel": "Downloading AI model ({pct}%)",
-    "modelReady": "AI model ready",
-    "processing": "AI is enhancing your image...",
-    "scale": {
-      "label": "Upscale Size",
-      "x2": "2x",
-      "x4": "4x"
+    "processing": "AI Processing...",
+    "loadingModel": "Loading AI model...",
+    "mode": {
+      "label": "Output Mode",
+      "x1": "×1 Enhance",
+      "x2": "×2 Upscale",
+      "x4": "×4 Upscale",
+      "hint": "×1 enhances quality at original size, ×2/×4 upscales the image"
     },
-    "denoise": {
-      "label": "Noise Reduction",
-      "none": "None",
-      "low": "Low",
-      "high": "High"
-    },
-    "enhance": "Enhance Image",
+    "enhance": "Upscale with AI",
     "beforeLabel": "Before",
     "afterLabel": "After",
     "downloadPNG": "Download Image",
@@ -1332,34 +1326,33 @@
     "errorTitle": "Processing failed",
     "metrics": {
       "original": "Original",
-      "enhanced": "Enhanced",
+      "enhanced": "Processed",
       "dimensions": "Size"
     },
     "meta": {
-      "title": "[100% Free] AI Image Upscaler — Noise Reduction & HD Upscaling | Yuustudio",
-      "description": "Completely free AI image upscaler with no registration required. 2x and 4x HD upscaling with noise reduction works directly in your browser. No server upload, complete privacy protection.",
-      "keywords": ["image upscaler", "AI upscaler", "enhance image", "noise reduction", "super resolution", "waifu2x", "browser", "free"]
+      "title": "[100% Free] AI Image Upscaler — Real-ESRGAN 4× Super Resolution | Yuustudio",
+      "description": "Completely free AI image upscaler with no registration required. Upscale images up to 4× with Real-ESRGAN — works directly in your browser. No server upload, complete privacy protection.",
+      "keywords": ["AI image upscaler", "Real-ESRGAN", "super resolution", "upscale image", "enhance image", "4x upscale", "browser", "free"]
     },
     "content": {
       "howTo": {
         "heading": "How to Use",
         "steps": [
           "Drag and drop or click to upload your image",
-          "Select the upscale size (2x or 4x)",
-          "Choose the noise reduction level (None / Low / High)",
-          "Click the \"Enhance Image\" button",
-          "Preview the upscaled image",
+          "Select the output mode (×1 Enhance / ×2 Upscale / ×4 Upscale)",
+          "Click the \"Upscale with AI\" button",
+          "Compare Before and After to see the result",
           "Click \"Download Image\" to save"
         ]
       },
       "features": {
         "heading": "Key Features",
         "items": [
-          "AI-powered high-quality image upscaling (2x and 4x)",
-          "Noise reduction to clean up old or low-quality photos",
+          "Real-ESRGAN AI model for super-resolution upscaling",
+          "Up to 4× upscale with natural detail enhancement",
+          "WebGPU-accelerated for fast processing (WASM fallback included)",
           "Completely free with no registration required",
           "100% browser-based — images are never sent to a server",
-          "WebGPU acceleration for fast processing (WASM fallback for older browsers)",
           "Download in high-quality PNG format"
         ]
       },
@@ -1367,8 +1360,12 @@
         "heading": "FAQ",
         "items": [
           {
+            "q": "What kind of images work best?",
+            "a": "Low-resolution photos, smartphone screenshots, and older images benefit the most. The AI naturally fills in details while upscaling."
+          },
+          {
             "q": "How long does processing take?",
-            "a": "With a WebGPU-capable browser, 2x upscaling takes about 1-3 seconds and 4x takes about 3-6 seconds. Without WebGPU, processing uses WASM and may take slightly longer."
+            "a": "Typically 2–5 seconds. WebGPU-enabled browsers are even faster. Everything runs locally with no server communication."
           },
           {
             "q": "Are my images uploaded to a server?",
@@ -1379,28 +1376,24 @@
             "a": "All browser-supported image formats including JPEG, PNG, and WebP. Output is always in PNG format."
           },
           {
-            "q": "Can I process large images?",
-            "a": "Input images are resized to a maximum of 256px for processing. The output size depends on the selected scale — up to 1024px at 4x."
-          },
-          {
-            "q": "How does noise reduction work?",
-            "a": "The AI model naturally removes noise while upscaling. 'None' preserves the original texture, 'Low' applies moderate denoising, and 'High' maximizes noise removal."
+            "q": "Which mode should I use?",
+            "a": "\"×1 Enhance\" improves quality without changing size. \"×2 Upscale\" doubles the resolution. \"×4 Upscale\" maximizes enlargement for the best detail."
           }
         ]
       },
       "deepDive": {
-        "heading": "Technical Deep-Dive: AI Super-Resolution",
+        "heading": "How It Works: Real-ESRGAN Super Resolution",
         "paragraphs": [
-          "This tool uses Swin2SR (Swin Transformer for Super-Resolution), a state-of-the-art AI model. Unlike traditional bilinear or bicubic interpolation, the AI understands image content and intelligently reconstructs lost details.",
-          "All processing runs inside a Web Worker in your browser. Browsers with WebGPU support can leverage GPU acceleration for fast inference. For other browsers, WebAssembly (WASM) provides a universal fallback.",
-          "The AI model is downloaded on first use (~50MB) and cached in your browser. Subsequent visits load the model almost instantly from the cache."
+          "This tool uses Real-ESRGAN (Real-World Enhanced Super-Resolution GAN), an AI model specialized in 4× image upscaling that naturally reconstructs fine details.",
+          "All processing runs inside a Web Worker using ONNX Runtime Web. WebGPU-enabled browsers use GPU inference for maximum speed, with automatic WASM fallback for other environments.",
+          "The AI model (~5MB) is downloaded on first use and cached by your browser for instant loading on subsequent visits."
         ]
       },
       "security": {
         "heading": "Privacy & Security",
         "paragraphs": [
           "All image processing happens entirely on your device. No image data is ever sent to any server.",
-          "Aside from the initial AI model download, no internet communication occurs. The tool works offline once the model is cached."
+          "AI inference also runs locally in your browser, ensuring complete privacy protection."
         ]
       }
     }

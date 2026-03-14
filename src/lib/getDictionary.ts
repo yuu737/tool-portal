@@ -404,12 +404,9 @@ export type Dictionary = {
     dropZone: { heading: string; sub: string };
     selectFile: string;
     pasteHint: string;
-    loadingModel: string;
-    downloadingModel: string;
-    modelReady: string;
     processing: string;
-    scale: { label: string; x2: string; x4: string };
-    denoise: { label: string; none: string; low: string; high: string };
+    loadingModel: string;
+    mode: { label: string; x1: string; x2: string; x4: string; hint: string };
     enhance: string;
     beforeLabel: string;
     afterLabel: string;
