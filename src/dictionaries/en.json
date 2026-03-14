@@ -144,8 +144,8 @@
       "copied": "Copied!"
     },
     "meta": {
-      "title": "Word Counter – Real-time character, word & line count",
-      "description": "Count characters (with/without spaces), words, and lines in real time. Supports Japanese, Chinese, Korean via Intl.Segmenter API. Perfect for articles, reports, and social media character limits.",
+      "title": "[100% Free] Word Counter – Real-time Character, Word & Line Count | Yuustudio",
+      "description": "Completely free, no registration or installation required — works directly in your browser. Count characters (with/without spaces), words, and lines in real time. Supports Japanese, Chinese, Korean via Intl.Segmenter API. Perfect for articles, reports, and SEO checks.",
       "keywords": [
         "word counter",
         "character counter",
@@ -264,8 +264,8 @@
       }
     },
     "meta": {
-      "title": "Password Generator & Strength Checker – Secure Random Passwords",
-      "description": "Generate cryptographically secure random passwords in one click. 3 strength presets, adjustable length (4–64 chars), custom character types. Includes a password strength checker. 100% browser-based.",
+      "title": "[100% Free] Password Generator & Strength Checker – Secure Random Passwords | Yuustudio",
+      "description": "Completely free, no sign-up required. Generate cryptographically secure random passwords in one click. 3 strength presets, adjustable length (4–64 chars), custom character types. Includes a strength checker. Works entirely in your browser — no data sent to any server.",
       "keywords": [
         "password generator",
         "random password",
@@ -405,8 +405,8 @@
       "downloaded": "Downloaded!"
     },
     "meta": {
-      "title": "QR Code Generator – URL, Text & Wi-Fi | PNG & SVG Download",
-      "description": "Free online QR code generator. Create QR codes from URLs, text, or Wi-Fi credentials. Customize colors, margins, and error correction. Download as high-resolution PNG (1024px) or scalable SVG.",
+      "title": "[100% Free] QR Code Generator – URL, Text & Wi-Fi | PNG & SVG Download | Yuustudio",
+      "description": "Completely free QR code generator — no registration required, works directly in your browser. Create QR codes from URLs, text, or Wi-Fi credentials. Customize colors, margins, and error correction. Download as high-resolution PNG or scalable SVG.",
       "keywords": [
         "QR code generator",
         "free QR code",
@@ -502,8 +502,8 @@
       "noImages": "Please add at least one image."
     },
     "meta": {
-      "title": "Images to PDF – Combine JPG, PNG & WebP files into one PDF",
-      "description": "Convert multiple images to a single PDF with one click. Drag to reorder pages. Supports JPG, PNG, WebP, and GIF. All processing is done entirely in your browser — no uploads required.",
+      "title": "[100% Free] Images to PDF – Combine JPG, PNG & WebP into One PDF | Yuustudio",
+      "description": "Completely free, no registration or installation needed. Convert multiple images to a single PDF in one click. Drag to reorder pages. Supports JPG, PNG, WebP, and GIF. All processing runs entirely in your browser — no server uploads.",
       "keywords": [
         "images to PDF",
         "JPG to PDF",
@@ -603,8 +603,8 @@
       "empty": "Waiting for input"
     },
     "meta": {
-      "title": "JSON Formatter & Validator – Format, minify, and validate JSON",
-      "description": "Paste JSON to instantly format and validate it. Syntax errors highlighted with full details. Choose 2-space, 4-space, or tab indentation. Minify with one click. Free online JSON tool for developers.",
+      "title": "[100% Free] JSON Formatter & Validator – Format, Minify & Validate JSON | Yuustudio",
+      "description": "Completely free JSON tool — no sign-up required, works directly in your browser. Paste JSON to instantly format and validate it. Syntax errors highlighted with full details. Supports 2-space, 4-space, or tab indentation. Minify with one click.",
       "keywords": [
         "JSON formatter",
         "JSON validator",
@@ -694,8 +694,8 @@
     "placeholder": "Enter a value",
     "swap": "Swap",
     "meta": {
-      "title": "Unit Converter – Length, weight, temperature & data size",
-      "description": "Instantly convert between metric and imperial units. Supports length (mm–miles), weight (mg–tonnes), temperature (°C/°F/K), and data sizes (B–PB). Real-time results, no button needed.",
+      "title": "[100% Free] Unit Converter – Length, Weight, Temperature & Data Size | Yuustudio",
+      "description": "Completely free unit converter — no registration or installation required. Instantly convert between metric and imperial units: length (mm–miles), weight (mg–tonnes), temperature (°C/°F/K), and data sizes (B–PB). Real-time results, works entirely in your browser.",
       "keywords": [
         "unit converter",
         "length converter",
@@ -795,8 +795,8 @@
       "invalidBase64": "Invalid Base64 string. Please check the input."
     },
     "meta": {
-      "title": "Base64 Encoder / Decoder – Full Unicode & Japanese support",
-      "description": "Encode text to Base64 or decode Base64 back to text. Full Unicode support including Japanese, Chinese, and emoji via TextEncoder/TextDecoder API. Real-time conversion, no server required.",
+      "title": "[100% Free] Base64 Encoder / Decoder – Full Unicode & Japanese Support | Yuustudio",
+      "description": "Completely free Base64 tool — no registration required, works directly in your browser. Encode text to Base64 or decode it back. Full Unicode support including Japanese, Chinese, and emoji. Real-time conversion, no server, no upload.",
       "keywords": [
         "Base64 encoder",
         "Base64 decoder",
@@ -949,8 +949,8 @@
       "miniMode": "Mini Mode"
     },
     "meta": {
-      "title": "Timer & Cycle Counter – Game Grinding & Pomodoro | Yuustudio",
-      "description": "All-in-one timer, stopwatch, and cycle counter optimized for game grinding and Pomodoro sessions. Document Picture-in-Picture API keeps the display always on top. Supports lap recording, goal tracking, and LocalStorage persistence.",
+      "title": "[100% Free] Timer & Cycle Counter – Game Grinding & Pomodoro | Yuustudio",
+      "description": "Completely free — no registration or installation required. All-in-one timer, stopwatch, and cycle counter optimized for game grinding and Pomodoro sessions. Document PiP keeps the display always on top. Works entirely in your browser.",
       "keywords": [
         "game grinding counter",
         "online timer",
@@ -1092,8 +1092,8 @@
       "miniMode": "Mini Mode"
     },
     "meta": {
-      "title": "Grinding Companion – Drop Rate Calculator & Cycle Counter | Yuustudio",
-      "description": "Free browser tool for game grinding. Track cycles with a per-run timer, calculate drop rate probability and luck ratio, and monitor stats in an always-on-top Document PiP mini window.",
+      "title": "[Free & No Sign-up] Grinding Companion – Drop Rate Calculator & Cycle Counter | Yuustudio",
+      "description": "Completely free, no registration required. Track game grinding cycles, calculate drop rate probability and luck ratio, and monitor stats in an always-on-top Document PiP mini window. Works entirely in your browser — no installation needed.",
       "keywords": [
         "game grinding",
         "drop rate calculator",
@@ -1213,8 +1213,8 @@
       "reduction": "Reduction"
     },
     "meta": {
-      "title": "Image Optimizer Studio – WebP Converter, Compressor & Resizer | Yuustudio",
-      "description": "Compress, resize, and convert images to WebP, JPEG, or PNG entirely in your browser. Quality slider, aspect-ratio-locked resize, automatic EXIF removal. 100% free, no upload required.",
+      "title": "[100% Free] Image Optimizer Studio – WebP Converter, Compressor & Resizer | Yuustudio",
+      "description": "Completely free image optimizer — no registration or installation needed. Compress, resize, and convert to WebP, JPEG, or PNG entirely in your browser. Quality slider, aspect-ratio-locked resize, automatic EXIF removal. No upload, no server.",
       "keywords": [
         "image compressor",
         "WebP converter",
@@ -1348,8 +1348,8 @@
       "resetToAI": "Reset to AI result"
     },
     "meta": {
-      "title": "AI Background Remover — Free, Local, Private | Yuustudio",
-      "description": "Remove image backgrounds with Edge AI entirely in your browser. Powered by Transformers.js and the briaai/RMBG-1.4 model. No upload, no server — complete privacy.",
+      "title": "[100% Free, No Upload] AI Background Remover — Local AI & Privacy First | Yuustudio",
+      "description": "Completely free, no registration required. Remove image backgrounds with Edge AI entirely in your browser. Powered by Transformers.js and briaai/RMBG-1.4. No upload, no server — complete privacy protection. Works instantly, no installation needed.",
       "keywords": [
         "background remover",
         "remove background",
