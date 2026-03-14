@@ -1380,7 +1380,7 @@
           },
           {
             "q": "Can I process large images?",
-            "a": "Input images are resized to a maximum of 512px for processing. The output size depends on the selected scale — up to 2048px at 4x."
+            "a": "Input images are resized to a maximum of 256px for processing. The output size depends on the selected scale — up to 1024px at 4x."
           },
           {
             "q": "How does noise reduction work?",

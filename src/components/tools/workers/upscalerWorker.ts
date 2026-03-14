@@ -132,14 +132,21 @@ async function runUpscale(
   const output = await model(inputs);
 
   // reconstruction tensor shape: [1, 3, H*4, W*4]
-  const reconstruction = output.reconstruction;
-  const tensor = reconstruction.squeeze();        // [3, H*4, W*4]
-  const clamped = tensor.clamp_(0, 1).mul_(255).round_().to("uint8");
-  const outImage: any = RawImage.fromTensor(clamped);
+  const recon = output.reconstruction;
+  const outH: number = recon.dims[2];
+  const outW: number = recon.dims[3];
+  const channelSize = outH * outW;
 
-  const outW: number = outImage.width;
-  const outH: number = outImage.height;
-  const rgbData: Uint8Array = outImage.data as Uint8Array;
+  // Directly convert Float32 CHW [0,1] → Uint8 HWC [0,255]
+  // Avoids tensor method chains (.to("uint8") etc.) that can silently produce zeros
+  const floatData = recon.data as Float32Array;
+  const rgbData = new Uint8Array(channelSize * 3);
+  for (let c = 0; c < 3; c++) {
+    const cOff = c * channelSize;
+    for (let i = 0; i < channelSize; i++) {
+      rgbData[i * 3 + c] = Math.max(0, Math.min(255, Math.round(floatData[cOff + i] * 255)));
+    }
+  }
 
   return { rgbData, width: outW, height: outH };
 }
@@ -152,7 +159,7 @@ async function processImage(
   scale: 2 | 4,
   denoise: "none" | "low" | "high"
 ): Promise<void> {
-  const MAX_INPUT = 512;
+  const MAX_INPUT = 256;
 
   // 1. Resize input to max 512px
   const { blob, width: inW, height: inH } = await resizeToMax(imageBuffer, mimeType, MAX_INPUT);
