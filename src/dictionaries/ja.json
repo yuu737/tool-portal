@@ -51,7 +51,8 @@
     }
   },
   "toolCard": {
-    "cta": "使ってみる"
+    "cta": "使ってみる",
+    "freeLabel": "無料"
   },
   "about": {
     "title": "運営者情報",

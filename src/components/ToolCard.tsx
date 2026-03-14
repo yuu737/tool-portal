@@ -41,15 +41,22 @@ export type LocalizedTool = {
 type Props = {
   tool: LocalizedTool;
   cta: string;
+  freeLabel?: string;
   onTagClick?: (tag: string) => void;
   showTags?: boolean;
 };
 
-export default function ToolCard({ tool, cta, onTagClick, showTags = false }: Props) {
+export default function ToolCard({ tool, cta, freeLabel, onTagClick, showTags = false }: Props) {
   const Icon = iconMap[tool.icon] ?? FileText;
 
   return (
-    <div className="group flex flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md">
+    <div className="group relative flex flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md">
+      {/* 無料バッジ */}
+      {freeLabel && (
+        <span className="absolute right-4 top-4 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-700">
+          {freeLabel}
+        </span>
+      )}
       {/* アイコン */}
       <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-100">
         <Icon size={24} strokeWidth={1.75} />

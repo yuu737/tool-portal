@@ -39,6 +39,7 @@ export type Dictionary = {
   };
   toolCard: {
     cta: string;
+    freeLabel: string;
   };
   about: {
     title: string;

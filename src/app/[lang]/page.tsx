@@ -89,7 +89,7 @@ export default async function Home({ params }: Props) {
         <h2 className="mb-6 text-xl font-bold text-gray-800">{dict.toolsSection.heading}</h2>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {localizedTools.map((tool) => (
-            <ToolCard key={tool.id} tool={tool} cta={dict.toolCard.cta} />
+            <ToolCard key={tool.id} tool={tool} cta={dict.toolCard.cta} freeLabel={dict.toolCard.freeLabel} />
           ))}
         </div>
       </section>

@@ -51,7 +51,8 @@
     }
   },
   "toolCard": {
-    "cta": "Try it"
+    "cta": "Try it",
+    "freeLabel": "Free"
   },
   "about": {
     "title": "About",

@@ -36,11 +36,12 @@ type Props = {
   tools: LocalizedTool[];
   dict: ToolsDict;
   cta: string;
+  freeLabel?: string;
   categories: readonly string[];
 };
 
 /* ─── component ─── */
-export default function ToolsExplorer({ tools, dict, cta, categories }: Props) {
+export default function ToolsExplorer({ tools, dict, cta, freeLabel, categories }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -212,6 +213,7 @@ export default function ToolsExplorer({ tools, dict, cta, categories }: Props) {
               <ToolCard
                 tool={tool}
                 cta={cta}
+                freeLabel={freeLabel}
                 showTags
                 onTagClick={handleTagClick}
               />

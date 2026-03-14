@@ -64,6 +64,7 @@ export default async function ToolsPage({ params }: Props) {
           tools={localizedTools}
           dict={dict.toolsSection}
           cta={dict.toolCard.cta}
+          freeLabel={dict.toolCard.freeLabel}
           categories={CATEGORIES}
         />
       </Suspense>
