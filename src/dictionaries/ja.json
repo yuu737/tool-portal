@@ -1298,7 +1298,7 @@
   },
   "backgroundRemover": {
     "title": "AI 背景削除",
-    "description": "Edge AI でブラウザ完結の背景削除ツール。Transformers.js + WebAssembly 動作。画像のサーバー送信なし。完全プライバシー保護。",
+    "description": "Edge AI でブラウザ完結の背景削除ツール。Transformers.js + WebGPU/WASM 動作。画像のサーバー送信なし。完全プライバシー保護。",
     "dropZone": {
       "heading": "画像をここにドラッグ",
       "sub": "ドロップ・クリックして選択・Ctrl+V で貼り付けに対応"
@@ -1359,7 +1359,7 @@
       "features": {
         "heading": "主な機能",
         "items": [
-          "完全クライアントサイド Edge AI：briaai/RMBG-1.4 モデルが WebAssembly でブラウザ内動作。画像はサーバーに送信されず、プライバシーが完全に保護されます。",
+          "完全クライアントサイド Edge AI：briaai/RMBG-1.4 モデルが WebGPU（非対応環境では WASM フォールバック）でブラウザ内動作。画像はサーバーに送信されず、プライバシーが完全に保護されます。",
           "RMBG-1.4 の高精度：人物・商品・動物・車など多様な被写体に対応した最先端モデル。髪の毛・毛並み・細かいエッジでも remove.bg レベルのクオリティを実現します。",
           "リアルタイム Before/After 比較：ドラッグ可能なスライダーで元画像と処理結果をオーバーレイ比較。ダウンロード前に品質をすぐに確認できます。",
           "透明背景（アルファチャンネル）対応：出力は PNG 形式でアルファチャンネルを完全保持。Photoshop・Figma・Canva などデザインツールにそのまま読み込めます。",
@@ -1374,7 +1374,7 @@
         "items": [
           {
             "q": "画像はサーバーにアップロードされますか？",
-            "a": "いいえ。このツールは完全に静的なアプリケーションであり、サーバーは一切存在しません。AI モデルは WebAssembly によりブラウザ内で動作し、画像はブラウザのメモリ内でのみ処理されてネットワークには送信されません。"
+            "a": "いいえ。このツールは完全に静的なアプリケーションであり、サーバーは一切存在しません。AI モデルは WebGPU（非対応ブラウザでは WASM）によりブラウザ内で動作し、画像はブラウザのメモリ内でのみ処理されてネットワークには送信されません。"
           },
           {
             "q": "AI モデルのダウンロードサイズはどのくらいですか？",
@@ -1401,8 +1401,8 @@
       "deepDive": {
         "heading": "技術詳解：Transformers.js と RMBG-1.4 による Edge AI",
         "paragraphs": [
-          "このツールは Hugging Face の Transformers ライブラリの JavaScript 移植版である Transformers.js 上に構築されています。ONNX 量子化されたニューラルネットワークモデルを WebAssembly（WASM）バックエンドでブラウザ内実行することを可能にし、使用モデルは BRIA AI が開発した最先端の画像マッティングモデル briaai/RMBG-1.4 です。このモデルは remove.bg などのクラウドサービスと同等レベルの前景マスク品質を実現します。",
-          "AI 推論処理はすべて Web Worker 内で実行されるため、UI レンダリングを担当するメインスレッドがブロックされません。Worker は @xenova/transformers パッケージから AutoProcessor と AutoModel を読み込み、モデル取得・ONNX セッション生成・WebAssembly コンパイルを自動的に処理します。モデルは初回ダウンロード後にブラウザキャッシュに保存され、2 回目以降は 1 秒以内に読み込まれます。",
+          "このツールは Hugging Face の Transformers ライブラリの JavaScript 移植版である Transformers.js v3 上に構築されています。ONNX ニューラルネットワークモデルを WebGPU による GPU アクセラレーション推論でブラウザ内実行し、非対応環境では自動的に WASM にフォールバックします。使用モデルは BRIA AI が開発した最先端の画像マッティングモデル briaai/RMBG-1.4 です。このモデルは remove.bg などのクラウドサービスと同等レベルの前景マスク品質を実現します。",
+          "AI 推論処理はすべて Web Worker 内で実行されるため、UI レンダリングを担当するメインスレッドがブロックされません。Worker は @huggingface/transformers パッケージから AutoProcessor と AutoModel を読み込み、モデル取得・ONNX セッション生成・WebGPU/WASM バックエンド選択を自動的に処理します。モデルは初回ダウンロード後にブラウザキャッシュに保存され、2 回目以降は 1 秒以内に読み込まれます。",
           "画像が送信されると、Worker は Structured Clone の転送機能によりコピーなしで ArrayBuffer としてネイティブのバイト列を受け取ります。Worker 内で Blob URL を生成し、RawImage.fromURL() が RGB テンソルにデコードします。AutoProcessor が画像を 1024×1024 に正規化して pixel_values テンソルを生成し、モデルに入力します。",
           "モデルは同じ空間解像度の 1 チャンネル確率マスクを出力します。Worker は RawImage.fromTensor() と .resize() を使用してマスクを元の画像サイズに戻し、元のピクセルデータとマスク値をアルファチャンネルとして組み合わせた RGBA 結果を生成します。このデータはゼロコピー ArrayBuffer としてメインスレッドに転送されます。",
           "メインスレッドでは合成データを HTML Canvas 要素に描画します。背景色の変更はキャンバスを選択した色で塗りつぶした後に RGBA 画像を重ねる形で実現され、ブラウザのネイティブアルファ合成（source-over モード）を利用します。Before/After スライダーは絶対配置要素に CSS clip-path を適用することで実装され、JavaScript のアニメーションループなしに GPU アクセラレーションによるスムーズな視覚的トランジションを提供します。"

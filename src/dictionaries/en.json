@@ -1299,7 +1299,7 @@
   },
   "backgroundRemover": {
     "title": "AI Background Remover",
-    "description": "Remove image backgrounds instantly with Edge AI — fully in your browser. Powered by Transformers.js + WebAssembly. No server upload. Complete privacy protection.",
+    "description": "Remove image backgrounds instantly with Edge AI — fully in your browser. Powered by Transformers.js + WebGPU/WASM. No server upload. Complete privacy protection.",
     "dropZone": {
       "heading": "Drag image here",
       "sub": "Drop an image, click to browse, or paste with Ctrl + V"
@@ -1360,7 +1360,7 @@
       "features": {
         "heading": "Key Features",
         "items": [
-          "Fully client-side Edge AI: the briaai/RMBG-1.4 model runs entirely in your browser using WebAssembly. No image is ever sent to any server — your photos stay private.",
+          "Fully client-side Edge AI: the briaai/RMBG-1.4 model runs entirely in your browser using WebGPU (with WASM fallback). No image is ever sent to any server — your photos stay private.",
           "RMBG-1.4 precision: this state-of-the-art model delivers remove.bg-level quality for both people and objects with accurate edge detection on hair, fur, and fine details.",
           "Instant before/after comparison: a draggable slider overlays the original and result images so you can evaluate quality at a glance before downloading.",
           "Transparent background support: the output is a PNG with a full alpha channel — ready for use in design tools, presentations, e-commerce product shots, and more.",
@@ -1375,7 +1375,7 @@
         "items": [
           {
             "q": "Is my image uploaded to a server?",
-            "a": "No. This tool is a fully static application; there is no server of any kind. The AI model runs entirely in your browser via WebAssembly. Your image is processed in browser memory and never transmitted over the network."
+            "a": "No. This tool is a fully static application; there is no server of any kind. The AI model runs entirely in your browser via WebGPU (or WASM on older browsers). Your image is processed in browser memory and never transmitted over the network."
           },
           {
             "q": "How large is the AI model download?",
@@ -1402,8 +1402,8 @@
       "deepDive": {
         "heading": "Technical Deep-dive: Edge AI with Transformers.js and RMBG-1.4",
         "paragraphs": [
-          "This tool is built on Transformers.js, a JavaScript port of Hugging Face's Transformers library. It allows ONNX-quantized neural network models to run directly in the browser using WebAssembly (WASM) as the compute backend. The model used is briaai/RMBG-1.4, a state-of-the-art image matting model developed by BRIA AI. It produces high-quality foreground masks that rival cloud-based background removal services like remove.bg.",
-          "The entire inference pipeline runs inside a Web Worker so the browser's main thread is never blocked. The worker loads AutoProcessor and AutoModel from @xenova/transformers, which handles model fetching, ONNX session creation, and WebAssembly compilation. The model is cached in the browser after the first download, so subsequent visits load in under one second.",
+          "This tool is built on Transformers.js v3, a JavaScript port of Hugging Face's Transformers library. It allows ONNX neural network models to run directly in the browser using WebGPU for GPU-accelerated inference, with automatic WASM fallback for older browsers. The model used is briaai/RMBG-1.4, a state-of-the-art image matting model developed by BRIA AI. It produces high-quality foreground masks that rival cloud-based background removal services like remove.bg.",
+          "The entire inference pipeline runs inside a Web Worker so the browser's main thread is never blocked. The worker loads AutoProcessor and AutoModel from @huggingface/transformers, which handles model fetching, ONNX session creation, and WebGPU/WASM backend selection. The model is cached in the browser after the first download, so subsequent visits load in under one second.",
           "When an image is submitted, the Worker receives its raw bytes as an ArrayBuffer transferred without copying. A Blob URL is constructed inside the Worker, and RawImage.fromURL() decodes it into an RGB tensor. The AutoProcessor normalises the image to 1024×1024 and produces a pixel_values tensor ready for the model.",
           "The model outputs a single-channel probability mask at the same spatial resolution. The Worker uses RawImage.fromTensor() and .resize() to scale the mask back to the original image size, then assembles the final RGBA result by combining the original pixel data with the mask values as the alpha channel. This composited data is transferred back to the main thread as a zero-copy ArrayBuffer.",
           "On the main thread, the composited data is drawn to an HTML Canvas element. Background color replacement is achieved by filling the canvas with the selected color and drawing the RGBA image on top using the browser's native alpha compositing (source-over mode). The before/after slider uses CSS clip-path on an absolutely positioned element, giving smooth GPU-accelerated visual transitions without any JavaScript animation loop."

@@ -1,29 +1,48 @@
 /// <reference lib="webworker" />
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { AutoModel, AutoProcessor, RawImage, env } from "@xenova/transformers";
+import {
+  AutoModel,
+  AutoProcessor,
+  RawImage,
+  env,
+} from "@huggingface/transformers";
 
-// ─── WASM optimisations ──────────────────────────────────────────────────────
+// ─── Runtime config ──────────────────────────────────────────────────────────
 (env as any).allowLocalModels = false;
 (env as any).useBrowserCache = true;
-(env as any).backends.onnx.wasm.simd = true;
-// numThreads > 1 causes onnxruntime-web v1.14 to spawn blob sub-workers that
-// reference Turbopack module variables outside their scope → ReferenceError.
-// Keep single-threaded; SIMD + 1024px input still give meaningful speedup.
-(env as any).backends.onnx.wasm.numThreads = 1;
+
+// Disable WASM proxy — not needed inside a dedicated Worker
 (env as any).backends.onnx.wasm.proxy = false;
-// Note: WebGPU EP requires onnxruntime-web ≥1.17. This package pins v1.14,
-// so we stay on WASM. Upgrade @xenova/transformers to v3 for WebGPU support.
 
 const MODEL_ID = "briaai/RMBG-1.4";
+
+// ─── Device detection ────────────────────────────────────────────────────────
+
+async function detectDevice(): Promise<"webgpu" | "wasm"> {
+  if (typeof navigator !== "undefined" && (navigator as any).gpu) {
+    try {
+      const adapter = await (navigator as any).gpu.requestAdapter();
+      if (adapter) return "webgpu";
+    } catch {
+      // fall through to wasm
+    }
+  }
+  return "wasm";
+}
 
 // ─── Model singleton ─────────────────────────────────────────────────────────
 
 let model: any = null;
 let processor: any = null;
+let activeDevice: "webgpu" | "wasm" = "wasm";
 
 async function loadModel(): Promise<void> {
   if (model && processor) return;
+
+  activeDevice = await detectDevice();
+
+  self.postMessage({ type: "device", device: activeDevice });
 
   const fileProgress: Record<string, number> = {};
   let totalFiles = 0;
@@ -54,7 +73,9 @@ async function loadModel(): Promise<void> {
   });
 
   model = await AutoModel.from_pretrained(MODEL_ID, {
-    config: { model_type: "custom" },
+    device: activeDevice,
+    dtype: "fp32",
+    config: { model_type: "custom" } as any,
     progress_callback: progressCb,
   });
 }
