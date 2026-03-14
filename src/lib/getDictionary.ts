@@ -426,6 +426,8 @@ export type Dictionary = {
       smooth: string;
       feather: string;
       refine: string;
+      threshold: string;
+      thresholdHint: string;
     };
     brush: {
       label: string;
@@ -439,6 +441,7 @@ export type Dictionary = {
       size: string;
       undo: string;
       zoom: string;
+      resetToAI: string;
     };
     meta: ToolMeta;
     content: ToolContent;

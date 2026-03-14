@@ -1325,23 +1325,26 @@
       "custom": "Custom"
     },
     "edgeAdjust": {
-      "label": "Edge Adjustment",
-      "smooth": "Smooth",
-      "feather": "Feather",
-      "refine": "Refine"
+      "label": "Mask Adjustment",
+      "smooth": "Edge Smoothness",
+      "feather": "Edge Blur",
+      "refine": "Edge Sharpness",
+      "threshold": "Keep Amount",
+      "thresholdHint": "←Remove   Keep→"
     },
     "brush": {
       "label": "Edit Tools",
       "none": "View",
       "erase": "Erase Brush",
       "restore": "Restore Brush",
-      "lassoErase": "Lasso Erase",
-      "lassoRestore": "Lasso Restore",
-      "lassoHint": "Draw freehand to fill the selected area",
+      "lassoErase": "Surround & Delete",
+      "lassoRestore": "Surround & Restore",
+      "lassoHint": "Draw freehand to surround the area — fully manual",
       "compare": "Compare",
       "size": "Brush Size",
       "undo": "Undo",
-      "zoom": "Zoom"
+      "zoom": "Zoom",
+      "resetToAI": "Reset to AI result"
     },
     "meta": {
       "title": "AI Background Remover — Free, Local, Private | Yuustudio",

@@ -1324,23 +1324,26 @@
       "custom": "カスタム"
     },
     "edgeAdjust": {
-      "label": "エッジ調整",
-      "smooth": "スムーズ",
-      "feather": "フェザー",
-      "refine": "リファイン"
+      "label": "マスク調整",
+      "smooth": "エッジ補正",
+      "feather": "境界ぼかし",
+      "refine": "エッジの強さ",
+      "threshold": "残す量",
+      "thresholdHint": "←少なく　多く→"
     },
     "brush": {
       "label": "補正ツール",
       "none": "表示",
-      "erase": "削除ブラシ",
+      "erase": "消しブラシ",
       "restore": "復元ブラシ",
-      "lassoErase": "ラッソ削除",
-      "lassoRestore": "ラッソ復元",
-      "lassoHint": "範囲をフリーハンドで囲むと一括適用",
+      "lassoErase": "囲んで削除",
+      "lassoRestore": "囲んで復元",
+      "lassoHint": "フリーハンドで対象を囲むと一括適用（完全手動）",
       "compare": "比較",
       "size": "ブラシサイズ",
       "undo": "元に戻す",
-      "zoom": "ズーム"
+      "zoom": "ズーム",
+      "resetToAI": "AIの最初の結果に戻す"
     },
     "meta": {
       "title": "AI 背景削除 — 無料・ローカル・プライバシー保護 | Yuustudio",

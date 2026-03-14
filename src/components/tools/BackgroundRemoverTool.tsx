@@ -103,9 +103,12 @@ function buildCompositeAlpha(
   height: number,
   smooth: number,
   feather: number,
-  refine: number
+  refine: number,
+  threshold: number   // 0-10, default 5 (=auto Otsu). <5=keep less, >5=keep more
 ): Uint8Array<ArrayBuffer> {
-  const thresh = otsuThreshold(rawMask);
+  const otsu = otsuThreshold(rawMask);
+  // threshold=5 → no offset; each step shifts by 12 (range ±60)
+  const thresh = Math.max(0, Math.min(255, otsu + (5 - threshold) * 12));
   let mask: Uint8Array<ArrayBuffer> = rawMask.slice();
 
   if (smooth > 0) mask = boxBlur(mask, width, height, smooth);
@@ -181,6 +184,7 @@ export default function BackgroundRemoverTool({ dict }: Props) {
   const [smooth,      setSmooth]      = useState(0);
   const [feather,     setFeather]     = useState(0);
   const [refine,      setRefine]      = useState(0);
+  const [threshold,   setThreshold]   = useState(5);
   const [editMode,    setEditMode]    = useState<EditMode>("none");
   const [brushSize,   setBrushSize]   = useState(20);
   const [zoom,        setZoom]        = useState(1);
@@ -221,6 +225,7 @@ export default function BackgroundRemoverTool({ dict }: Props) {
   const smoothRef       = useRef(smooth);
   const featherRef      = useRef(feather);
   const refineRef       = useRef(refine);
+  const thresholdRef    = useRef(threshold);
   const editModeRef     = useRef(editMode);
   const brushSizeRef    = useRef(brushSize);
   const showCompareRef  = useRef(showCompare);
@@ -231,6 +236,7 @@ export default function BackgroundRemoverTool({ dict }: Props) {
   useEffect(() => { smoothRef.current      = smooth;      }, [smooth]);
   useEffect(() => { featherRef.current     = feather;     }, [feather]);
   useEffect(() => { refineRef.current      = refine;      }, [refine]);
+  useEffect(() => { thresholdRef.current   = threshold;   }, [threshold]);
   useEffect(() => { editModeRef.current    = editMode;    }, [editMode]);
   useEffect(() => { brushSizeRef.current   = brushSize;   }, [brushSize]);
   useEffect(() => { showCompareRef.current = showCompare; }, [showCompare]);
@@ -445,6 +451,7 @@ export default function BackgroundRemoverTool({ dict }: Props) {
           setSmooth(1);
           setRefine(8);
           setFeather(1);
+          setThreshold(5);
           setStatus("done");
           break;
         }
@@ -470,11 +477,11 @@ export default function BackgroundRemoverTool({ dict }: Props) {
     const { width, height } = imgDimsRef.current;
     computedAlphaRef.current = buildCompositeAlpha(
       maskDataRef.current, width, height,
-      smooth, feather, refine
+      smooth, feather, refine, threshold
     );
     renderCanvas();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, bgType, customColor, smooth, feather, refine, renderCanvas]);
+  }, [status, bgType, customColor, smooth, feather, refine, threshold, renderCanvas]);
 
   // ─── Ctrl+Wheel zoom (non-passive) ────────────────────────────────────────
   useEffect(() => {
@@ -707,8 +714,28 @@ export default function BackgroundRemoverTool({ dict }: Props) {
     setSmooth(0);
     setFeather(0);
     setRefine(0);
+    setThreshold(5);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
+
+  const resetToAI = useCallback(() => {
+    if (!maskDataRef.current) return;
+    const { width, height } = imgDimsRef.current;
+    brushOverrideRef.current = new Uint8Array(width * height);
+    maskHistoryRef.current   = [];
+    lassoPointsRef.current   = [];
+    setCanUndo(false);
+    // Rebuild with default params immediately (in case state values haven't changed)
+    computedAlphaRef.current = buildCompositeAlpha(
+      maskDataRef.current, width, height, 1, 1, 8, 5
+    );
+    renderCanvas();
+    // Also reset state so sliders reflect the defaults
+    setSmooth(1);
+    setRefine(8);
+    setFeather(1);
+    setThreshold(5);
+  }, [renderCanvas]);
 
   // ── derived flags ──
   const isReady = status === "ready" || status === "done";
@@ -1067,13 +1094,17 @@ export default function BackgroundRemoverTool({ dict }: Props) {
               </p>
               {(
                 [
-                  { key: "smooth" as const,  val: smooth,  set: setSmooth,  label: dict.edgeAdjust.smooth  },
-                  { key: "feather" as const, val: feather, set: setFeather, label: dict.edgeAdjust.feather },
-                  { key: "refine" as const,  val: refine,  set: setRefine,  label: dict.edgeAdjust.refine  },
+                  { key: "threshold" as const, val: threshold, set: setThreshold, label: dict.edgeAdjust.threshold, hint: dict.edgeAdjust.thresholdHint },
+                  { key: "smooth"    as const, val: smooth,    set: setSmooth,    label: dict.edgeAdjust.smooth,    hint: undefined },
+                  { key: "feather"   as const, val: feather,   set: setFeather,   label: dict.edgeAdjust.feather,   hint: undefined },
+                  { key: "refine"    as const, val: refine,    set: setRefine,    label: dict.edgeAdjust.refine,    hint: undefined },
                 ] as const
-              ).map(({ val, set, label }) => (
+              ).map(({ val, set, label, hint }) => (
                 <label key={label} className="flex items-center gap-3">
-                  <span className="w-16 shrink-0 text-xs text-gray-500">{label}</span>
+                  <span className="w-20 shrink-0 text-xs text-gray-500 leading-tight">
+                    {label}
+                    {hint && <span className="block text-[10px] text-gray-400">{hint}</span>}
+                  </span>
                   <input type="range" min={0} max={10} value={val}
                     onChange={(e) => set(Number(e.target.value))}
                     className="flex-1 accent-indigo-600" />
@@ -1091,6 +1122,13 @@ export default function BackgroundRemoverTool({ dict }: Props) {
             >
               <Download size={16} />
               {dict.downloadPNG}
+            </button>
+            <button
+              onClick={resetToAI}
+              className="flex items-center gap-2 rounded-xl border border-indigo-300 bg-indigo-50 px-5 py-3 text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition-colors"
+            >
+              <RefreshCw size={15} />
+              {dict.brush.resetToAI}
             </button>
             <button
               onClick={reset}
