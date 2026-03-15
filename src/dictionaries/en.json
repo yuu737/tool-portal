@@ -1300,8 +1300,8 @@
     }
   },
   "imageUpscaler": {
-    "title": "AI Image Upscaler",
-    "description": "Upscale images up to 4× using Real-ESRGAN AI — all processed locally in your browser with complete privacy.",
+    "title": "AI Denoiser & Upscaler",
+    "description": "Remove noise and enhance image quality with Real-ESRGAN AI. Denoise at original size (×1), or upscale 2×/4×. Runs entirely in your browser — complete privacy guaranteed.",
     "dropZone": {
       "heading": "Drag your image here",
       "sub": "Drop, click to browse, or Ctrl+V to paste"
@@ -1312,10 +1312,10 @@
     "loadingModel": "Loading AI model...",
     "mode": {
       "label": "Output Mode",
-      "x1": "×1 Enhance",
+      "x1": "×1 Denoise",
       "x2": "×2 Upscale",
       "x4": "×4 Upscale",
-      "hint": "×1 enhances quality at original size, ×2/×4 upscales the image"
+      "hint": "×1 removes noise at original size; ×2/×4 denoises and upscales the image"
     },
     "quality": {
       "label": "Processing Quality",
@@ -1323,7 +1323,7 @@
       "high": "High Quality",
       "hint": "Processes the full original image with AI. Large images take longer."
     },
-    "enhance": "Upscale with AI",
+    "enhance": "Denoise & Enhance with AI",
     "beforeLabel": "Before",
     "afterLabel": "After",
     "downloadPNG": "Download Image",
@@ -1336,9 +1336,9 @@
       "dimensions": "Size"
     },
     "meta": {
-      "title": "[100% Free] AI Image Upscaler — Real-ESRGAN 4× Super Resolution | Yuustudio",
-      "description": "Completely free AI image upscaler with no registration required. Upscale images up to 4× with Real-ESRGAN — works directly in your browser. No server upload, complete privacy protection.",
-      "keywords": ["AI image upscaler", "Real-ESRGAN", "super resolution", "upscale image", "enhance image", "4x upscale", "browser", "free"]
+      "title": "[100% Free] AI Image Denoiser & Upscaler — Real-ESRGAN Noise Removal | Yuustudio",
+      "description": "Completely free AI image denoiser with no registration required. Remove noise and upscale up to 4× with Real-ESRGAN — works directly in your browser. No server upload, complete privacy protection.",
+      "keywords": ["AI image denoiser", "noise removal", "AI image upscaler", "Real-ESRGAN", "super resolution", "denoise image", "4x upscale", "browser", "free"]
     },
     "content": {
       "howTo": {
@@ -1594,8 +1594,8 @@
       "description": "Remove image backgrounds with Edge AI — fully in your browser. No upload, no server."
     },
     "image-upscaler": {
-      "name": "AI Image Upscaler",
-      "description": "Upscale images with AI. 2x and 4x HD upscaling with noise reduction — fully in your browser."
+      "name": "AI Denoiser & Upscaler",
+      "description": "Remove noise and upscale images with AI. 2×/4× HD upscaling — fully in your browser."
     }
   }
 }
