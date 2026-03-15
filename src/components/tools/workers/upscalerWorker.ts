@@ -244,20 +244,9 @@ async function processImage(
   const cropW = inW * SCALE;
   const cropH = inH * SCALE;
 
-  // 8. Determine final output size based on mode
-  let finalW: number;
-  let finalH: number;
-  if (mode === 4) {
-    finalW = cropW;
-    finalH = cropH;
-  } else if (mode === 2) {
-    finalW = Math.round(cropW / 2);
-    finalH = Math.round(cropH / 2);
-  } else {
-    // mode === 1: same as input
-    finalW = inW;
-    finalH = inH;
-  }
+  // 8. Determine final output size based on mode (relative to ORIGINAL dimensions)
+  const finalW = origW * mode;
+  const finalH = origH * mode;
 
   // 9. Draw cropped result, then scale to final size
   const cropCanvas = new OffscreenCanvas(cropW, cropH);
