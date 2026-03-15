@@ -31,6 +31,7 @@ export default function ImageUpscalerTool({ dict }: Props) {
   const [progress, setProgress] = useState({ total: 0, done: 0 });
 
   const [mode, setMode] = useState<Mode>(2);
+  const [highQuality, setHighQuality] = useState(false);
 
   const [origUrl, setOrigUrl] = useState("");
   const [resultUrl, setResultUrl] = useState("");
@@ -128,11 +129,11 @@ export default function ImageUpscalerTool({ dict }: Props) {
     setProgress({ total: 0, done: 0 });
     file.arrayBuffer().then((imageBuffer) => {
       workerRef.current!.postMessage(
-        { type: "process", data: { imageBuffer, mimeType: file.type, mode, maxInput: MAX_INPUT } },
+        { type: "process", data: { imageBuffer, mimeType: file.type, mode, maxInput: highQuality ? Infinity : MAX_INPUT } },
         [imageBuffer]
       );
     });
-  }, [mode]);
+  }, [mode, highQuality]);
 
   // ─── Drag & drop / paste / input ───────────────────────────────────────────
   const onDragOver = (e: DragEvent) => { e.preventDefault(); setIsDragging(true); };
@@ -261,6 +262,31 @@ export default function ImageUpscalerTool({ dict }: Props) {
                 ))}
               </div>
               <p className="text-xs text-gray-400">{dict.mode.hint}</p>
+            </div>
+
+            {/* Quality */}
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700">{dict.quality.label}</label>
+              <div className="flex gap-2">
+                {([false, true] as const).map((hq) => (
+                  <button
+                    key={String(hq)}
+                    onClick={() => setHighQuality(hq)}
+                    disabled={status === "processing"}
+                    className={`flex-1 rounded-xl border px-4 py-3 text-sm font-semibold transition-colors
+                      ${highQuality === hq
+                        ? hq
+                          ? "border-purple-500 bg-purple-50 text-purple-700"
+                          : "border-blue-500 bg-blue-50 text-blue-700"
+                        : "border-gray-200 bg-gray-50 text-gray-600 hover:border-blue-300"}`}
+                  >
+                    {hq ? dict.quality.high : dict.quality.standard}
+                  </button>
+                ))}
+              </div>
+              {highQuality && (
+                <p className="text-xs text-amber-600">{dict.quality.hint}</p>
+              )}
             </div>
 
             <button

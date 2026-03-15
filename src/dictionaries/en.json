@@ -1317,6 +1317,12 @@
       "x4": "×4 Upscale",
       "hint": "×1 enhances quality at original size, ×2/×4 upscales the image"
     },
+    "quality": {
+      "label": "Processing Quality",
+      "standard": "Standard (Fast)",
+      "high": "High Quality",
+      "hint": "Processes the full original image with AI. Large images take longer."
+    },
     "enhance": "Upscale with AI",
     "beforeLabel": "Before",
     "afterLabel": "After",

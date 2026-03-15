@@ -1316,6 +1316,12 @@
       "x4": "×4 拡大",
       "hint": "×1 は元サイズのまま高画質化、×2/×4 は拡大して出力します"
     },
+    "quality": {
+      "label": "処理品質",
+      "standard": "標準（高速）",
+      "high": "高品質",
+      "hint": "元画像をそのままAI処理します。大きな画像は時間がかかります"
+    },
     "enhance": "AIで高画質化する",
     "beforeLabel": "Before",
     "afterLabel": "After",

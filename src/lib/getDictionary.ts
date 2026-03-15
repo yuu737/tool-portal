@@ -407,6 +407,7 @@ export type Dictionary = {
     processing: string;
     loadingModel: string;
     mode: { label: string; x1: string; x2: string; x4: string; hint: string };
+    quality: { label: string; standard: string; high: string; hint: string };
     enhance: string;
     beforeLabel: string;
     afterLabel: string;
